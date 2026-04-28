@@ -13,11 +13,14 @@ interface Props {
   params: Promise<{ slug: string }>
 }
 
+export const dynamicParams = true
+
 export async function generateStaticParams() {
-  const supabase = createClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  if (!url || !key) return []
+
+  const supabase = createClient(url, key)
   const { data: products } = await supabase
     .from('products')
     .select('name')
