@@ -31,14 +31,13 @@ export default async function AdminLayout({
     redirect('/login')
   }
 
-  // Check admin role from user metadata or profiles table
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('role')
-    .eq('id', user.id)
-    .single()
+  // Check admin: compare user email with ADMIN_EMAIL env
+  const adminEmails = (process.env.ADMIN_EMAIL || '')
+    .split(',')
+    .map((e) => e.trim().toLowerCase())
+  const isAdmin = adminEmails.includes(user.email?.toLowerCase() ?? '')
 
-  if (!profile || profile.role !== 'admin') {
+  if (!isAdmin) {
     redirect('/')
   }
 

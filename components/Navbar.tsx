@@ -28,7 +28,7 @@ export default function Navbar() {
               Katalog
             </Link>
             <Link
-              href="/auth/login"
+              href="/login"
               className="text-sm font-medium text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
               style={{ backgroundColor: '#534AB7' }}
             >
