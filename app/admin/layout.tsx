@@ -1,6 +1,6 @@
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
 import { redirect } from 'next/navigation'
+import { createServerClient } from '@supabase/ssr'
 import AdminLayoutClient from './AdminLayoutClient'
 
 export default async function AdminLayout({
@@ -18,26 +18,34 @@ export default async function AdminLayout({
         getAll() {
           return cookieStore.getAll()
         },
-        setAll() {},
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {}
+        },
       },
     }
   )
 
   const {
     data: { user },
+    error,
   } = await supabase.auth.getUser()
 
-  if (!user) {
+  if (error || !user) {
     redirect('/login')
   }
 
-  // Check admin: compare user email with ADMIN_EMAIL env
-  const adminEmails = (process.env.ADMIN_EMAIL || '')
+  const adminEmails = (process.env.ADMIN_EMAIL ?? '')
     .split(',')
     .map((e) => e.trim().toLowerCase())
-  const isAdmin = adminEmails.includes(user.email?.toLowerCase() ?? '')
+    .filter(Boolean)
 
-  if (!isAdmin) {
+  const userEmail = user.email?.toLowerCase() ?? ''
+
+  if (!adminEmails.includes(userEmail)) {
     redirect('/')
   }
 
