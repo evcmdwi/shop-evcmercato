@@ -43,15 +43,16 @@ export default function RegisterPage() {
       return
     }
 
-    // 2. Insert into public.users table
-    const { error: insertError } = await supabase.from('users').insert({
-      id: data.user.id,
-      email,
-      name,
+    // 2. Insert into public.users via server-side API route (bypasses RLS using service role)
+    const res = await fetch('/api/auth/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: data.user.id, email, name }),
     })
 
-    if (insertError) {
-      setError(`Akun dibuat, tapi gagal simpan profil: ${insertError.message}`)
+    if (!res.ok) {
+      const json = (await res.json()) as { error?: string }
+      setError(`Akun dibuat, tapi gagal simpan profil: ${json.error ?? 'Unknown error'}`)
       setLoading(false)
       return
     }
