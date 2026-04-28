@@ -1,7 +1,8 @@
 import { notFound } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase-server'
+import { createClient } from '@supabase/supabase-js'
+import { createClient as createServerClient } from '@/lib/supabase-server'
 import Navbar from '@/components/Navbar'
 import AddToCartButton from './AddToCartButton'
 import { formatRupiah, slugify } from '@/lib/utils'
@@ -13,7 +14,10 @@ interface Props {
 }
 
 export async function generateStaticParams() {
-  const supabase = await createClient()
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   const { data: products } = await supabase
     .from('products')
     .select('name')
@@ -26,7 +30,7 @@ export async function generateStaticParams() {
 
 export async function generateMetadata({ params }: Props) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = await createServerClient()
   const { data: products } = await supabase
     .from('products')
     .select('name, description')
@@ -45,7 +49,7 @@ export async function generateMetadata({ params }: Props) {
 
 export default async function ProductDetailPage({ params }: Props) {
   const { slug } = await params
-  const supabase = await createClient()
+  const supabase = await createServerClient()
 
   const { data: products } = await supabase
     .from('products')
