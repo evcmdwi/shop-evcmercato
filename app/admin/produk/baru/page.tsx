@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FormField, Input, Textarea, Select, Toggle } from '@/components/admin/AdminForm'
 import { toast } from '@/components/admin/Toast'
+import ImageUploader from '@/components/admin/ImageUploader'
+import VariantImageUploader from '@/components/admin/VariantImageUploader'
 
 interface Category {
   id: string
@@ -40,7 +42,7 @@ export default function TambahProdukPage() {
     is_active: true,
   })
 
-  const [images, setImages] = useState<string[]>([''])
+  const [images, setImages] = useState<string[]>([])
   const [hasVariants, setHasVariants] = useState(false)
   const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
 
@@ -50,21 +52,6 @@ export default function TambahProdukPage() {
       .then((j) => setCategories(j.data ?? []))
       .catch(() => {})
   }, [])
-
-  function addImage() {
-    if (images.length < 5) setImages([...images, ''])
-  }
-
-  function removeImage(index: number) {
-    if (index === 0) return
-    setImages(images.filter((_, i) => i !== index))
-  }
-
-  function updateImage(index: number, value: string) {
-    const next = [...images]
-    next[index] = value
-    setImages(next)
-  }
 
   function addVariant() {
     setVariants([...variants, { name: '', price: '', stock: '', image_url: '' }])
@@ -169,35 +156,12 @@ export default function TambahProdukPage() {
         </FormField>
 
         {/* Images */}
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-2">Gambar Produk</label>
-          <div className="space-y-2">
-            {images.map((img, idx) => (
-              <div key={idx} className="flex gap-2 items-center">
-                <Input
-                  value={img}
-                  onChange={(e) => updateImage(idx, e.target.value)}
-                  placeholder={idx === 0 ? 'URL gambar utama (https://...)' : `URL gambar ${idx + 1} (opsional)`}
-                />
-                {idx > 0 && (
-                  <button
-                    type="button"
-                    onClick={() => removeImage(idx)}
-                    className="shrink-0 w-8 h-8 flex items-center justify-center rounded-lg border border-red-200 text-red-400 hover:bg-red-50 text-lg leading-none"
-                  >
-                    ×
-                  </button>
-                )}
-              </div>
-            ))}
-          </div>
-          {images.length < 5 && (
-            <button type="button" onClick={addImage} className="mt-2 text-sm text-[#534AB7] hover:underline">
-              + Tambah Gambar
-            </button>
-          )}
-          <p className="text-xs text-slate-400 mt-1">Gambar pertama adalah gambar utama. Maks 5 gambar.</p>
-        </div>
+        <ImageUploader
+          value={images}
+          onChange={setImages}
+          maxImages={5}
+          label="Foto Produk"
+        />
 
         {/* Has Variants */}
         <FormField label="Produk Memiliki Varian?">
@@ -232,7 +196,7 @@ export default function TambahProdukPage() {
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Nama Varian</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Harga (Rp)</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Stok</th>
-                    <th className="text-left px-3 py-2 font-medium text-slate-600">Foto (URL)</th>
+                    <th className="text-left px-3 py-2 font-medium text-slate-600">Foto</th>
                     <th className="w-10 px-2 py-2"></th>
                   </tr>
                 </thead>
@@ -249,7 +213,10 @@ export default function TambahProdukPage() {
                         <input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(idx, 'stock', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
                       </td>
                       <td className="px-3 py-2">
-                        <input type="url" value={v.image_url} onChange={(e) => updateVariant(idx, 'image_url', e.target.value)} placeholder="https://... (opsional)" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
+                        <VariantImageUploader
+                          value={v.image_url}
+                          onChange={(url) => updateVariant(idx, 'image_url', url)}
+                        />
                       </td>
                       <td className="px-2 py-2 text-center">
                         <button type="button" onClick={() => removeVariant(idx)} disabled={variants.length === 1} className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:bg-red-50 disabled:opacity-30 text-lg leading-none">×</button>
