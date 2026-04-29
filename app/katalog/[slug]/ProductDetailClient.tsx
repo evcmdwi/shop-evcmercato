@@ -40,9 +40,7 @@ export default function ProductDetailClient({ product }: Props) {
     ? (selectedVariant ? selectedVariantStock === 0 : false)
     : product.stock === 0
 
-  const soldCount = (product as { total_sold?: number; initial_sold_count?: number }).total_sold
-    ?? (product as { initial_sold_count?: number }).initial_sold_count
-    ?? 0
+  const soldCount = product.total_sold ?? product.initial_sold_count ?? 0
 
   const addToCartDisabled = (product.has_variants && !selectedVariant) || isOutOfStock
 
