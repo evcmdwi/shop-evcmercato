@@ -80,11 +80,12 @@ export async function PATCH(req: NextRequest, { params }: Params) {
     await supabaseAdmin.from('product_variants').delete().eq('product_id', id)
 
     if (has_variants && variants && variants.length > 0) {
-      const variantRows = variants.map((v: { name: string; price: number; stock: number }, i: number) => ({
+      const variantRows = variants.map((v: { name: string; price: number; stock: number; image_url?: string | null }, i: number) => ({
         product_id: id,
         name: v.name,
         price: Number(v.price),
         stock: Number(v.stock),
+        image_url: v.image_url ?? null,
         is_active: true,
         sort_order: i,
       }))

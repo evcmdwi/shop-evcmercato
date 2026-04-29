@@ -45,33 +45,40 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
-  const auth = await checkAdminAuth(req)
-  if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
-  }
-
-  const body = await req.json()
-  const { name, slug, description } = body
-
-  if (!name?.trim()) {
-    return NextResponse.json({ data: null, error: 'Nama kategori wajib diisi' }, { status: 400 })
-  }
-  if (!slug?.trim()) {
-    return NextResponse.json({ data: null, error: 'Slug wajib diisi' }, { status: 400 })
-  }
-
-  const { data, error } = await supabaseAdmin
-    .from('categories')
-    .insert({ name: name.trim(), slug: slug.trim(), description: description?.trim() || null })
-    .select()
-    .single()
-
-  if (error) {
-    if (error.code === '23505') {
-      return NextResponse.json({ data: null, error: 'Slug sudah digunakan' }, { status: 409 })
+  try {
+    const auth = await checkAdminAuth(req)
+    if (!auth.ok) {
+      return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
     }
-    return NextResponse.json({ data: null, error: error.message }, { status: 500 })
-  }
 
-  return NextResponse.json({ data, error: null }, { status: 201 })
+    const body = await req.json()
+    const { name, slug: rawSlug, description } = body
+
+    if (!name?.trim()) {
+      return NextResponse.json({ data: null, error: 'Nama kategori wajib diisi' }, { status: 400 })
+    }
+
+    // Auto-generate slug if not provided
+    const slug = rawSlug?.trim() ||
+      name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+
+    const { data, error } = await supabaseAdmin
+      .from('categories')
+      .insert({ name: name.trim(), slug, description: description?.trim() || null })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Insert category error:', error)
+      if (error.code === '23505') {
+        return NextResponse.json({ data: null, error: 'Slug sudah digunakan' }, { status: 409 })
+      }
+      return NextResponse.json({ data: null, error: error.message }, { status: 500 })
+    }
+
+    return NextResponse.json({ data, error: null }, { status: 201 })
+  } catch (err) {
+    console.error('Categories POST error:', err)
+    return NextResponse.json({ data: null, error: 'Server error' }, { status: 500 })
+  }
 }

@@ -7,14 +7,18 @@ import { Package } from 'lucide-react'
 interface ProductImageCarouselProps {
   images: string[]
   productName: string
+  variantImage?: string | null
 }
 
-export default function ProductImageCarousel({ images, productName }: ProductImageCarouselProps) {
+export default function ProductImageCarousel({ images, productName, variantImage }: ProductImageCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
 
   const validImages = (images ?? []).filter(Boolean)
 
-  if (validImages.length === 0) {
+  // If a variant image is provided, show it as the main image
+  const displayMainImage = variantImage || validImages[selectedIndex]
+
+  if (validImages.length === 0 && !variantImage) {
     return (
       <div
         className="relative aspect-square rounded-xl overflow-hidden flex items-center justify-center"
@@ -30,7 +34,7 @@ export default function ProductImageCarousel({ images, productName }: ProductIma
       {/* Main image */}
       <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-50">
         <Image
-          src={validImages[selectedIndex]}
+          src={displayMainImage!}
           alt={`${productName} - gambar ${selectedIndex + 1}`}
           fill
           className="object-cover transition-opacity duration-200"
