@@ -4,10 +4,10 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(req: NextRequest) {
   // Auth check
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
     return NextResponse.json(
-      { data: null, error: auth.message, message: auth.message },
+      { data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden', message: auth.status === 401 ? 'Unauthorized' : 'Forbidden' },
       { status: auth.status }
     )
   }

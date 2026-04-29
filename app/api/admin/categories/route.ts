@@ -3,9 +3,9 @@ import { checkAdminAuth } from '@/lib/admin-auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(req: NextRequest) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const { searchParams } = new URL(req.url)
@@ -46,9 +46,9 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const auth = await checkAdminAuth(req)
+    const auth = await checkAdminAuth()
     if (!auth.ok) {
-      return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+      return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
     }
 
     const body = await req.json()
