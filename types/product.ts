@@ -6,6 +6,16 @@ export interface Category {
   created_at: string
 }
 
+export interface ProductVariant {
+  id: string
+  product_id: string
+  name: string
+  price: number
+  stock: number
+  is_active: boolean
+  sort_order: number
+}
+
 export interface Product {
   id: string
   name: string
@@ -13,10 +23,13 @@ export interface Product {
   price: number
   category_id: string | null
   image_url: string | null
+  images: string[] | null
+  has_variants: boolean
   stock: number
   is_active: boolean
   created_at: string
   categories?: Category | null
+  product_variants?: ProductVariant[]
 }
 
 export interface ProductWithCategory extends Product {
