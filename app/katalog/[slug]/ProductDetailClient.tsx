@@ -6,7 +6,7 @@ import { ArrowLeft, Tag, Gift } from 'lucide-react'
 import ProductImageCarousel from '@/components/ProductImageCarousel'
 import VariantSelector, { ProductVariant } from '@/components/VariantSelector'
 import AddToCartButton from './AddToCartButton'
-import { formatRupiah } from '@/lib/utils'
+import { formatRupiah, formatPriceRange, getTotalStock, formatSoldCount } from '@/lib/utils'
 import type { ProductWithCategory } from '@/types/product'
 
 interface Props {
@@ -25,8 +25,26 @@ export default function ProductDetailClient({ product }: Props) {
 
   const variants: ProductVariant[] = (product.product_variants ?? []).filter((v) => v.is_active)
 
-  const displayStock = selectedVariant ? selectedVariant.stock : product.stock
-  const addToCartDisabled = product.has_variants && !selectedVariant
+  const displayPrice = product.has_variants && variants.length
+    ? (selectedVariant ? formatRupiah(selectedVariant.price) : formatPriceRange(variants))
+    : formatRupiah(product.price)
+
+  const totalStock = product.has_variants && variants.length
+    ? getTotalStock(variants)
+    : product.stock
+
+  const displayStock = selectedVariant ? selectedVariant.stock : totalStock
+
+  const selectedVariantStock = selectedVariant?.stock ?? 0
+  const isOutOfStock = product.has_variants
+    ? (selectedVariant ? selectedVariantStock === 0 : false)
+    : product.stock === 0
+
+  const soldCount = (product as { total_sold?: number; initial_sold_count?: number }).total_sold
+    ?? (product as { initial_sold_count?: number }).initial_sold_count
+    ?? 0
+
+  const addToCartDisabled = (product.has_variants && !selectedVariant) || isOutOfStock
 
   return (
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -58,12 +76,14 @@ export default function ProductDetailClient({ product }: Props) {
 
           <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
 
-          {/* Price — show if no variants */}
-          {!product.has_variants && (
-            <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
-              {formatRupiah(product.price)}
-            </p>
+          {soldCount > 0 && (
+            <span className="text-sm text-gray-500">{formatSoldCount(soldCount)}</span>
           )}
+
+          {/* Price */}
+          <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
+            {displayPrice}
+          </p>
 
           {product.description && (
             <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
@@ -82,28 +102,33 @@ export default function ProductDetailClient({ product }: Props) {
             </div>
           )}
 
-          {/* Stock (only if no variants) */}
-          {!product.has_variants && (
-            <div className="flex items-center gap-2 text-sm">
-              <span className="text-gray-500">Stok:</span>
-              {displayStock > 5 ? (
-                <span className="font-medium text-green-600">{displayStock} tersedia</span>
-              ) : displayStock > 0 ? (
-                <span className="font-medium text-orange-500">Tersisa {displayStock}</span>
-              ) : (
-                <span className="font-medium text-red-500">Habis</span>
-              )}
-            </div>
-          )}
+          {/* Stock */}
+          <div className="flex items-center gap-2 text-sm">
+            <span className="text-gray-500">Stok:</span>
+            {displayStock > 5 ? (
+              <span className="font-medium text-green-600">{displayStock} tersedia</span>
+            ) : displayStock > 0 ? (
+              <span className="font-medium text-orange-500">Tersisa {displayStock}</span>
+            ) : (
+              <span className="font-medium text-red-500">Habis</span>
+            )}
+          </div>
 
           {/* Actions */}
           <div className="flex flex-col gap-3 mt-2">
-            {addToCartDisabled ? (
+            {product.has_variants && !selectedVariant ? (
               <button
                 disabled
                 className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-[#534AB7]/40 text-white cursor-not-allowed"
               >
                 Pilih varian terlebih dahulu
+              </button>
+            ) : isOutOfStock ? (
+              <button
+                disabled
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-gray-200 text-gray-500 cursor-not-allowed"
+              >
+                Stok Habis
               </button>
             ) : (
               <AddToCartButton product={product} />

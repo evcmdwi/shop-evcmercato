@@ -29,7 +29,7 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
   // Build products query
   let query = supabase
     .from('products')
-    .select('*, initial_sold_count, categories(*), product_sold_counts!inner(total_sold)')
+    .select('*, categories(*), product_variants(price, stock, is_active)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 

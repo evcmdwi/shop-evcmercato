@@ -30,6 +30,8 @@ export interface Product {
   initial_sold_count: number
   total_sold?: number
   created_at: string
+  initial_sold_count?: number
+  total_sold?: number
   categories?: Category | null
   product_variants?: ProductVariant[]
 }
