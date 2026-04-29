@@ -8,15 +8,17 @@ export interface ProductVariant {
   price: number
   stock: number
   is_active: boolean
+  image_url?: string | null
 }
 
 interface VariantSelectorProps {
   variants: ProductVariant[]
   selectedVariant: ProductVariant | null
   onSelect: (variant: ProductVariant) => void
+  onImageChange?: (imageUrl: string | null) => void
 }
 
-export default function VariantSelector({ variants, selectedVariant, onSelect }: VariantSelectorProps) {
+export default function VariantSelector({ variants, selectedVariant, onSelect, onImageChange }: VariantSelectorProps) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -27,7 +29,12 @@ export default function VariantSelector({ variants, selectedVariant, onSelect }:
             <button
               key={variant.id}
               type="button"
-              onClick={() => !isOutOfStock && onSelect(variant)}
+              onClick={() => {
+                if (!isOutOfStock) {
+                  onSelect(variant)
+                  if (onImageChange) onImageChange(variant.image_url ?? null)
+                }
+              }}
               disabled={isOutOfStock}
               className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
                 isSelected

@@ -15,6 +15,7 @@ interface Props {
 
 export default function ProductDetailClient({ product }: Props) {
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
+  const [variantImage, setVariantImage] = useState<string | null>(null)
 
   const images = Array.isArray(product.images) && product.images.length > 0
     ? product.images
@@ -41,7 +42,7 @@ export default function ProductDetailClient({ product }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
         {/* Image carousel */}
-        <ProductImageCarousel images={images} productName={product.name} />
+        <ProductImageCarousel images={images} productName={product.name} variantImage={variantImage} />
 
         {/* Details */}
         <div className="flex flex-col gap-4">
@@ -76,6 +77,7 @@ export default function ProductDetailClient({ product }: Props) {
                 variants={variants}
                 selectedVariant={selectedVariant}
                 onSelect={setSelectedVariant}
+                onImageChange={setVariantImage}
               />
             </div>
           )}

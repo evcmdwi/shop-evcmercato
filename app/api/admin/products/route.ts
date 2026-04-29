@@ -77,6 +77,7 @@ export async function POST(req: NextRequest) {
       price: v.price,
       stock: v.stock ?? 0,
       sku: v.sku ?? null,
+      image_url: v.image_url ?? null,
       is_active: v.is_active ?? true,
       sort_order: v.sort_order ?? i,
     }))

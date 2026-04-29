@@ -14,6 +14,7 @@ interface VariantRow {
   name: string
   price: string
   stock: string
+  image_url: string
 }
 
 interface FormErrors {
@@ -41,7 +42,7 @@ export default function TambahProdukPage() {
 
   const [images, setImages] = useState<string[]>([''])
   const [hasVariants, setHasVariants] = useState(false)
-  const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '' }])
+  const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
 
   useEffect(() => {
     fetch('/api/admin/categories?limit=100')
@@ -66,7 +67,7 @@ export default function TambahProdukPage() {
   }
 
   function addVariant() {
-    setVariants([...variants, { name: '', price: '', stock: '' }])
+    setVariants([...variants, { name: '', price: '', stock: '', image_url: '' }])
   }
 
   function removeVariant(index: number) {
@@ -115,7 +116,7 @@ export default function TambahProdukPage() {
           price: hasVariants ? 0 : Number(form.price),
           stock: hasVariants ? 0 : Number(form.stock),
           variants: hasVariants
-            ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock) }))
+            ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
             : [],
         }),
       })
@@ -231,6 +232,7 @@ export default function TambahProdukPage() {
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Nama Varian</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Harga (Rp)</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Stok</th>
+                    <th className="text-left px-3 py-2 font-medium text-slate-600">Foto (URL)</th>
                     <th className="w-10 px-2 py-2"></th>
                   </tr>
                 </thead>
@@ -245,6 +247,9 @@ export default function TambahProdukPage() {
                       </td>
                       <td className="px-3 py-2">
                         <input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(idx, 'stock', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
+                      </td>
+                      <td className="px-3 py-2">
+                        <input type="url" value={v.image_url} onChange={(e) => updateVariant(idx, 'image_url', e.target.value)} placeholder="https://... (opsional)" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
                       </td>
                       <td className="px-2 py-2 text-center">
                         <button type="button" onClick={() => removeVariant(idx)} disabled={variants.length === 1} className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:bg-red-50 disabled:opacity-30 text-lg leading-none">×</button>
