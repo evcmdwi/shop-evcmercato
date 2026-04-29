@@ -7,9 +7,9 @@ interface Params {
 }
 
 export async function GET(req: NextRequest, { params }: Params) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const { id } = await params
@@ -27,9 +27,9 @@ export async function GET(req: NextRequest, { params }: Params) {
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const { id } = await params
@@ -104,9 +104,9 @@ export async function PATCH(req: NextRequest, { params }: Params) {
 }
 
 export async function DELETE(req: NextRequest, { params }: Params) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const { id } = await params

@@ -4,9 +4,9 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // GET /api/admin/products — list all products with their variants
 export async function GET(req: NextRequest) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const { searchParams } = new URL(req.url)
@@ -38,9 +38,9 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/products — create product, optionally with variants
 export async function POST(req: NextRequest) {
-  const auth = await checkAdminAuth(req)
+  const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+    return NextResponse.json({ data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' }, { status: auth.status })
   }
 
   const body = await req.json()
