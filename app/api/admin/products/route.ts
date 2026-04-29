@@ -1,19 +1,20 @@
-import { createClient } from '@supabase/supabase-js'
 import { NextRequest, NextResponse } from 'next/server'
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+import { checkAdminAuth } from '@/lib/admin-auth'
+import { supabaseAdmin } from '@/lib/supabase-admin'
 
 // GET /api/admin/products — list all products with their variants
 export async function GET(req: NextRequest) {
+  const auth = await checkAdminAuth(req)
+  if (!auth.ok) {
+    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
+  }
+
   const { searchParams } = new URL(req.url)
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
   const offset = (page - 1) * limit
 
-  const { data: products, error, count } = await supabase
+  const { data: products, error, count } = await supabaseAdmin
     .from('products')
     .select(`
       *,
@@ -37,15 +38,28 @@ export async function GET(req: NextRequest) {
 
 // POST /api/admin/products — create product, optionally with variants
 export async function POST(req: NextRequest) {
-  const body = await req.json()
-  const { variants, ...productData } = body
-
-  // If variants provided, mark has_variants
-  if (variants && Array.isArray(variants) && variants.length > 0) {
-    productData.has_variants = true
+  const auth = await checkAdminAuth(req)
+  if (!auth.ok) {
+    return NextResponse.json({ data: null, error: auth.message }, { status: auth.status })
   }
 
-  const { data: product, error: productError } = await supabase
+  const body = await req.json()
+  const { variants, images, ...productData } = body
+
+  // Sync image_url from images array
+  if (images && Array.isArray(images) && images.length > 0) {
+    productData.images = images
+    productData.image_url = images[0] || null
+  }
+
+  // If variants provided, mark has_variants and zero out price/stock
+  if (variants && Array.isArray(variants) && variants.length > 0) {
+    productData.has_variants = true
+    productData.price = 0
+    productData.stock = 0
+  }
+
+  const { data: product, error: productError } = await supabaseAdmin
     .from('products')
     .insert(productData)
     .select()
@@ -67,12 +81,11 @@ export async function POST(req: NextRequest) {
       sort_order: v.sort_order ?? i,
     }))
 
-    const { error: variantError } = await supabase
+    const { error: variantError } = await supabaseAdmin
       .from('product_variants')
       .insert(variantRows)
 
     if (variantError) {
-      // Product created but variants failed — return partial success with warning
       return NextResponse.json(
         { data: product, warning: `Product created but variants failed: ${variantError.message}` },
         { status: 207 }
@@ -81,7 +94,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Re-fetch product with variants
-  const { data: result } = await supabase
+  const { data: result } = await supabaseAdmin
     .from('products')
     .select(`*, product_variants (*)`)
     .eq('id', product.id)
