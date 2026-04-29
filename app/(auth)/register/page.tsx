@@ -9,6 +9,7 @@ export default function RegisterPage() {
   const router = useRouter()
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +29,11 @@ export default function RegisterPage() {
       return
     }
 
+    if (phone.replace(/\D/g, '').length < 10) {
+      setError('Nomor WhatsApp minimal 10 digit.')
+      return
+    }
+
     setLoading(true)
     const supabase = createClient()
 
@@ -35,6 +41,12 @@ export default function RegisterPage() {
     const { data, error: signUpError } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        data: {
+          name: name,
+          phone: phone,
+        }
+      }
     })
 
     if (signUpError || !data.user) {
@@ -47,7 +59,7 @@ export default function RegisterPage() {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: data.user.id, email, name }),
+      body: JSON.stringify({ id: data.user.id, email, name, phone }),
     })
 
     if (!res.ok) {
@@ -91,6 +103,22 @@ export default function RegisterPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="Nama kamu"
+            className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
+          />
+        </div>
+
+        <div>
+          <label htmlFor="phone" className="block text-sm font-medium text-slate-700 mb-1">
+            Nomor WhatsApp
+          </label>
+          <input
+            id="phone"
+            type="tel"
+            required
+            autoComplete="tel"
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            placeholder="08xx..."
             className="w-full px-4 py-2.5 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition"
           />
         </div>
