@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params
   const { data, error } = await supabaseAdmin
     .from('products')
-    .select('*, categories(id, name), product_variants(*)')
+    .select('*, initial_sold_count, categories(id, name), product_variants(*), product_sold_counts!inner(total_sold)')
     .eq('id', id)
     .single()
 
@@ -23,7 +23,9 @@ export async function GET(req: NextRequest, { params }: Params) {
     return NextResponse.json({ data: null, error: error.message }, { status: 404 })
   }
 
-  return NextResponse.json(data)
+  const { product_sold_counts, ...rest } = data as Record<string, unknown>
+  const sold = product_sold_counts as { total_sold: number } | null
+  return NextResponse.json({ ...rest, total_sold: sold?.total_sold ?? rest.initial_sold_count ?? 0 })
 }
 
 export async function PATCH(req: NextRequest, { params }: Params) {
@@ -47,6 +49,8 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   } = body
 
   const updates: Record<string, unknown> = {}
+  const { initial_sold_count } = body
+  if (initial_sold_count !== undefined) updates.initial_sold_count = Number(initial_sold_count)
   if (name !== undefined) updates.name = name.trim()
   if (description !== undefined) updates.description = description?.trim() || null
   if (category_id !== undefined) updates.category_id = category_id || null

@@ -29,7 +29,7 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
   // Build products query
   let query = supabase
     .from('products')
-    .select('*, categories(*)')
+    .select('*, initial_sold_count, categories(*), product_sold_counts!inner(total_sold)')
     .eq('is_active', true)
     .order('created_at', { ascending: false })
 
@@ -47,7 +47,15 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
 
   const { data: products } = await query
 
-  const typedProducts = (products ?? []) as ProductWithCategory[]
+  // Flatten total_sold from joined view
+  const flatProducts = (products ?? []).map((p: Record<string, unknown>) => {
+    const sold = p.product_sold_counts as { total_sold: number } | null
+    const { product_sold_counts, ...rest } = p
+    void product_sold_counts
+    return { ...rest, total_sold: sold?.total_sold ?? rest.initial_sold_count ?? 0 }
+  })
+
+  const typedProducts = flatProducts as ProductWithCategory[]
   const typedCategories = (categories ?? []) as Category[]
 
   return (
