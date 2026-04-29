@@ -18,10 +18,12 @@ export async function GET(req: NextRequest) {
     .from('products')
     .select(`
       *,
+      initial_sold_count,
       categories (id, name, slug),
       product_variants (
         id, name, price, stock, sku, is_active, sort_order, created_at
-      )
+      ),
+      product_sold_counts!inner (total_sold)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -30,8 +32,16 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
+  // Flatten total_sold from the joined view
+  const productsWithSold = (products ?? []).map((p: Record<string, unknown>) => {
+    const sold = p.product_sold_counts as { total_sold: number } | null
+    const { product_sold_counts, ...rest } = p
+    void product_sold_counts
+    return { ...rest, total_sold: sold?.total_sold ?? p.initial_sold_count ?? 0 }
+  })
+
   return NextResponse.json({
-    data: products,
+    data: productsWithSold,
     meta: { page, limit, total: count }
   })
 }

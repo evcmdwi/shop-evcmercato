@@ -49,6 +49,7 @@ export default function EditProdukPage() {
   const [images, setImages] = useState<string[]>([])
   const [hasVariants, setHasVariants] = useState(false)
   const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
+  const [initialSoldCount, setInitialSoldCount] = useState(0)
 
   useEffect(() => {
     Promise.all([
@@ -72,6 +73,7 @@ export default function EditProdukPage() {
             ? [product.image_url]
             : []
         setImages(imgs)
+        setInitialSoldCount(product.initial_sold_count ?? 0)
         setHasVariants(product.has_variants ?? false)
         if (product.product_variants && product.product_variants.length > 0) {
           setVariants(
@@ -138,6 +140,7 @@ export default function EditProdukPage() {
           has_variants: hasVariants,
           price: hasVariants ? 0 : Number(form.price),
           stock: hasVariants ? 0 : Number(form.stock),
+          initial_sold_count: initialSoldCount,
           variants: hasVariants
             ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
             : [],
@@ -259,6 +262,18 @@ export default function EditProdukPage() {
             <button type="button" onClick={addVariant} className="mt-2 text-sm text-[#534AB7] hover:underline">+ Tambah Varian</button>
           </div>
         )}
+
+        <FormField label="Sudah Terjual (awal)">
+          <input
+            type="number"
+            min="0"
+            value={initialSoldCount}
+            onChange={(e) => setInitialSoldCount(Number(e.target.value))}
+            placeholder="0"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#534AB7]"
+          />
+          <p className="text-xs text-gray-400 mt-1">Counter terjual sebelum penjualan via shop. Auto-bertambah saat ada order baru.</p>
+        </FormField>
 
         <FormField label="Status">
           <Toggle checked={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} label={form.is_active ? 'Aktif' : 'Nonaktif'} />

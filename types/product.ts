@@ -27,6 +27,8 @@ export interface Product {
   has_variants: boolean
   stock: number
   is_active: boolean
+  initial_sold_count: number
+  total_sold?: number
   created_at: string
   categories?: Category | null
   product_variants?: ProductVariant[]

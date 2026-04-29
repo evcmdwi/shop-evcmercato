@@ -3,15 +3,38 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { ShoppingCart, Gift } from 'lucide-react'
-import { formatRupiah, slugify } from '@/lib/utils'
-import type { ProductWithCategory } from '@/types/product'
+import { formatRupiah, formatPriceRange, getTotalStock, formatSoldCount, slugify } from '@/lib/utils'
 
 interface ProductCardProps {
-  product: ProductWithCategory
+  product: {
+    id: string
+    name: string
+    price: number
+    stock: number
+    has_variants: boolean
+    images: string[] | null
+    image_url?: string | null
+    categories?: { name: string; slug: string } | null
+    initial_sold_count?: number
+    total_sold?: number
+  }
+  variants?: { price: number; stock: number; is_active: boolean }[]
 }
 
-export default function ProductCard({ product }: ProductCardProps) {
+export default function ProductCard({ product, variants }: ProductCardProps) {
   const slug = slugify(product.name)
+
+  const displayPrice = product.has_variants && variants?.length
+    ? formatPriceRange(variants)
+    : formatRupiah(product.price)
+
+  const totalStock = product.has_variants && variants?.length
+    ? getTotalStock(variants)
+    : product.stock
+
+  const isOutOfStock = totalStock === 0
+
+  const soldCount = product.total_sold ?? product.initial_sold_count ?? 0
 
   return (
     <Link
@@ -51,24 +74,27 @@ export default function ProductCard({ product }: ProductCardProps) {
         </h3>
 
         <p className="text-lg font-bold mt-auto" style={{ color: '#534AB7' }}>
-          {formatRupiah(product.price)}
+          {displayPrice}
         </p>
 
-        {product.stock <= 5 && product.stock > 0 && (
-          <p className="text-xs text-orange-500">Stok tersisa {product.stock}</p>
+        <span className="text-xs text-gray-500">{formatSoldCount(soldCount)}</span>
+
+        {!isOutOfStock && totalStock <= 5 && (
+          <p className="text-xs text-orange-500">Stok tersisa {totalStock}</p>
         )}
-        {product.stock === 0 && (
+        {isOutOfStock && (
           <p className="text-xs text-red-500">Stok habis</p>
         )}
 
         <div className="flex gap-2 mt-1">
           <button
             onClick={(e) => e.preventDefault()}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-white transition-opacity hover:opacity-90"
+            disabled={isOutOfStock}
+            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed"
             style={{ backgroundColor: '#534AB7' }}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
-            Beli
+            {isOutOfStock ? 'Stok Habis' : 'Beli'}
           </button>
           <button
             onClick={(e) => e.preventDefault()}
