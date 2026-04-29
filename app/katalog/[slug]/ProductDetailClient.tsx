@@ -129,7 +129,11 @@ export default function ProductDetailClient({ product }: Props) {
                 Stok Habis
               </button>
             ) : (
-              <AddToCartButton product={product} />
+              // Pass effective stock so AddToCartButton uses variant stock (not product-level stock)
+              <AddToCartButton product={{
+                ...product,
+                stock: selectedVariant ? selectedVariant.stock : product.stock
+              }} />
             )}
             <button
               disabled
