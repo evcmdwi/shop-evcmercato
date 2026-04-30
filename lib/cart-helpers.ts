@@ -1,51 +1,42 @@
-import { SupabaseClient } from '@supabase/supabase-js'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-export async function getOrCreateCart(
-  admin: SupabaseClient,
-  userId: string
-): Promise<{ id: string } | null> {
-  let { data: cart } = await admin
+export async function getOrCreateCart(userId: string): Promise<string> {
+  const supabase = getSupabaseAdmin()
+
+  // 1. Try select existing cart
+  const { data: existing, error: selectError } = await supabase
     .from('carts')
     .select('id')
     .eq('user_id', userId)
-    .maybeSingle()
+    .single()
 
-  if (!cart) {
-    const { data: newCart, error } = await admin
-      .from('carts')
-      .insert({ user_id: userId })
-      .select('id')
-      .single()
-    if (error) return null
-    cart = newCart
+  if (selectError && selectError.code !== 'PGRST116') {
+    // PGRST116 = not found — other errors are real errors
+    console.error('getOrCreateCart select error:', selectError)
+    throw selectError
   }
 
-  return cart
+  if (existing) return existing.id
+
+  // 2. Create new cart
+  const { data: newCart, error: insertError } = await supabase
+    .from('carts')
+    .insert({ user_id: userId })
+    .select('id')
+    .single()
+
+  if (insertError) {
+    console.error('getOrCreateCart insert error:', insertError)
+    throw insertError
+  }
+
+  return newCart.id
 }
 
-interface RawCartItem {
-  id: string
-  product_id: string
-  variant_id: string | null
-  quantity: number
-  products: {
-    id: string
-    name: string
-    price: number
-    has_variants: boolean
-    product_images: { image_url: string; is_primary: boolean }[]
-  } | null
-  product_variants: {
-    id: string
-    name: string
-    price: number
-    stock: number | null
-    image_url: string | null
-  } | null
-}
+export async function getFullCart(cartId: string) {
+  const supabase = getSupabaseAdmin()
 
-export async function getFullCart(admin: SupabaseClient, cartId: string) {
-  const { data: rawItems, error } = await admin
+  const { data: items, error } = await supabase
     .from('cart_items')
     .select(`
       id,
@@ -57,10 +48,7 @@ export async function getFullCart(admin: SupabaseClient, cartId: string) {
         name,
         price,
         has_variants,
-        product_images (
-          image_url,
-          is_primary
-        )
+        images
       ),
       product_variants (
         id,
@@ -73,60 +61,33 @@ export async function getFullCart(admin: SupabaseClient, cartId: string) {
     .eq('cart_id', cartId)
     .order('created_at', { ascending: true })
 
-  if (error) return null
+  if (error) {
+    console.error('getFullCart error:', error)
+    throw error
+  }
 
-  const items = (rawItems as unknown as RawCartItem[]).map((item) => {
-    const product = item.products!
-    const variant = item.product_variants ?? null
-
-    // Build images array sorted: primary first
-    const images = (product.product_images ?? [])
-      .sort((a, b) => (b.is_primary ? 1 : 0) - (a.is_primary ? 1 : 0))
-      .map((img) => img.image_url)
-
-    const display_price = variant ? variant.price : product.price
-    const display_image = variant?.image_url ?? images[0] ?? null
-    const subtotal = display_price * item.quantity
-
-    // Determine current stock
-    const current_stock = variant ? (variant.stock ?? Infinity) : Infinity
-    const is_out_of_stock = current_stock < item.quantity
+  const computedItems = (items ?? []).map((item) => {
+    const product = item.products as any
+    const variant = item.product_variants as any
+    const display_price = variant?.price ?? product?.price ?? 0
+    const display_image = variant?.image_url ?? product?.images?.[0] ?? null
+    const current_stock = variant?.stock ?? product?.stock ?? null
 
     return {
-      id: item.id,
-      product_id: item.product_id,
-      variant_id: item.variant_id,
-      quantity: item.quantity,
-      product: {
-        id: product.id,
-        name: product.name,
-        price: product.price,
-        has_variants: product.has_variants,
-        images,
-      },
-      variant: variant
-        ? {
-            id: variant.id,
-            name: variant.name,
-            price: variant.price,
-            stock: variant.stock,
-            image_url: variant.image_url,
-          }
-        : null,
+      ...item,
+      product,
+      variant,
       display_price,
       display_image,
-      subtotal,
-      is_out_of_stock,
+      subtotal: display_price * item.quantity,
+      is_out_of_stock: current_stock !== null && current_stock < item.quantity,
     }
   })
 
-  const item_count = items.length
-  const subtotal = items.reduce((sum, item) => sum + item.subtotal, 0)
-
   return {
     id: cartId,
-    items,
-    item_count,
-    subtotal,
+    items: computedItems,
+    item_count: computedItems.length,
+    subtotal: computedItems.reduce((sum, i) => sum + i.subtotal, 0),
   }
 }
