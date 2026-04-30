@@ -10,7 +10,10 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "test:e2e:headed": "playwright test --headed",
-    "test:e2e:report": "playwright show-report"
+    "test:e2e:report": "playwright show-report",
+    "db:migrate": "tsx scripts/supabase-migrate.ts",
+    "db:migrate:dry": "tsx scripts/supabase-migrate.ts --dry-run",
+    "test:e2e:smoke": "playwright test --grep @smoke --project=chromium"
   },
   "dependencies": {
     "@supabase/ssr": "^0.10.2",
@@ -29,6 +32,7 @@
     "eslint": "^9",
     "eslint-config-next": "16.2.4",
     "tailwindcss": "^4",
+    "tsx": "^4.21.0",
     "typescript": "5.9.3"
   }
 }

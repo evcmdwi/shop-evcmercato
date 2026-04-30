@@ -1,8 +1,12 @@
-import { test } from '@playwright/test'
+import { test, expect } from '@playwright/test'
+import { login, clearCart } from './helpers/auth'
 
-// Placeholder — akan diisi saat Sub-PR D merged
-test.describe('Checkout Flow (Phase 1-D)', () => {
-  test.skip('full checkout flow dengan Xendit stub', async () => {
-    // TODO: implement setelah Sub-PR D merged
+test.describe('Checkout', () => {
+  test('[smoke] /checkout render OK untuk authenticated user @smoke', async ({ page }) => {
+    await login(page)
+    await page.goto('/checkout')
+    // Harus ada form checkout, bukan 404 atau error
+    await expect(page).not.toHaveURL(/\/login/)
+    await expect(page.locator('h1, h2').first()).toBeVisible({ timeout: 5000 })
   })
 })

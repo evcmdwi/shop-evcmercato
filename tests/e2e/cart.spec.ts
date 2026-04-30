@@ -7,7 +7,7 @@ test.describe('Cart', () => {
     await clearCart(page)
   })
 
-  test('GET /api/cart user authenticated → 200 dengan empty items', async ({ page }) => {
+  test('[smoke] GET /api/cart user authenticated → 200 @smoke', async ({ page }) => {
     const response = await page.request.get('/api/cart')
     expect(response.status()).toBe(200)
     const body = await response.json()
