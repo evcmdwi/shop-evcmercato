@@ -47,6 +47,18 @@ export default function Navbar() {
             {/* Cart icon — only when logged in */}
             {user && <NavCartIcon />}
 
+            {/* Orders link — only when logged in */}
+            {user && (
+              <Link
+                href="/orders"
+                className={`text-sm font-medium transition-colors hover:opacity-80 ${
+                  pathname?.startsWith('/orders') ? 'text-[#534AB7]' : 'text-gray-600'
+                }`}
+              >
+                Pesanan
+              </Link>
+            )}
+
             {user ? (
               <Link
                 href="/profile"
