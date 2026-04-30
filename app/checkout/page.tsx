@@ -66,12 +66,18 @@ export default function CheckoutPage() {
 
   const subtotal = cart?.subtotal ?? 0
   const itemCount = cart?.item_count ?? 0
-  const ongkir = 10000
+  const shippingCost = 10000
   const serviceFee = 3000
   const freeShipping = subtotal >= 50000
-  const promo = freeShipping ? -(ongkir + serviceFee) : -serviceFee
-  const totalBayar = subtotal + ongkir + serviceFee + promo
+  const shippingCostDiscount = freeShipping ? shippingCost : 0
+  // Service fee always free (Phase 1)
+  const totalSaved = shippingCostDiscount + serviceFee
+  const totalAmount = subtotal + (freeShipping ? 0 : shippingCost)
   const evcPoints = Math.floor(subtotal / 1000)
+  // Keep backward compat vars
+  const ongkir = shippingCost
+  const promo = freeShipping ? -(ongkir + serviceFee) : -serviceFee
+  const totalBayar = totalAmount
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null
 
@@ -289,28 +295,32 @@ export default function CheckoutPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Ongkos Kirim</span>
                       <span>
-                        {freeShipping ? (
-                          <>
-                            <span className="line-through text-gray-400 mr-1">{formatRupiah(10000)}</span>
+                        {shippingCostDiscount > 0 ? (
+                          <span>
+                            <s className="text-gray-400 mr-1">{formatRupiah(shippingCost)}</s>
                             <span className="text-[#1D9E75] font-bold">GRATIS</span>
-                          </>
+                          </span>
                         ) : (
-                          <span className="font-medium">{formatRupiah(10000)}</span>
+                          <span className="font-medium">{formatRupiah(shippingCost)}</span>
                         )}
                       </span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Biaya Layanan</span>
-                      <span className="font-medium">{formatRupiah(3000)}</span>
-                    </div>
-                    <div className="flex justify-between text-[#1D9E75]">
-                      <span>Promo</span>
-                      <span className="font-medium">{formatRupiah(promo)}</span>
+                      <span>
+                        <s className="text-gray-400 mr-1">{formatRupiah(serviceFee)}</s>
+                        <span className="text-[#1D9E75] font-bold">GRATIS</span>
+                      </span>
                     </div>
                     <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
                       <span>Total Bayar</span>
-                      <span style={{ color: '#534AB7' }}>{formatRupiah(totalBayar)}</span>
+                      <span style={{ color: '#534AB7' }}>{formatRupiah(totalAmount)}</span>
                     </div>
+                    {totalSaved > 0 && (
+                      <div className="bg-green-50 text-green-700 text-xs rounded-lg p-2 text-center">
+                        💚 Hemat {formatRupiah(totalSaved)} dari ongkir &amp; biaya layanan!
+                      </div>
+                    )}
                   </div>
 
                   <button

@@ -41,6 +41,7 @@ export async function middleware(request: NextRequest) {
   if (isProtected && !user) {
     const url = request.nextUrl.clone()
     url.pathname = '/login'
+    url.searchParams.set('redirect_to', pathname)
     return NextResponse.redirect(url)
   }
 
