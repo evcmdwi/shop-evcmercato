@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { getFullCart } from '@/lib/cart-helpers'
 
 type Params = { params: Promise<{ id: string }> }
 
@@ -15,8 +16,8 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const body = await request.json()
   const { quantity } = body
 
-  if (typeof quantity !== 'number' || quantity < 1) {
-    return NextResponse.json({ error: 'quantity must be a positive integer' }, { status: 400 })
+  if (typeof quantity !== 'number' || quantity < 0 || !Number.isInteger(quantity)) {
+    return NextResponse.json({ error: 'quantity must be a non-negative integer' }, { status: 400 })
   }
 
   const admin = getSupabaseAdmin()
@@ -35,7 +36,18 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
-  // Validate stock
+  // quantity === 0 → DELETE item
+  if (quantity === 0) {
+    const { error: deleteError } = await admin.from('cart_items').delete().eq('id', id)
+    if (deleteError) return NextResponse.json({ error: deleteError.message }, { status: 500 })
+    await admin.from('carts').update({ updated_at: new Date().toISOString() }).eq('id', item.cart_id)
+
+    const fullCart = await getFullCart(admin, item.cart_id)
+    if (!fullCart) return NextResponse.json({ error: 'Failed to fetch cart' }, { status: 500 })
+    return NextResponse.json({ data: fullCart })
+  }
+
+  // quantity > 0 → validate stock, UPDATE
   if (item.variant_id) {
     const { data: variant } = await admin
       .from('product_variants')
@@ -43,7 +55,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       .eq('id', item.variant_id)
       .single()
     if (variant && variant.stock !== null && variant.stock < quantity) {
-      return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 })
+      return NextResponse.json(
+        { error: `Insufficient stock. Available: ${variant.stock}` },
+        { status: 400 }
+      )
     }
   } else {
     const { data: product } = await admin
@@ -52,22 +67,26 @@ export async function PATCH(request: NextRequest, { params }: Params) {
       .eq('id', item.product_id)
       .single()
     if (product && product.stock !== null && product.stock < quantity) {
-      return NextResponse.json({ error: 'Insufficient stock' }, { status: 400 })
+      return NextResponse.json(
+        { error: `Insufficient stock. Available: ${product.stock}` },
+        { status: 400 }
+      )
     }
   }
 
-  const { data, error } = await admin
+  const { error: updateError } = await admin
     .from('cart_items')
     .update({ quantity })
     .eq('id', id)
-    .select()
-    .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (updateError) return NextResponse.json({ error: updateError.message }, { status: 500 })
 
   await admin.from('carts').update({ updated_at: new Date().toISOString() }).eq('id', item.cart_id)
 
-  return NextResponse.json({ data })
+  const fullCart = await getFullCart(admin, item.cart_id)
+  if (!fullCart) return NextResponse.json({ error: 'Failed to fetch cart' }, { status: 500 })
+
+  return NextResponse.json({ data: fullCart })
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
@@ -99,5 +118,5 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
 
   await admin.from('carts').update({ updated_at: new Date().toISOString() }).eq('id', item.cart_id)
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ data: null, message: 'Item dihapus dari keranjang' })
 }
