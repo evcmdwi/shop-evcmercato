@@ -2,9 +2,18 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 
+const safeRedirect = (url: string): string => {
+  if (url.startsWith('/') && !url.startsWith('//')) return url
+  return '/dashboard'
+}
+
 export default function LoginPage() {
+  const searchParams = useSearchParams()
+  const redirectTo = safeRedirect(searchParams.get('redirect_to') || '/dashboard')
+
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -26,7 +35,11 @@ export default function LoginPage() {
 
     const { data: { user } } = await supabase.auth.getUser()
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map(e => e.trim())
-    window.location.href = adminEmails.includes(user?.email || '') ? '/admin' : '/dashboard'
+    if (adminEmails.includes(user?.email || '')) {
+      window.location.href = '/admin'
+    } else {
+      window.location.href = redirectTo
+    }
   }
 
   return (
@@ -34,7 +47,10 @@ export default function LoginPage() {
       <h2 className="text-2xl font-bold text-slate-800 mb-1">Masuk</h2>
       <p className="text-slate-500 text-sm mb-6">
         Belum punya akun?{' '}
-        <Link href="/register" className="text-teal-600 font-medium hover:underline">
+        <Link
+          href={`/register${redirectTo !== '/dashboard' ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
+          className="text-teal-600 font-medium hover:underline"
+        >
           Daftar sekarang
         </Link>
       </p>
