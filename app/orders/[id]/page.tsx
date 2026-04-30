@@ -1,0 +1,288 @@
+'use client'
+
+import { useEffect, useState, useCallback } from 'react'
+import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
+import { ArrowLeft, Copy, Check } from 'lucide-react'
+
+function formatRupiah(amount: number) {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    maximumFractionDigits: 0,
+  }).format(amount)
+}
+
+function formatTanggal(dateStr: string) {
+  return new Date(dateStr).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  })
+}
+
+interface OrderDetail {
+  id: string
+  status: string
+  total_amount: number
+  subtotal: number
+  shipping_fee: number
+  service_fee: number
+  discount_amount: number
+  created_at: string
+  xendit_invoice_url?: string
+  tracking_number?: string
+  evc_points_earned?: number
+  address: {
+    recipient_name: string
+    phone: string
+    full_address: string
+    city: string
+    province: string
+    postal_code: string
+  }
+  items: {
+    id: string
+    product_name: string
+    variant_name?: string
+    quantity: number
+    price: number
+    subtotal: number
+  }[]
+}
+
+const statusConfig: Record<string, { label: string; className: string }> = {
+  pending: { label: 'Menunggu Pembayaran', className: 'bg-yellow-100 text-yellow-800' },
+  paid: { label: 'Dibayar', className: 'bg-blue-100 text-blue-800' },
+  processing: { label: 'Diproses', className: 'bg-purple-100 text-purple-800' },
+  shipped: { label: 'Dikirim', className: 'bg-indigo-100 text-indigo-800' },
+  delivered: { label: 'Diterima', className: 'bg-green-100 text-green-800' },
+  cancelled: { label: 'Dibatalkan', className: 'bg-red-100 text-red-800' },
+}
+
+const timelineSteps = [
+  { key: 'created', label: 'Pesanan Dibuat' },
+  { key: 'paid', label: 'Pembayaran' },
+  { key: 'processing', label: 'Diproses' },
+  { key: 'shipped', label: 'Dikirim' },
+  { key: 'delivered', label: 'Diterima' },
+]
+
+const statusOrder: Record<string, number> = {
+  pending: 0,
+  paid: 1,
+  processing: 2,
+  shipped: 3,
+  delivered: 4,
+  cancelled: -1,
+}
+
+export default function OrderDetailPage() {
+  const router = useRouter()
+  const params = useParams()
+  const id = params?.id as string
+
+  const [order, setOrder] = useState<OrderDetail | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [copied, setCopied] = useState(false)
+
+  const fetchOrder = useCallback(async () => {
+    const res = await fetch(`/api/orders/${id}`)
+    if (res.status === 401) {
+      router.push('/login?redirect_to=/orders')
+      return
+    }
+    if (res.status === 404 || !res.ok) {
+      router.push('/orders')
+      return
+    }
+    const { data } = await res.json()
+    setOrder(data)
+    setLoading(false)
+  }, [id, router])
+
+  useEffect(() => {
+    fetchOrder()
+  }, [fetchOrder])
+
+  const handleCopyTracking = () => {
+    if (!order?.tracking_number) return
+    navigator.clipboard.writeText(order.tracking_number)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="animate-pulse text-gray-400">Memuat detail pesanan...</div>
+      </div>
+    )
+  }
+
+  if (!order) return null
+
+  const status = statusConfig[order.status] ?? { label: order.status, className: 'bg-gray-100 text-gray-700' }
+  const currentStep = statusOrder[order.status] ?? 0
+  const evcPoints = order.evc_points_earned ?? Math.floor((order.subtotal ?? 0) / 1000)
+
+  return (
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-2xl mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <button
+            onClick={() => router.push('/orders')}
+            className="p-2 rounded-xl hover:bg-gray-100 transition-colors"
+          >
+            <ArrowLeft className="w-5 h-5 text-gray-700" />
+          </button>
+          <h1 className="text-lg font-bold text-gray-900">Detail Pesanan</h1>
+        </div>
+
+        <div className="space-y-4">
+          {/* Status */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <div className="flex items-center gap-3 mb-3">
+              <span className={`text-sm font-semibold px-3 py-1.5 rounded-full ${status.className}`}>
+                {status.label}
+              </span>
+            </div>
+            <p className="text-xs text-gray-400">
+              Order #{order.id.slice(0, 8).toUpperCase()} · {formatTanggal(order.created_at)}
+            </p>
+
+            {/* Timeline */}
+            {order.status !== 'cancelled' && (
+              <div className="mt-5 flex items-center gap-1 overflow-x-auto pb-1">
+                {timelineSteps.map((step, idx) => {
+                  const done = idx <= currentStep
+                  const active = idx === currentStep
+                  return (
+                    <div key={step.key} className="flex items-center">
+                      <div className="flex flex-col items-center min-w-[60px]">
+                        <div
+                          className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
+                            done
+                              ? 'bg-[#534AB7] border-[#534AB7] text-white'
+                              : 'bg-white border-gray-300 text-gray-400'
+                          } ${active ? 'ring-2 ring-[#EEEDFE]' : ''}`}
+                        >
+                          {idx + 1}
+                        </div>
+                        <span className={`text-[10px] text-center mt-1 leading-tight ${done ? 'text-[#534AB7] font-medium' : 'text-gray-400'}`}>
+                          {step.label}
+                        </span>
+                      </div>
+                      {idx < timelineSteps.length - 1 && (
+                        <div className={`h-0.5 w-6 mx-0.5 flex-shrink-0 ${idx < currentStep ? 'bg-[#534AB7]' : 'bg-gray-200'}`} />
+                      )}
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Alamat Pengiriman */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h2 className="font-semibold text-gray-900 mb-3">Alamat Pengiriman</h2>
+            <div className="text-sm text-gray-600 space-y-0.5">
+              <p className="font-semibold text-gray-900">{order.address?.recipient_name}</p>
+              <p>{order.address?.phone}</p>
+              <p>{order.address?.full_address}</p>
+              <p>{order.address?.city}, {order.address?.province} {order.address?.postal_code}</p>
+            </div>
+          </div>
+
+          {/* Item Pesanan */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h2 className="font-semibold text-gray-900 mb-3">Item Pesanan</h2>
+            <div className="space-y-3">
+              {order.items?.map((item) => (
+                <div key={item.id} className="flex justify-between items-start text-sm">
+                  <div className="flex-1">
+                    <p className="font-medium text-gray-900">{item.product_name}</p>
+                    {item.variant_name && <p className="text-xs text-gray-500">{item.variant_name}</p>}
+                    <p className="text-xs text-gray-400">
+                      {item.quantity} × {formatRupiah(item.price)}
+                    </p>
+                  </div>
+                  <p className="font-semibold text-gray-900 ml-4">{formatRupiah(item.subtotal)}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Rincian Pembayaran */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm">
+            <h2 className="font-semibold text-gray-900 mb-3">Rincian Pembayaran</h2>
+            <div className="space-y-2 text-sm">
+              <div className="flex justify-between">
+                <span className="text-gray-600">Subtotal</span>
+                <span>{formatRupiah(order.subtotal ?? 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Ongkos Kirim</span>
+                <span>{formatRupiah(order.shipping_fee ?? 0)}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-gray-600">Biaya Layanan</span>
+                <span>{formatRupiah(order.service_fee ?? 0)}</span>
+              </div>
+              {order.discount_amount > 0 && (
+                <div className="flex justify-between text-[#1D9E75]">
+                  <span>Promo</span>
+                  <span>-{formatRupiah(order.discount_amount)}</span>
+                </div>
+              )}
+              <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
+                <span>Total Bayar</span>
+                <span style={{ color: '#534AB7' }}>{formatRupiah(order.total_amount)}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* EVC Points */}
+          {evcPoints > 0 && (
+            <div className="bg-[#EEEDFE] rounded-2xl p-4 text-sm text-center text-[#534AB7]">
+              ℹ️ Kamu akan mendapat <strong>{evcPoints} EVC Points</strong> dari pesanan ini
+              <br />
+              <span className="text-xs text-gray-500">(dicatat setelah barang diterima)</span>
+            </div>
+          )}
+
+          {/* Aksi Conditional */}
+          {order.status === 'pending' && order.xendit_invoice_url && (
+            <a
+              href={order.xendit_invoice_url}
+              className="block w-full py-3 rounded-xl text-white font-semibold text-sm text-center"
+              style={{ backgroundColor: '#534AB7' }}
+            >
+              Bayar Sekarang
+            </a>
+          )}
+
+          {order.status === 'shipped' && order.tracking_number && (
+            <div className="bg-white rounded-2xl p-5 shadow-sm">
+              <h2 className="font-semibold text-gray-900 mb-2">Nomor Resi</h2>
+              <div className="flex items-center gap-3">
+                <span className="flex-1 font-mono text-sm bg-gray-50 border border-gray-200 rounded-xl px-3 py-2">
+                  {order.tracking_number}
+                </span>
+                <button
+                  onClick={handleCopyTracking}
+                  className="p-2 rounded-xl bg-[#EEEDFE] text-[#534AB7] hover:opacity-80 transition-opacity"
+                >
+                  {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
