@@ -1,12 +1,20 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { createClient } from '@/lib/supabase'
 
-export default function RegisterPage() {
+const safeRedirect = (url: string): string => {
+  if (url.startsWith('/') && !url.startsWith('//')) return url
+  return '/dashboard'
+}
+
+function RegisterForm() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const redirectTo = safeRedirect(searchParams.get('redirect_to') || '/dashboard')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
@@ -71,7 +79,8 @@ export default function RegisterPage() {
 
     // Sign out immediately so user goes through login flow
     await supabase.auth.signOut()
-    router.push('/login')
+    const loginUrl = redirectTo !== '/dashboard' ? `/login?redirect_to=${encodeURIComponent(redirectTo)}` : '/login'
+    router.push(loginUrl)
   }
 
   return (
@@ -79,7 +88,10 @@ export default function RegisterPage() {
       <h2 className="text-2xl font-bold text-slate-800 mb-1">Daftar</h2>
       <p className="text-slate-500 text-sm mb-6">
         Sudah punya akun?{' '}
-        <Link href="/login" className="text-teal-600 font-medium hover:underline">
+        <Link
+          href={`/login${redirectTo !== '/dashboard' ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
+          className="text-teal-600 font-medium hover:underline"
+        >
           Masuk di sini
         </Link>
       </p>
@@ -180,5 +192,13 @@ export default function RegisterPage() {
         </button>
       </form>
     </>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }
