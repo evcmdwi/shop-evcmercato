@@ -9,7 +9,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
 
   const body = await request.json()
@@ -24,7 +24,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .single()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Address not found' }, { status: 404 })
+    return NextResponse.json({ data: null, error: 'Address not found', message: 'Address not found or access denied' }, { status: 404 })
   }
 
   const updates: Record<string, unknown> = {}
@@ -36,7 +36,7 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (body.postal_code !== undefined) updates.postal_code = body.postal_code
   if (body.full_address !== undefined) updates.full_address = body.full_address
 
-  // Handle set default
+  // Handle set default: unset other addresses first
   if (body.is_default === true && !existing.is_default) {
     await admin
       .from('addresses')
@@ -52,8 +52,11 @@ export async function PATCH(request: NextRequest, { params }: Params) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ data })
+  if (error) {
+    return NextResponse.json({ data: null, error: error.message, message: 'Failed to update address' }, { status: 500 })
+  }
+
+  return NextResponse.json({ data, error: null, message: 'Address updated successfully' })
 }
 
 export async function DELETE(_request: NextRequest, { params }: Params) {
@@ -61,7 +64,7 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
 
   const admin = getSupabaseAdmin()
@@ -75,13 +78,15 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     .single()
 
   if (!existing) {
-    return NextResponse.json({ error: 'Address not found' }, { status: 404 })
+    return NextResponse.json({ data: null, error: 'Address not found', message: 'Address not found or access denied' }, { status: 404 })
   }
 
   const { error } = await admin.from('addresses').delete().eq('id', id)
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  if (error) {
+    return NextResponse.json({ data: null, error: error.message, message: 'Failed to delete address' }, { status: 500 })
+  }
 
-  // If deleted address was default, set another as default
+  // If deleted address was default, assign default to next most recent
   if (existing.is_default) {
     const { data: remaining } = await admin
       .from('addresses')
@@ -98,5 +103,5 @@ export async function DELETE(_request: NextRequest, { params }: Params) {
     }
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ data: null, error: null, message: 'Address deleted successfully' })
 }

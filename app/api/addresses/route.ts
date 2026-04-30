@@ -6,7 +6,7 @@ export async function GET() {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
 
   const { data, error } = await supabase
@@ -16,22 +16,28 @@ export async function GET() {
     .order('is_default', { ascending: false })
     .order('created_at', { ascending: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ data })
+  if (error) {
+    return NextResponse.json({ data: null, error: error.message, message: 'Failed to fetch addresses' }, { status: 500 })
+  }
+
+  return NextResponse.json({ data, error: null, message: 'Addresses fetched successfully' })
 }
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   const { data: { user }, error: authError } = await supabase.auth.getUser()
   if (authError || !user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
 
   const body = await request.json()
   const { recipient_name, phone, province, city, district, postal_code, full_address, is_default } = body
 
   if (!recipient_name || !phone || !province || !city || !full_address) {
-    return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
+    return NextResponse.json(
+      { data: null, error: 'Missing required fields', message: 'recipient_name, phone, province, city, full_address are required' },
+      { status: 400 }
+    )
   }
 
   const admin = getSupabaseAdmin()
@@ -43,14 +49,17 @@ export async function POST(request: NextRequest) {
     .eq('user_id', user.id)
 
   if ((count ?? 0) >= 4) {
-    return NextResponse.json({ error: 'Maximum 4 addresses allowed' }, { status: 400 })
+    return NextResponse.json(
+      { data: null, error: 'Maximum 4 addresses allowed', message: 'Please delete an existing address before adding a new one' },
+      { status: 400 }
+    )
   }
 
   // If first address, set as default
   const isFirst = (count ?? 0) === 0
   const setDefault = isFirst || is_default === true
 
-  // If setting as default, unset others first
+  // If setting as default and not first, unset others first
   if (setDefault && !isFirst) {
     await admin
       .from('addresses')
@@ -74,6 +83,9 @@ export async function POST(request: NextRequest) {
     .select()
     .single()
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json({ data }, { status: 201 })
+  if (error) {
+    return NextResponse.json({ data: null, error: error.message, message: 'Failed to create address' }, { status: 500 })
+  }
+
+  return NextResponse.json({ data, error: null, message: 'Address created successfully' }, { status: 201 })
 }
