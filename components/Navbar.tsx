@@ -1,11 +1,12 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname, useRouter } from 'next/navigation'
-import { ShoppingBag, User } from 'lucide-react'
+import { usePathname } from 'next/navigation'
+import { ShoppingBag, ShoppingCart } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { useCartContext } from '@/components/CartContext'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -43,6 +44,9 @@ export default function Navbar() {
               Katalog
             </Link>
 
+            {/* Cart icon — only when logged in */}
+            {user && <NavCartIcon />}
+
             {user ? (
               <Link
                 href="/profile"
@@ -68,5 +72,19 @@ export default function Navbar() {
         </div>
       </div>
     </nav>
+  )
+}
+
+function NavCartIcon() {
+  const { itemCount } = useCartContext()
+  return (
+    <Link href="/keranjang" className="relative p-1" aria-label="Keranjang">
+      <ShoppingCart className="w-6 h-6 text-gray-700" />
+      {itemCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-[#534AB7] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+          {itemCount > 9 ? '9+' : itemCount}
+        </span>
+      )}
+    </Link>
   )
 }
