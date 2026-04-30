@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
@@ -11,7 +11,7 @@ const safeRedirect = (url: string): string => {
   return '/dashboard'
 }
 
-export default function RegisterPage() {
+function RegisterForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const redirectTo = safeRedirect(searchParams.get('redirect_to') || '/dashboard')
@@ -192,5 +192,13 @@ export default function RegisterPage() {
         </button>
       </form>
     </>
+  )
+}
+
+export default function RegisterPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <RegisterForm />
+    </Suspense>
   )
 }

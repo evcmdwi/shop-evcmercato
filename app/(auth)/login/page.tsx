@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
@@ -10,7 +10,7 @@ const safeRedirect = (url: string): string => {
   return '/dashboard'
 }
 
-export default function LoginPage() {
+function LoginForm() {
   const searchParams = useSearchParams()
   const redirectTo = safeRedirect(searchParams.get('redirect_to') || '/dashboard')
 
@@ -103,5 +103,13 @@ export default function LoginPage() {
         </button>
       </form>
     </>
+  )
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+      <LoginForm />
+    </Suspense>
   )
 }
