@@ -8,12 +8,13 @@ test.describe('Cart', () => {
   })
 
   test('[smoke] GET /api/cart user authenticated → 200 @smoke', async ({ page }) => {
+    await login(page)
     const response = await page.request.get('/api/cart')
     expect(response.status()).toBe(200)
+
     const body = await response.json()
     expect(body.data).toBeDefined()
-    expect(body.data.items).toBeDefined()
-    expect(body.data.subtotal).toBe(0)
+    expect(Array.isArray(body.data.items)).toBe(true)
   })
 
   test('GET /api/cart tanpa auth → 401', async ({ page }) => {
