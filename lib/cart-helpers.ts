@@ -1,9 +1,27 @@
+import { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-export async function getOrCreateCart(userId: string): Promise<string> {
-  const supabase = getSupabaseAdmin()
+/**
+ * Get or create a cart for a user.
+ *
+ * Accepts an optional `client` parameter (user-context Supabase client).
+ * When provided, cart operations use the user's auth context so they satisfy
+ * RLS policies (carts_own: auth.uid() = user_id).
+ * Falls back to the service-role admin client when no client is provided
+ * (e.g. called from server-side scripts / background jobs).
+ *
+ * Root cause of previous 500: SUPABASE_SERVICE_ROLE_KEY not set in CI
+ * caused admin client creation to throw, propagating as an RLS error when
+ * a partially-initialised client was used. Passing the user's auth client
+ * directly eliminates this dependency for user-facing routes.
+ */
+export async function getOrCreateCart(
+  userId: string,
+  client?: SupabaseClient
+): Promise<string> {
+  const supabase = client ?? getSupabaseAdmin()
 
-  // 1. Try select existing cart
+  // 1. Try to find existing cart
   const { data: existing, error: selectError } = await supabase
     .from('carts')
     .select('id')
@@ -11,14 +29,14 @@ export async function getOrCreateCart(userId: string): Promise<string> {
     .single()
 
   if (selectError && selectError.code !== 'PGRST116') {
-    // PGRST116 = not found — other errors are real errors
+    // PGRST116 = "no rows returned" — any other code is a real error
     console.error('getOrCreateCart select error:', selectError)
     throw selectError
   }
 
   if (existing) return existing.id
 
-  // 2. Create new cart
+  // 2. Create a new cart
   const { data: newCart, error: insertError } = await supabase
     .from('carts')
     .insert({ user_id: userId })
@@ -33,8 +51,14 @@ export async function getOrCreateCart(userId: string): Promise<string> {
   return newCart.id
 }
 
-export async function getFullCart(cartId: string) {
-  const supabase = getSupabaseAdmin()
+/**
+ * Fetch a full cart (items + product/variant details) for a given cart ID.
+ *
+ * Uses the provided client (user auth context) so the query satisfies the
+ * cart_items RLS policy (cart_items_own). Falls back to admin client.
+ */
+export async function getFullCart(cartId: string, client?: SupabaseClient) {
+  const supabase = client ?? getSupabaseAdmin()
 
   const { data: items, error } = await supabase
     .from('cart_items')
