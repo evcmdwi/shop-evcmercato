@@ -182,12 +182,18 @@ export async function POST(req: NextRequest) {
       const invoice = await createInvoice({
         external_id: order.id,
         amount: total_amount,
-        description: `EVC Mercato Order #${order.id.slice(0, 8)}`,
-        customer_name: (userData as { name?: string } | null)?.name || user.email || 'Customer',
-        customer_email: (userData as { email?: string } | null)?.email || user.email || '',
-        customer_phone: (userData as { phone?: string } | null)?.phone || undefined,
+        payer_email: user.email || '',
+        description: `Order #${order.id.slice(0, 8).toUpperCase()} - EVC Mercato`,
+        items: orderItemsData.map(item => ({
+          name: item.product_name + (item.variant_name ? ` (${item.variant_name})` : ''),
+          quantity: item.quantity,
+          price: item.price,
+          category: 'Produk Kesehatan Wanita',
+        })),
         success_redirect_url: `${APP_URL}/orders/${order.id}/sukses`,
         failure_redirect_url: `${APP_URL}/orders/${order.id}/gagal`,
+        customer_name: userData?.name || 'Customer',
+        customer_phone: userData?.phone || address.phone,
       })
       xenditInvoiceId = invoice.id
       xenditInvoiceUrl = invoice.invoice_url
