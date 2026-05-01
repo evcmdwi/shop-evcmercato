@@ -1,5 +1,7 @@
-// Setup all event listeners
-// E2 (email) dan E3 (WhatsApp) akan menambahkan listener mereka di sini
+import { subscribeToOrderPaid, subscribeToOrderExpired } from './order-events'
+import { sendEmail } from '../email'
+import { generateOrderPaidEmail } from '../email-templates/order-paid'
+import { generateOrderExpiredEmail } from '../email-templates/order-expired'
 
 let initialized = false
 
@@ -7,11 +9,22 @@ export function setupEventListeners() {
   if (initialized) return
   initialized = true
 
-  console.log('[events] Event listeners initialized (E2/E3 listeners will be added in future PRs)')
+  // Email: order paid
+  subscribeToOrderPaid(async (payload) => {
+    if (!payload.payerEmail) {
+      console.log('[email] skipped order.paid — no email')
+      return
+    }
+    const { subject, html } = generateOrderPaidEmail(payload)
+    await sendEmail({ to: payload.payerEmail, subject, html })
+  })
 
-  // Placeholder — E2 akan tambahkan:
-  // subscribeToOrderPaid(sendOrderPaidEmail)
+  // Email: order expired
+  subscribeToOrderExpired(async ({ orderId }) => {
+    // Fetch order + user info untuk email
+    // Untuk simplicity Phase 1: log saja dulu, implement full later
+    console.log('[email] order.expired —', orderId, '(email notification placeholder)')
+  })
 
-  // E3 akan tambahkan:
-  // subscribeToOrderPaid(sendOrderPaidWhatsApp)
+  console.log('[events] Email listeners initialized')
 }
