@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test'
 import { TEST_USER, login, logout } from './helpers/auth'
 
 test.describe('Authentication', () => {
-  test('login sukses redirect ke dashboard', async ({ page }) => {
+  test('[smoke] login sukses redirect ke dashboard @smoke', async ({ page }) => {
     await login(page)
     await expect(page).toHaveURL('/dashboard')
   })
