@@ -105,6 +105,7 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: user.id,
         status: 'pending',
+        total_price: total_amount,    // backward compat — mirrors total_amount (redundant col, to be dropped in Sub-PR G)
         subtotal,
         shipping_cost,
         shipping_cost_discount,
@@ -210,7 +211,7 @@ export async function POST(req: NextRequest) {
     })
 
   } catch (err) {
-    console.error('POST /api/checkout error:', err)
+    console.error('[/api/checkout] Unhandled error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
 }
