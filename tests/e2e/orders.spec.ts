@@ -7,7 +7,7 @@ test.describe('Orders', () => {
     await page.goto('/orders')
     await expect(page).not.toHaveURL(/\/login/)
     // Either empty state or list
-    const content = page.locator('text=Belum ada pesanan, text=Pesanan Saya').first()
+    const content = page.getByText('Belum ada pesanan').or(page.getByText('Pesanan Saya')).first()
     await expect(content).toBeVisible({ timeout: 5000 })
   })
 
