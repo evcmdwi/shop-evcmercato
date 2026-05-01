@@ -26,3 +26,8 @@ export async function clearCart(page: Page) {
   const response = await page.request.post('/api/cart/clear')
   return response.ok()
 }
+
+export async function isLoggedIn(page: Page): Promise<boolean> {
+  const res = await page.request.get('/api/cart')
+  return res.status() === 200
+}
