@@ -33,6 +33,8 @@ function formatDate(dateStr: string | null | undefined) {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OrderItem {
+  product_name?: string | null
+  variant_name?: string | null
   id: string
   quantity: number
   price: number
@@ -71,9 +73,18 @@ interface Order {
   shipping_courier: string | null
   delivered_note: string | null
   xendit_invoice_url: string | null
-  profiles: { full_name: string | null; email: string | null; phone: string | null } | null
-  order_items: OrderItem[]
-  shipping_addresses: ShippingAddress | null
+  shipping_recipient_name: string | null
+  shipping_phone: string | null
+  shipping_full_address: string | null
+  shipping_city: string | null
+  shipping_province: string | null
+  shipping_postal_code: string | null
+  customer_name?: string
+  customer_email?: string
+  user?: { name: string | null; email: string | null; phone: string | null } | null
+  profiles?: { full_name: string | null; email: string | null; phone: string | null } | null
+  shipping_addresses?: ShippingAddress | null
+  order_items?: OrderItem[]
 }
 
 // ─── InputResiModal ───────────────────────────────────────────────────────────
@@ -133,7 +144,7 @@ function InputResiModal({ orderId, onClose, onSuccess }: InputResiModalProps) {
               onChange={(e) => setCourier(e.target.value)}
               className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
             >
-              {['JNE', 'JNT', 'SiCepat', 'AnterAja', 'Lainnya'].map((c) => (
+              {['JNE', 'JNT'].map((c) => (
                 <option key={c} value={c}>{c}</option>
               ))}
             </select>
@@ -541,15 +552,15 @@ export default function AdminOrderDetailPage() {
             <dl className="space-y-2 text-sm">
               <div className="flex gap-2">
                 <dt className="text-slate-500 w-20 shrink-0">Nama</dt>
-                <dd className="text-slate-900 font-medium">{order.profiles?.full_name ?? '—'}</dd>
+                <dd className="text-slate-900 font-medium">{order.customer_name || order.profiles?.full_name || order.user?.name || '—'}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="text-slate-500 w-20 shrink-0">Email</dt>
-                <dd className="text-slate-900">{order.profiles?.email ?? '—'}</dd>
+                <dd className="text-slate-900">{order.customer_email || order.profiles?.email || order.user?.email || '—'}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="text-slate-500 w-20 shrink-0">Telepon</dt>
-                <dd className="text-slate-900">{order.profiles?.phone ?? '—'}</dd>
+                <dd className="text-slate-900">{order.user?.phone || order.profiles?.phone || '—'}</dd>
               </div>
             </dl>
           </div>
@@ -557,27 +568,26 @@ export default function AdminOrderDetailPage() {
           {/* Alamat Pengiriman */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h2 className="font-semibold text-slate-900 mb-3">Alamat Pengiriman</h2>
-            {order.shipping_addresses ? (
+            {(order.shipping_addresses || order.shipping_recipient_name) ? (
               <dl className="space-y-2 text-sm">
                 <div className="flex gap-2">
                   <dt className="text-slate-500 w-20 shrink-0">Penerima</dt>
-                  <dd className="text-slate-900 font-medium">{order.shipping_addresses.recipient_name}</dd>
+                  <dd className="text-slate-900 font-medium">{order.shipping_addresses?.recipient_name || order.shipping_recipient_name || '—'}</dd>
                 </div>
                 <div className="flex gap-2">
                   <dt className="text-slate-500 w-20 shrink-0">Telepon</dt>
-                  <dd className="text-slate-900">{order.shipping_addresses.recipient_phone}</dd>
+                  <dd className="text-slate-900">{order.shipping_addresses?.recipient_phone || order.shipping_phone || '—'}</dd>
                 </div>
                 <div className="flex gap-2">
                   <dt className="text-slate-500 w-20 shrink-0">Alamat</dt>
                   <dd className="text-slate-900">
-                    {order.shipping_addresses.address_line1}
-                    {order.shipping_addresses.address_line2 && `, ${order.shipping_addresses.address_line2}`}
+                    {order.shipping_addresses?.address_line1 || order.shipping_full_address || '—'}
                   </dd>
                 </div>
                 <div className="flex gap-2">
                   <dt className="text-slate-500 w-20 shrink-0">Kota</dt>
                   <dd className="text-slate-900">
-                    {order.shipping_addresses.city}, {order.shipping_addresses.province} {order.shipping_addresses.postal_code}
+                    {[order.shipping_addresses?.city || order.shipping_city, order.shipping_addresses?.province || order.shipping_province, order.shipping_addresses?.postal_code || order.shipping_postal_code].filter(Boolean).join(', ')}
                   </dd>
                 </div>
               </dl>
@@ -602,15 +612,15 @@ export default function AdminOrderDetailPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {order.order_items.map((item) => (
+              {(order.order_items ?? []).map((item) => (
                 <tr key={item.id}>
                   <td className="px-5 py-3">
-                    <div className="font-medium text-slate-900">{item.product_variants?.products?.name ?? '—'}</div>
-                    <div className="text-xs text-slate-400">{item.product_variants?.name ?? ''}</div>
+                    <div className="font-medium text-slate-900">{item.product_name || item.product_variants?.products?.name || '—'}</div>
+                    <div className="text-xs text-slate-400">{item.variant_name || item.product_variants?.name || ''}</div>
                   </td>
                   <td className="px-5 py-3 text-center text-slate-700">{item.quantity}</td>
                   <td className="px-5 py-3 text-right text-slate-700">{formatRp(item.price)}</td>
-                  <td className="px-5 py-3 text-right font-medium text-slate-900">{formatRp(item.subtotal)}</td>
+                  <td className="px-5 py-3 text-right font-medium text-slate-900">{formatRp((item.subtotal ?? (item.price * item.quantity)) || 0)}</td>
                 </tr>
               ))}
             </tbody>
