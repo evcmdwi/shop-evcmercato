@@ -69,6 +69,8 @@ export default function CheckoutPage() {
   const shippingCost = 10000
   const serviceFee = 3000
   const freeShipping = subtotal >= 50000
+  const qualifiesForFreeShipping = freeShipping
+  const remaining = Math.max(0, 50000 - subtotal)
   const shippingCostDiscount = freeShipping ? shippingCost : 0
   // Service fee always free (Phase 1)
   const totalSaved = shippingCostDiscount + serviceFee
@@ -295,7 +297,7 @@ export default function CheckoutPage() {
                     <div className="flex justify-between">
                       <span className="text-gray-600">Ongkos Kirim</span>
                       <span>
-                        {shippingCostDiscount > 0 ? (
+                        {qualifiesForFreeShipping ? (
                           <span>
                             <s className="text-gray-400 mr-1">{formatRupiah(shippingCost)}</s>
                             <span className="text-[#1D9E75] font-bold">GRATIS</span>
@@ -316,9 +318,24 @@ export default function CheckoutPage() {
                       <span>Total Bayar</span>
                       <span style={{ color: '#534AB7' }}>{formatRupiah(totalAmount)}</span>
                     </div>
-                    {totalSaved > 0 && (
-                      <div className="bg-green-50 text-green-700 text-xs rounded-lg p-2 text-center">
-                        💚 Hemat {formatRupiah(totalSaved)} dari ongkir &amp; biaya layanan!
+                    {!qualifiesForFreeShipping && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
+                        <div className="flex items-start gap-2">
+                          <span className="text-lg">🛒</span>
+                          <div>
+                            <p className="text-sm font-medium text-amber-800">
+                              Tambah belanja <strong>{formatRupiah(remaining)}</strong> untuk <strong>GRATIS ongkir!</strong>
+                            </p>
+                            <p className="text-xs text-amber-600 mt-0.5">Hemat Rp 10.000 ongkos kirim</p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                    {qualifiesForFreeShipping && totalSaved > 0 && (
+                      <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                        <p className="text-sm text-green-700 font-medium text-center">
+                          💚 Hemat {formatRupiah(totalSaved)} dari ongkir &amp; biaya layanan!
+                        </p>
                       </div>
                     )}
                   </div>
@@ -338,6 +355,15 @@ export default function CheckoutPage() {
                       'Bayar Sekarang'
                     )}
                   </button>
+
+                  {!qualifiesForFreeShipping && (
+                    <Link
+                      href="/keranjang"
+                      className="flex items-center justify-center gap-2 w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors mt-2"
+                    >
+                      ← Kembali ke Keranjang
+                    </Link>
+                  )}
 
                   {evcPoints > 0 && (
                     <p className="mt-3 text-xs text-gray-500 text-center">
