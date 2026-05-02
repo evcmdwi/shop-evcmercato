@@ -1,103 +1,72 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-// GET /api/sambers/orders — list all orders with pagination + filter
 export async function GET(req: NextRequest) {
-  const auth = await checkAdminAuth()
-  if (!auth.ok) {
-    return NextResponse.json(
-      { data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' },
-      { status: auth.status }
-    )
-  }
-
-  const { searchParams } = new URL(req.url)
-  const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
-  const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')))
-  const offset = (page - 1) * limit
-  const status = searchParams.get('status') || ''
-  const search = searchParams.get('search') || ''
-
-  let query = supabaseAdmin
-    .from('orders')
-    .select(
-      `
-      id,
-      status,
-      total_amount,
-      created_at,
-      paid_at,
-      shipped_at,
-      tracking_number,
-      profiles!orders_user_id_fkey (
-        full_name,
-        email,
-        phone
-      ),
-      order_items (id)
-    `,
-      { count: 'exact' }
-    )
-    .order('created_at', { ascending: false })
-    .range(offset, offset + limit - 1)
-
-  if (status && status !== 'all') {
-    query = query.eq('status', status)
-  }
-
-  if (search) {
-    // Search by short order ID (first 8 chars of UUID) or match full UUID
-    const isUuid = /^[0-9a-f-]{8,}$/i.test(search)
-    if (isUuid) {
-      query = query.ilike('id', `${search}%`)
+  try {
+    const auth = await checkAdminAuth()
+    if (!auth.ok) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: auth.status })
     }
-  }
 
-  const { data: orders, error, count } = await query
+    const admin = getSupabaseAdmin()
+    const { searchParams } = new URL(req.url)
+    const page = Math.max(1, parseInt(searchParams.get('page') || '1'))
+    const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')))
+    const offset = (page - 1) * limit
+    const status = searchParams.get('status') || ''
+    const search = searchParams.get('search') || ''
 
-  if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 })
-  }
+    let query = admin
+      .from('orders')
+      .select(`
+        id, status, total_amount, created_at, paid_at, shipped_at,
+        tracking_number, shipping_courier, user_id,
+        shipping_recipient_name, shipping_phone,
+        order_items (id)
+      `, { count: 'exact' })
+      .order('created_at', { ascending: false })
+      .range(offset, offset + limit - 1)
 
-  // Post-filter by customer name if search doesn't look like an order ID
-  let filteredOrders = orders ?? []
-  if (search && !/^[0-9a-f-]{8,}$/i.test(search)) {
-    const lowerSearch = search.toLowerCase()
-    filteredOrders = filteredOrders.filter((o) => {
-      const profile = o.profiles as { full_name?: string; email?: string } | null
-      return (
-        profile?.full_name?.toLowerCase().includes(lowerSearch) ||
-        profile?.email?.toLowerCase().includes(lowerSearch)
-      )
-    })
-  }
+    if (status) query = query.eq('status', status)
+    if (search) query = query.ilike('shipping_recipient_name', `%${search}%`)
 
-  const formattedOrders = filteredOrders.map((o) => {
-    const profile = o.profiles as { full_name?: string; email?: string; phone?: string } | null
-    const items = o.order_items as { id: string }[] | null
-    return {
-      id: o.id,
-      short_id: (o.id as string).slice(0, 8).toUpperCase(),
-      status: o.status,
-      total_amount: o.total_amount,
-      created_at: o.created_at,
-      paid_at: o.paid_at,
-      shipped_at: o.shipped_at,
-      tracking_number: o.tracking_number,
-      customer_name: profile?.full_name ?? '—',
-      customer_email: profile?.email ?? '—',
-      customer_phone: profile?.phone ?? '—',
-      items_count: items?.length ?? 0,
+    const { data: orders, error, count } = await query
+
+    if (error) {
+      console.error('[/api/sambers/orders] query error:', error.message)
+      return NextResponse.json({ error: error.message }, { status: 500 })
     }
-  })
 
-  return NextResponse.json({
-    data: {
-      orders: formattedOrders,
+    // Fetch user info separately to avoid join issues
+    const userIds = [...new Set((orders ?? []).map((o: any) => o.user_id).filter(Boolean))]
+    let userMap: Record<string, { name: string | null; email: string | null; phone: string | null }> = {}
+    if (userIds.length > 0) {
+      const { data: users } = await admin
+        .from('users')
+        .select('id, name, email, phone')
+        .in('id', userIds)
+      if (users) {
+        for (const u of users as any[]) {
+          userMap[u.id] = { name: u.name, email: u.email, phone: u.phone }
+        }
+      }
+    }
+
+    const enriched = (orders ?? []).map((o: any) => ({
+      ...o,
+      user: userMap[o.user_id] ?? null,
+      items_count: Array.isArray(o.order_items) ? o.order_items.length : 0,
+    }))
+
+    return NextResponse.json({
+      data: enriched,
       total: count ?? 0,
       page,
-      limit,
-    },
-  })
+      totalPages: Math.ceil((count ?? 0) / limit),
+    })
+  } catch (err) {
+    console.error('[/api/sambers/orders] error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
 }
