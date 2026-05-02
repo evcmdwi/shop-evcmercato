@@ -1,5 +1,5 @@
 export function generateOrderExpiredEmail(orderId: string, orderShortId: string, customerName: string): { subject: string; html: string } {
-  const subject = `⏰ Pesanan #${orderShortId} Kedaluwarsa - EVC Mercato`
+  const subject = `Pesanan #${orderShortId} Kedaluwarsa - EVC Mercato`
   const html = `
 <!DOCTYPE html>
 <html>

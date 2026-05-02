@@ -4,6 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
+import { createClient } from '@/lib/supabase'
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -37,8 +38,16 @@ export default function OrderSuksesPage() {
 
   const [order, setOrder] = useState<OrderSummary | null>(null)
   const [loading, setLoading] = useState(true)
+  const [userEmail, setUserEmail] = useState<string | null>(null)
   const [polling, setPolling] = useState(false)
   const [pollExhausted, setPollExhausted] = useState(false)
+
+  useEffect(() => {
+    const supabase = createClient()
+    supabase.auth.getUser().then(({ data }) => {
+      if (data?.user?.email) setUserEmail(data.user.email)
+    })
+  }, [])
 
   const fetchOrder = useCallback(async (): Promise<OrderSummary | null> => {
     try {
@@ -139,7 +148,16 @@ export default function OrderSuksesPage() {
           <p className="text-sm text-gray-500 my-4">Pesanan berhasil dibuat.</p>
         )}
 
-        <div className="space-y-3">
+        {/* Email spam notice */}
+        <div className="flex items-start gap-2 text-sm text-gray-500 bg-gray-50 rounded-lg p-3 mt-4">
+          <span className="text-base flex-shrink-0">📧</span>
+          <p>
+            Email konfirmasi sudah dikirim ke <strong>{userEmail || 'email kamu'}</strong>.
+            Periksa folder <strong>Spam</strong> jika belum ada di Inbox utama.
+          </p>
+        </div>
+
+        <div className="space-y-3 mt-4">
           <Link
             href={`/orders/${id}`}
             className="block w-full py-3 rounded-xl text-white font-semibold text-sm"

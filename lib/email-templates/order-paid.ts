@@ -2,7 +2,7 @@ import type { OrderPaidPayload } from '@/lib/events/order-events'
 import { formatRupiah } from '@/lib/format'
 
 export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: string; html: string } {
-  const subject = `✅ Pembayaran Diterima - Pesanan #${payload.orderShortId}`
+  const subject = `Pembayaran Diterima - Pesanan #${payload.orderShortId}`
 
   const itemRows = payload.items
     .map(
