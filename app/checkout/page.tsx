@@ -194,7 +194,7 @@ export default function CheckoutPage() {
                     <input type="radio" name="shipping" defaultChecked className="accent-[#534AB7]" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Reguler</p>
-                      <p className="text-xs text-gray-500">Estimasi 3-5 hari kerja</p>
+                      <p className="text-xs text-gray-500">Estimasi 1-3 hari kerja</p>
                     </div>
                   </div>
                   <div className="text-sm font-medium text-right">

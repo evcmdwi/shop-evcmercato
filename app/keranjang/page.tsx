@@ -246,6 +246,12 @@ export default function KeranjangPage() {
               Lanjut ke Checkout
               <ArrowRight className="w-4 h-4" />
             </button>
+            <Link
+              href="/katalog"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-center border border-[#534AB7] text-[#534AB7] hover:bg-[#EEEDFE] transition-colors"
+            >
+              ← Belanja Lagi
+            </Link>
             {hasOutOfStock && (
               <p className="text-xs text-center text-red-500">
                 Hapus item yang stoknya habis untuk melanjutkan

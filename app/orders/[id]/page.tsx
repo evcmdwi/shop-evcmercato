@@ -290,6 +290,24 @@ export default function OrderDetailPage() {
               </div>
             </div>
           )}
+
+          {/* CTA Navigasi */}
+          <div className="flex flex-col sm:flex-row gap-3 mt-6">
+            <Link
+              href="/katalog"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#534AB7] text-white py-3 rounded-xl font-semibold hover:bg-[#4338a0]"
+            >
+              🛍️ Lanjut Belanja
+            </Link>
+            <a
+              href={`https://wa.me/6285820852908?text=Halo%20admin%2C%20saya%20mau%20tanya%20order%20${order.id}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex-1 flex items-center justify-center gap-2 border border-green-500 text-green-600 py-3 rounded-xl font-semibold hover:bg-green-50"
+            >
+              💬 Hubungi Admin
+            </a>
+          </div>
         </div>
       </div>
     </div>

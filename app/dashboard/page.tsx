@@ -14,14 +14,30 @@ export default async function DashboardPage() {
     redirect('/login')
   }
 
-  // Fetch user profile from public.users
-  const { data: profile } = await supabase
+  // Fetch user profile from public.users (includes total_points, tier)
+  const { data: userData } = await supabase
     .from('users')
-    .select('name, email')
+    .select('name, email, total_points, tier')
     .eq('id', user.id)
     .single()
 
-  const displayName = profile?.name ?? user.email ?? 'User'
+  const displayName = userData?.name ?? user.email ?? 'User'
+
+  // Fetch count orders aktif (status: paid, processed, shipped)
+  const { data: activeOrders } = await supabase
+    .from('orders')
+    .select('id', { count: 'exact' })
+    .eq('user_id', user.id)
+    .in('status', ['paid', 'processed', 'shipped'])
+
+  const activeOrderCount = activeOrders?.length ?? 0
+
+  const tierLabel = userData?.tier
+    ? userData.tier.charAt(0).toUpperCase() + userData.tier.slice(1).toLowerCase()
+    : 'Silver'
+
+  const tierIcon =
+    tierLabel === 'Gold' ? '🥇' : tierLabel === 'Platinum' ? '💎' : '🥈'
 
   return (
     <div className="min-h-screen bg-slate-50">
@@ -51,25 +67,26 @@ export default async function DashboardPage() {
             <div>
               <p className="text-sm text-slate-500">Selamat datang,</p>
               <h2 className="text-xl font-bold text-slate-800">{displayName}</h2>
-              <p className="text-sm text-slate-400">{profile?.email ?? user.email}</p>
+              <p className="text-sm text-slate-400">{userData?.email ?? user.email}</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-            {[
-              { label: 'Pesanan Aktif', value: '0', icon: '📦' },
-              { label: 'EVC Points', value: '0 pt', icon: '⭐' },
-              { label: 'Tier Member', value: 'Silver', icon: '🥈' },
-            ].map((stat) => (
-              <div
-                key={stat.label}
-                className="bg-slate-50 rounded-xl p-4 border border-slate-100"
-              >
-                <div className="text-2xl mb-2">{stat.icon}</div>
-                <p className="text-2xl font-bold text-slate-800">{stat.value}</p>
-                <p className="text-sm text-slate-500 mt-0.5">{stat.label}</p>
-              </div>
-            ))}
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="text-2xl mb-2">📦</div>
+              <p className="text-2xl font-bold text-slate-800">{activeOrderCount}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Pesanan Aktif</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="text-2xl mb-2">⭐</div>
+              <p className="text-2xl font-bold text-slate-800">{userData?.total_points ?? 0} pt</p>
+              <p className="text-sm text-slate-500 mt-0.5">EVC Points</p>
+            </div>
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+              <div className="text-2xl mb-2">{tierIcon}</div>
+              <p className="text-2xl font-bold text-slate-800">{tierLabel}</p>
+              <p className="text-sm text-slate-500 mt-0.5">Tier Member</p>
+            </div>
           </div>
 
           <div className="mt-8 flex justify-center">
