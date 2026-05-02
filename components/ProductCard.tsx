@@ -76,7 +76,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
         {/* Card content */}
         <div className="p-2">
           {/* Product name - 2 lines max */}
-          <p className="text-[13px] text-gray-800 line-clamp-2 leading-tight mb-1.5 min-h-[2.2em]">
+          <p className="text-[15px] font-semibold text-gray-800 line-clamp-2 leading-tight mb-1.5 min-h-[2.2em]">
             {product.name}
           </p>
 
@@ -92,10 +92,24 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
             </span>
           </div>
 
-          {/* Stats: sold + low stock */}
-          <div className="text-[11px] text-gray-500">
+          {/* Stats: FAST badge + sold + low stock */}
+          <div className="text-[11px] text-gray-500 flex flex-wrap items-center gap-1">
+            {/* FAST badge — always show */}
+            <span className="inline-flex items-center gap-0.5 bg-green-50 border border-green-100 text-green-600 font-bold px-1.5 py-0.5 rounded-full" style={{letterSpacing: '0.5px'}}>
+              <svg viewBox="0 0 20 14" width="14" height="10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <line x1="0" y1="4" x2="5" y2="4" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+                <line x1="0" y1="7" x2="3.5" y2="7" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" opacity="0.5"/>
+                <line x1="0" y1="10" x2="5" y2="10" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" opacity="0.7"/>
+                <circle cx="8.5" cy="11" r="2" stroke="#16A34A" strokeWidth="1.5"/>
+                <circle cx="17" cy="11" r="2" stroke="#16A34A" strokeWidth="1.5"/>
+                <path d="M8.5 9 L10 6 L13 6 L15 9 L17 9" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <path d="M13 6 L14 4 L16 4" stroke="#16A34A" strokeWidth="1.5" strokeLinecap="round"/>
+              </svg>
+              <span className="text-[10px]">FAST</span>
+            </span>
+            <span className="text-gray-300">•</span>
             {isLowStock ? (
-              <span className="text-orange-600 font-medium">Stok tersisa {totalStock} • </span>
+              <span className="text-orange-600 font-medium">Stok tersisa {totalStock}</span>
             ) : null}
             {soldCount > 0 ? (
               <span>⭐ 5.0 • {formatSoldCount(soldCount)}</span>

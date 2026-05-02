@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Tag, Gift, Minus, Plus } from 'lucide-react'
@@ -22,6 +22,14 @@ export default function ProductDetailClient({ product }: Props) {
   const [variantImage, setVariantImage] = useState<string | null>(null)
   const [quantity, setQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState(false)
+
+  // Auto-select first variant on load
+  useEffect(() => {
+    if (product.has_variants && variants.length > 0 && !selectedVariant) {
+      setSelectedVariant(variants[0])
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const { addItem } = useCart()
   const { refreshCart } = useCartContext()
