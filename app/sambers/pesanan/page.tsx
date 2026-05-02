@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 
 const STATUS_TABS = [
@@ -56,7 +56,7 @@ function formatDate(dateStr: string) {
   })
 }
 
-export default function AdminPesananPage() {
+function AdminPesananPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -276,5 +276,13 @@ export default function AdminPesananPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function AdminPesananPage() {
+  return (
+    <Suspense fallback={<div className="p-6 text-slate-400">Memuat pesanan...</div>}>
+      <AdminPesananPageInner />
+    </Suspense>
   )
 }
