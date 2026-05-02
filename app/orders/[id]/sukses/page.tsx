@@ -37,21 +37,47 @@ export default function OrderSuksesPage() {
 
   const [order, setOrder] = useState<OrderSummary | null>(null)
   const [loading, setLoading] = useState(true)
+  const [polling, setPolling] = useState(false)
+  const [pollExhausted, setPollExhausted] = useState(false)
 
-  const fetchOrder = useCallback(async () => {
+  const fetchOrder = useCallback(async (): Promise<OrderSummary | null> => {
     try {
       const res = await fetch(`/api/orders/${id}`)
       if (res.ok) {
         const { data } = await res.json()
         setOrder(data)
+        return data as OrderSummary
       }
     } finally {
       setLoading(false)
     }
+    return null
   }, [id])
 
   useEffect(() => {
-    fetchOrder()
+    let interval: ReturnType<typeof setInterval> | null = null
+
+    fetchOrder().then((data) => {
+      if (data?.status === 'pending') {
+        setPolling(true)
+        let attempts = 0
+        interval = setInterval(async () => {
+          attempts++
+          const updated = await fetchOrder()
+          if (updated?.status !== 'pending' || attempts >= 10) {
+            if (interval) clearInterval(interval)
+            setPolling(false)
+            if (attempts >= 10 && updated?.status === 'pending') {
+              setPollExhausted(true)
+            }
+          }
+        }, 3000)
+      }
+    })
+
+    return () => {
+      if (interval) clearInterval(interval)
+    }
   }, [fetchOrder])
 
   const badge = order ? (statusBadge[order.status] ?? { label: order.status, className: 'bg-gray-100 text-gray-700' }) : null
@@ -80,6 +106,18 @@ export default function OrderSuksesPage() {
               <span className={`inline-block text-xs font-semibold px-3 py-1.5 rounded-full mb-4 ${badge.className}`}>
                 {badge.label}
               </span>
+            )}
+
+            {polling && order?.status === 'pending' && (
+              <div className="text-center text-sm text-gray-500 mb-4">
+                <span className="animate-pulse">⏳ Menunggu konfirmasi pembayaran...</span>
+              </div>
+            )}
+
+            {pollExhausted && order?.status === 'pending' && (
+              <div className="text-center text-sm text-amber-600 mb-4">
+                Coba refresh halaman jika status belum berubah.
+              </div>
             )}
 
             {/* Items ringkas */}
