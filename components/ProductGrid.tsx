@@ -6,28 +6,18 @@ interface ProductGridProps {
   products: ProductWithCategory[]
 }
 
-function SkeletonCard() {
-  return (
-    <div className="bg-white rounded-2xl border border-gray-100 overflow-hidden animate-pulse">
-      <div className="aspect-square bg-gray-100" />
-      <div className="p-4 space-y-3">
-        <div className="h-4 bg-gray-100 rounded w-3/4" />
-        <div className="h-4 bg-gray-100 rounded w-1/2" />
-        <div className="h-6 bg-gray-100 rounded w-1/3" />
-        <div className="flex gap-2">
-          <div className="flex-1 h-8 bg-gray-100 rounded-xl" />
-          <div className="flex-1 h-8 bg-gray-100 rounded-xl" />
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export function ProductGridSkeleton() {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-      {Array.from({ length: 8 }).map((_, i) => (
-        <SkeletonCard key={i} />
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+      {Array(8).fill(0).map((_, i) => (
+        <div key={i} className="bg-gray-100 rounded-lg overflow-hidden animate-pulse">
+          <div className="aspect-square bg-gray-200" />
+          <div className="p-2 space-y-1.5">
+            <div className="h-3 bg-gray-200 rounded w-full" />
+            <div className="h-3 bg-gray-200 rounded w-2/3" />
+            <div className="h-4 bg-gray-200 rounded w-1/2" />
+          </div>
+        </div>
       ))}
     </div>
   )
@@ -47,7 +37,7 @@ export default function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
       {products.map((product) => (
         <ProductCard
           key={product.id}
