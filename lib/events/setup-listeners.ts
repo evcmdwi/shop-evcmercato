@@ -114,4 +114,5 @@ export function setupEventListeners() {
   })
 
   console.log('[events] Email + WhatsApp + SoldCount listeners initialized')
+}
 
