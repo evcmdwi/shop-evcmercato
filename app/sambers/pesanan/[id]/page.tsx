@@ -71,6 +71,15 @@ interface Order {
   shipping_courier: string | null
   delivered_note: string | null
   xendit_invoice_url: string | null
+  shipping_recipient_name: string | null
+  shipping_phone: string | null
+  shipping_full_address: string | null
+  shipping_city: string | null
+  shipping_province: string | null
+  shipping_postal_code: string | null
+  customer_name?: string
+  customer_email?: string
+  user?: { name: string | null; email: string | null; phone: string | null } | null
   profiles: { full_name: string | null; email: string | null; phone: string | null } | null
   user?: { name: string | null; email: string | null; phone: string | null } | null
   customer_name?: string
