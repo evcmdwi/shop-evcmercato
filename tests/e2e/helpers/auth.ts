@@ -12,7 +12,7 @@ export async function login(page: Page, redirectTo?: string) {
   await page.fill('input[type="email"]', TEST_USER.email)
   await page.fill('input[type="password"]', TEST_USER.password)
   await page.click('button[type="submit"]')
-  await page.waitForURL(redirectTo || '/dashboard', { timeout: 10000 })
+  await page.waitForURL(redirectTo || '/katalog', { timeout: 10000 })
 }
 
 export async function logout(page: Page) {
