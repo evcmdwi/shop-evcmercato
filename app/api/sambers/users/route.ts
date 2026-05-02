@@ -18,7 +18,7 @@ export async function GET(req: NextRequest) {
     .select('*', { count: 'exact', head: true })
 
   if (error) {
-    console.error('[GET /api/admin/users]', error)
+    console.error('[GET /api/sambers/users]', error)
     return NextResponse.json(
       { data: null, error: error.message, message: 'Internal Server Error' },
       { status: 500 }

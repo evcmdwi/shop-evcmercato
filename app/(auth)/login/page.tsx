@@ -36,7 +36,7 @@ function LoginForm() {
     const { data: { user } } = await supabase.auth.getUser()
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase())
     if (adminEmails.includes(user?.email?.toLowerCase() || '')) {
-      window.location.href = '/admin'
+      window.location.href = '/sambers'
     } else {
       window.location.href = redirectTo || '/katalog'
     }

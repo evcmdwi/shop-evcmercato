@@ -53,8 +53,8 @@ export default function EditProdukPage() {
 
   useEffect(() => {
     Promise.all([
-      fetch(`/api/admin/products/${id}`).then((r) => r.json()),
-      fetch('/api/admin/categories?limit=100').then((r) => r.json()),
+      fetch(`/api/sambers/products/${id}`).then((r) => r.json()),
+      fetch('/api/sambers/categories?limit=100').then((r) => r.json()),
     ])
       .then(([product, cats]) => {
         if (product.error) throw new Error(product.error)
@@ -128,7 +128,7 @@ export default function EditProdukPage() {
     if (!validate()) return
     setSubmitting(true)
     try {
-      const res = await fetch(`/api/admin/products/${id}`, {
+      const res = await fetch(`/api/sambers/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -151,7 +151,7 @@ export default function EditProdukPage() {
         throw new Error(err.error ?? 'Gagal memperbarui produk')
       }
       toast('Produk berhasil diperbarui', 'success')
-      router.push('/admin/produk')
+      router.push('/sambers/produk')
     } catch (e: unknown) {
       toast(e instanceof Error ? e.message : 'Gagal memperbarui produk', 'error')
     } finally {

@@ -45,7 +45,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
         const formData = new FormData()
         formData.append('file', file)
 
-        const res = await fetch('/api/admin/upload', {
+        const res = await fetch('/api/sambers/upload', {
           method: 'POST',
           body: formData,
         })
@@ -77,7 +77,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
 
     if (urlToDelete.includes('supabase.co')) {
       try {
-        await fetch('/api/admin/delete-image', {
+        await fetch('/api/sambers/delete-image', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: urlToDelete }),

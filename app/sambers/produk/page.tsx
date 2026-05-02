@@ -53,7 +53,7 @@ export default function AdminProdukPage() {
         ...(filterCategory && { category: filterCategory }),
         ...(filterStatus && { status: filterStatus }),
       })
-      const res = await fetch(`/api/admin/products?${params}`)
+      const res = await fetch(`/api/sambers/products?${params}`)
       if (!res.ok) throw new Error('Gagal memuat produk')
       const json: ProductsResponse = await res.json()
       setProducts(json.data ?? [])
@@ -70,7 +70,7 @@ export default function AdminProdukPage() {
   }, [fetchProducts])
 
   useEffect(() => {
-    fetch('/api/admin/categories?limit=100')
+    fetch('/api/sambers/categories?limit=100')
       .then((r) => r.json())
       .then((j) => setCategories(j.data ?? []))
       .catch(() => {})
@@ -80,7 +80,7 @@ export default function AdminProdukPage() {
     if (!deleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/admin/products/${deleteId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/sambers/products/${deleteId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
       toast('Produk berhasil dihapus', 'success')
       setDeleteId(null)
@@ -149,7 +149,7 @@ export default function AdminProdukPage() {
       render: (row: Product) => (
         <div className="flex gap-2">
           <Link
-            href={`/admin/produk/${row.id}/edit`}
+            href={`/sambers/produk/${row.id}/edit`}
             className="px-2 py-1 rounded text-xs bg-[#EEEDFE] text-[#534AB7] hover:bg-[#534AB7] hover:text-white transition-colors"
           >
             Edit
@@ -173,7 +173,7 @@ export default function AdminProdukPage() {
           <p className="text-sm text-slate-500 mt-1">{total} produk ditemukan</p>
         </div>
         <Link
-          href="/admin/produk/baru"
+          href="/sambers/produk/baru"
           className="px-4 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] transition-colors flex items-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
