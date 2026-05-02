@@ -75,7 +75,7 @@ export default function AdminOrdersPage() {
         ...(statusFilter !== 'all' && { status: statusFilter }),
         ...(search && { search }),
       })
-      const res = await fetch(`/api/admin/orders?${params}`)
+      const res = await fetch(`/api/sambers/orders?${params}`)
       const json = await res.json()
       if (json.data) {
         setOrders(json.data.orders)
@@ -182,7 +182,7 @@ export default function AdminOrdersPage() {
                     <tr
                       key={order.id}
                       className="hover:bg-slate-50 cursor-pointer transition-colors"
-                      onClick={() => router.push(`/admin/orders/${order.id}`)}
+                      onClick={() => router.push(`/sambers/orders/${order.id}`)}
                     >
                       <td className="px-4 py-3 font-mono font-medium text-[#534AB7]">
                         #{order.short_id}
@@ -205,7 +205,7 @@ export default function AdminOrdersPage() {
                       <td className="px-4 py-3 text-center text-slate-600">{order.items_count}</td>
                       <td className="px-4 py-3 text-center">
                         <button
-                          onClick={(e) => { e.stopPropagation(); router.push(`/admin/orders/${order.id}`) }}
+                          onClick={(e) => { e.stopPropagation(); router.push(`/sambers/orders/${order.id}`) }}
                           className="text-[#534AB7] hover:text-[#4238a0] text-sm font-medium"
                         >
                           Detail →

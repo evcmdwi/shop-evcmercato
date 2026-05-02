@@ -35,5 +35,5 @@ ${itemsList}
 
 📍 ${payload.shipping_address.city}, ${payload.shipping_address.province}
 
-👉 shop.evcmercato.com/admin/orders/${payload.orderId}`
+👉 shop.evcmercato.com/sambers/orders/${payload.orderId}`
 }

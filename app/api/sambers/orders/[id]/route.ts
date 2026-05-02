@@ -4,7 +4,7 @@ import { supabaseAdmin } from '@/lib/supabase-admin'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-// GET /api/admin/orders/[id] — order detail with items + user + address
+// GET /api/sambers/orders/[id] — order detail with items + user + address
 export async function GET(_req: NextRequest, { params }: RouteContext) {
   const auth = await checkAdminAuth()
   if (!auth.ok) {
@@ -73,7 +73,7 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
   return NextResponse.json({ data: { order } })
 }
 
-// PATCH /api/admin/orders/[id] — update status + tracking_number
+// PATCH /api/sambers/orders/[id] — update status + tracking_number
 export async function PATCH(req: NextRequest, { params }: RouteContext) {
   const auth = await checkAdminAuth()
   if (!auth.ok) {

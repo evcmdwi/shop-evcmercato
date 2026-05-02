@@ -6,7 +6,7 @@ import { useState } from 'react'
 
 const menuItems = [
   {
-    href: '/admin',
+    href: '/sambers',
     label: 'Dashboard',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -15,7 +15,7 @@ const menuItems = [
     ),
   },
   {
-    href: '/admin/produk',
+    href: '/sambers/produk',
     label: 'Produk',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -24,7 +24,7 @@ const menuItems = [
     ),
   },
   {
-    href: '/admin/kategori',
+    href: '/sambers/kategori',
     label: 'Kategori',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -33,7 +33,7 @@ const menuItems = [
     ),
   },
   {
-    href: '/admin/orders',
+    href: '/sambers/orders',
     label: 'Pesanan',
     icon: (
       <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -52,7 +52,7 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
   const pathname = usePathname()
 
   const isActive = (href: string) => {
-    if (href === '/admin') return pathname === '/admin'
+    if (href === '/sambers') return pathname === '/sambers'
     return pathname.startsWith(href)
   }
 

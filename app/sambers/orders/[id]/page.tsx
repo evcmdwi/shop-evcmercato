@@ -100,7 +100,7 @@ export default function AdminOrderDetailPage() {
     async function fetchOrder() {
       setLoading(true)
       try {
-        const res = await fetch(`/api/admin/orders/${orderId}`)
+        const res = await fetch(`/api/sambers/orders/${orderId}`)
         const json = await res.json()
         if (json.data?.order) {
           setOrder(json.data.order)
@@ -127,7 +127,7 @@ export default function AdminOrderDetailPage() {
       if (newStatus) body.status = newStatus
       if (trackingNumber !== (order.tracking_number ?? '')) body.tracking_number = trackingNumber
 
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/sambers/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -151,7 +151,7 @@ export default function AdminOrderDetailPage() {
     setUpdating(true)
     setUpdateMsg('')
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/sambers/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'delivered' }),
@@ -187,7 +187,7 @@ export default function AdminOrderDetailPage() {
       <AdminShell>
         <div className="p-6">
           <p className="text-red-600">{error || 'Pesanan tidak ditemukan'}</p>
-          <button onClick={() => router.push('/admin/orders')} className="mt-4 text-[#534AB7] hover:underline">
+          <button onClick={() => router.push('/sambers/orders')} className="mt-4 text-[#534AB7] hover:underline">
             ← Kembali ke daftar pesanan
           </button>
         </div>
@@ -203,7 +203,7 @@ export default function AdminOrderDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push('/admin/orders')}
+            onClick={() => router.push('/sambers/orders')}
             className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

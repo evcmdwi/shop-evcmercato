@@ -31,8 +31,8 @@ export async function middleware(request: NextRequest) {
 
   const { pathname } = request.nextUrl
 
-  // Protected routes — /admin is intentionally excluded here.
-  // Admin auth is handled by app/admin/layout.tsx
+  // Protected routes — /sambers (renamed from /admin) is handled by app/sambers/layout.tsx
+  
   const protectedRoutes = ['/dashboard', '/account', '/profile', '/orders', '/keranjang', '/checkout']
   const isProtected = protectedRoutes.some((route) =>
     pathname.startsWith(route)
@@ -59,5 +59,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/account/:path*', '/profile/:path*', '/orders/:path*', '/keranjang/:path*', '/checkout/:path*'],
+  matcher: ['/dashboard/:path*', '/account/:path*', '/profile/:path*', '/orders/:path*', '/keranjang/:path*', '/checkout/:path*', '/sambers/:path*'],
 }
