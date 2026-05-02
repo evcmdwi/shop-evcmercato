@@ -194,7 +194,7 @@ export default function ProductDetailClient({ product }: Props) {
               >
                 <Plus className="w-3 h-3" />
               </button>
-              <span className="text-sm text-gray-500">Stok: {maxStock}</span>
+
             </div>
           )}
 

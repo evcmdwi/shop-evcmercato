@@ -8,6 +8,7 @@ import { generateOrderExpiredEmail } from '../email-templates/order-expired'
 import { sendWhatsApp } from '../whatsapp'
 import { generateOrderPaidBuyerWA, generateOrderPaidAdminWA } from '../whatsapp-templates/order-paid'
 import { generateOrderExpiredBuyerWA } from '../whatsapp-templates/order-expired'
+import { getSupabaseAdmin } from '../supabase-admin'
 
 let initialized = false
 
@@ -88,5 +89,29 @@ export function setupEventListeners() {
     await sendWhatsApp({ to: payload.payerPhone, message })
   })
 
-  console.log('[events] Email + WhatsApp listeners initialized')
-}
+  // Update sold count setelah order PAID
+  subscribeToOrderPaid(async (payload) => {
+    const admin = getSupabaseAdmin()
+    for (const item of payload.items) {
+      try {
+        const productName = item.product_name.split(' (')[0]
+        const { data: product } = await admin
+          .from('products')
+          .select('id, initial_sold_count')
+          .ilike('name', `%${productName}%`)
+          .single()
+
+        if (product) {
+          await admin
+            .from('products')
+            .update({ initial_sold_count: (product.initial_sold_count || 0) + item.quantity })
+            .eq('id', product.id)
+        }
+      } catch (err) {
+        console.error('[sold_count] failed for item:', item.product_name, err)
+      }
+    }
+  })
+
+  console.log('[events] Email + WhatsApp + SoldCount listeners initialized')
+
