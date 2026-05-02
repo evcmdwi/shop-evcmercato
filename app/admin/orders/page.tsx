@@ -15,23 +15,25 @@ const STATUS_TABS = [
 ]
 
 const STATUS_BADGE: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  paid: 'bg-blue-100 text-blue-800',
-  shipped: 'bg-purple-100 text-purple-800',
+  pending:   'bg-yellow-100 text-yellow-800',
+  paid:      'bg-blue-100 text-blue-800',
+  processed: 'bg-orange-100 text-orange-800',
+  shipped:   'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
-  expired: 'bg-red-100 text-red-800',
+  expired:   'bg-gray-100 text-gray-600',
   cancelled: 'bg-red-100 text-red-800',
-  failed: 'bg-red-100 text-red-800',
+  failed:    'bg-red-100 text-red-800',
 }
 
 const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending',
-  paid: 'Dibayar',
-  shipped: 'Dikirim',
+  pending:   'Menunggu Bayar',
+  paid:      'Lunas',
+  processed: 'Diproses',
+  shipped:   'Dikirim',
   delivered: 'Selesai',
-  expired: 'Expired',
+  expired:   'Kedaluwarsa',
   cancelled: 'Dibatalkan',
-  failed: 'Gagal',
+  failed:    'Gagal',
 }
 
 interface Order {
@@ -152,14 +154,15 @@ export default function AdminOrdersPage() {
                   <th className="px-4 py-3 text-right font-semibold text-slate-700">Total</th>
                   <th className="px-4 py-3 text-center font-semibold text-slate-700">Status</th>
                   <th className="px-4 py-3 text-center font-semibold text-slate-700">Item</th>
-                  <th className="px-4 py-3 text-center font-semibold text-slate-700">Aksi</th>
+                  <th className="px-4 py-3 text-center font-semibold text-slate-700">Quick Aksi</th>
+                  <th className="px-4 py-3 text-center font-semibold text-slate-700">Detail</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100">
                 {loading ? (
                   Array.from({ length: 5 }).map((_, i) => (
                     <tr key={i}>
-                      {Array.from({ length: 7 }).map((_, j) => (
+                      {Array.from({ length: 8 }).map((_, j) => (
                         <td key={j} className="px-4 py-3">
                           <div className="h-4 bg-slate-200 rounded animate-pulse" />
                         </td>
@@ -168,7 +171,7 @@ export default function AdminOrdersPage() {
                   ))
                 ) : orders.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-4 py-12 text-center text-slate-400">
+                    <td colSpan={8} className="px-4 py-12 text-center text-slate-400">
                       <div className="flex flex-col items-center gap-2">
                         <svg className="w-10 h-10 text-slate-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -203,6 +206,27 @@ export default function AdminOrdersPage() {
                         </span>
                       </td>
                       <td className="px-4 py-3 text-center text-slate-600">{order.items_count}</td>
+                      <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>
+                        {order.status === 'paid' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push(`/admin/orders/${order.id}`) }}
+                            className="px-2.5 py-1 bg-orange-500 text-white text-xs font-medium rounded-lg hover:bg-orange-600"
+                          >
+                            ▶ Proses
+                          </button>
+                        )}
+                        {order.status === 'processed' && (
+                          <button
+                            onClick={(e) => { e.stopPropagation(); router.push(`/admin/orders/${order.id}`) }}
+                            className="px-2.5 py-1 bg-purple-600 text-white text-xs font-medium rounded-lg hover:bg-purple-700"
+                          >
+                            🚚 Kirim
+                          </button>
+                        )}
+                        {!['paid', 'processed'].includes(order.status) && (
+                          <span className="text-slate-400 text-sm">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-center">
                         <button
                           onClick={(e) => { e.stopPropagation(); router.push(`/admin/orders/${order.id}`) }}

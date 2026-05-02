@@ -1,39 +1,37 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import AdminShell from '@/components/admin/AdminShell'
 
-const STATUS_BADGE: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-800',
-  paid: 'bg-blue-100 text-blue-800',
-  shipped: 'bg-purple-100 text-purple-800',
-  delivered: 'bg-green-100 text-green-800',
-  expired: 'bg-red-100 text-red-800',
-  cancelled: 'bg-red-100 text-red-800',
-  failed: 'bg-red-100 text-red-800',
+// ─── Status config ──────────────────────────────────────────────────────────
+
+const statusConfig: Record<string, { label: string; color: string }> = {
+  pending:   { label: 'Menunggu Pembayaran', color: 'bg-yellow-100 text-yellow-800' },
+  paid:      { label: 'Lunas',              color: 'bg-blue-100 text-blue-800' },
+  processed: { label: 'Diproses',           color: 'bg-orange-100 text-orange-800' },
+  shipped:   { label: 'Dikirim',            color: 'bg-purple-100 text-purple-800' },
+  delivered: { label: 'Selesai',            color: 'bg-green-100 text-green-800' },
+  expired:   { label: 'Kedaluwarsa',        color: 'bg-gray-100 text-gray-600' },
+  cancelled: { label: 'Dibatalkan',         color: 'bg-red-100 text-red-800' },
 }
 
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending',
-  paid: 'Dibayar',
-  shipped: 'Dikirim',
-  delivered: 'Selesai',
-  expired: 'Expired',
-  cancelled: 'Dibatalkan',
-  failed: 'Gagal',
-}
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function formatRp(amount: number) {
-  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(amount)
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency', currency: 'IDR', minimumFractionDigits: 0,
+  }).format(amount)
 }
 
 function formatDate(dateStr: string | null | undefined) {
   if (!dateStr) return '—'
   return new Date(dateStr).toLocaleDateString('id-ID', {
-    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit'
+    day: '2-digit', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit',
   })
 }
+
+// ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OrderItem {
   id: string
@@ -44,11 +42,7 @@ interface OrderItem {
     id: string
     name: string
     sku: string | null
-    products: {
-      id: string
-      name: string
-      images: string[] | null
-    } | null
+    products: { id: string; name: string; images: string[] | null } | null
   } | null
 }
 
@@ -71,17 +65,386 @@ interface Order {
   service_fee: number | null
   created_at: string
   paid_at: string | null
+  processed_at: string | null
   shipped_at: string | null
+  delivered_at: string | null
   tracking_number: string | null
+  shipping_courier: string | null
+  delivered_note: string | null
   xendit_invoice_url: string | null
-  profiles: {
-    full_name: string | null
-    email: string | null
-    phone: string | null
-  } | null
+  profiles: { full_name: string | null; email: string | null; phone: string | null } | null
   order_items: OrderItem[]
   shipping_addresses: ShippingAddress | null
 }
+
+// ─── InputResiModal ───────────────────────────────────────────────────────────
+
+interface InputResiModalProps {
+  orderId: string
+  onClose: () => void
+  onSuccess: (updatedOrder: Partial<Order>) => void
+}
+
+function InputResiModal({ orderId, onClose, onSuccess }: InputResiModalProps) {
+  const [courier, setCourier] = useState('JNE')
+  const [resi, setResi] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    if (!resi.trim()) { setError('Nomor resi wajib diisi'); return }
+    setLoading(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'shipped', shipping_courier: courier, tracking_number: resi.trim() }),
+      })
+      const json = await res.json()
+      if (res.ok && json.data?.order) {
+        onSuccess(json.data.order)
+      } else {
+        setError(json.error ?? 'Gagal memperbarui status')
+      }
+    } catch {
+      setError('Terjadi kesalahan jaringan')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <h3 className="font-semibold text-slate-900">Input Resi &amp; Kirim</h3>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Ekspedisi</label>
+            <select
+              value={courier}
+              onChange={(e) => setCourier(e.target.value)}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
+            >
+              {['JNE', 'JNT', 'SiCepat', 'AnterAja', 'Lainnya'].map((c) => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Resi <span className="text-red-500">*</span></label>
+            <input
+              type="text"
+              value={resi}
+              onChange={(e) => setResi(e.target.value)}
+              placeholder="Contoh: JNE1234567890"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-slate-300 text-slate-700 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-50"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-purple-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-purple-700 disabled:opacity-50"
+            >
+              {loading ? 'Menyimpan...' : '🚚 Kirim Pesanan'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── MarkDeliveredModal ───────────────────────────────────────────────────────
+
+interface MarkDeliveredModalProps {
+  orderId: string
+  onClose: () => void
+  onSuccess: (updatedOrder: Partial<Order>) => void
+}
+
+function MarkDeliveredModal({ orderId, onClose, onSuccess }: MarkDeliveredModalProps) {
+  const [note, setNote] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault()
+    setLoading(true)
+    setError('')
+    try {
+      const body: Record<string, string> = { status: 'delivered' }
+      if (note.trim()) body.delivered_note = note.trim()
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      })
+      const json = await res.json()
+      if (res.ok && json.data?.order) {
+        onSuccess(json.data.order)
+      } else {
+        setError(json.error ?? 'Gagal memperbarui status')
+      }
+    } catch {
+      setError('Terjadi kesalahan jaringan')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+      <div className="bg-white rounded-2xl w-full max-w-md shadow-xl">
+        <div className="flex items-center justify-between p-5 border-b border-slate-100">
+          <h3 className="font-semibold text-slate-900">Tandai Sudah Diterima</h3>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form onSubmit={handleSubmit} className="p-5 space-y-4">
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Catatan <span className="text-slate-400 font-normal">(opsional)</span></label>
+            <textarea
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="Diterima oleh..."
+              rows={3}
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7] resize-none"
+            />
+          </div>
+          {error && <p className="text-sm text-red-600">{error}</p>}
+          <div className="flex gap-3 pt-1">
+            <button
+              type="button"
+              onClick={onClose}
+              className="flex-1 border border-slate-300 text-slate-700 py-2.5 rounded-xl font-medium text-sm hover:bg-slate-50"
+            >
+              Batal
+            </button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-green-600 text-white py-2.5 rounded-xl font-semibold text-sm hover:bg-green-700 disabled:opacity-50"
+            >
+              {loading ? 'Menyimpan...' : '✅ Konfirmasi Diterima'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── OrderActions ─────────────────────────────────────────────────────────────
+
+interface OrderActionsProps {
+  order: Order
+  onOrderUpdate: (updated: Partial<Order>) => void
+}
+
+function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
+  const [loading, setLoading] = useState(false)
+  const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
+  const [showInputResi, setShowInputResi] = useState(false)
+  const [showMarkDelivered, setShowMarkDelivered] = useState(false)
+
+  function showToast(msg: string, ok: boolean) {
+    setToast({ msg, ok })
+    setTimeout(() => setToast(null), 3000)
+  }
+
+  async function handleStartProcess() {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${order.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'processed' }),
+      })
+      const json = await res.json()
+      if (res.ok && json.data?.order) {
+        onOrderUpdate(json.data.order)
+        showToast('✅ Status berhasil diperbarui ke Diproses', true)
+      } else {
+        showToast(`❌ ${json.error ?? 'Gagal memperbarui'}`, false)
+      }
+    } catch {
+      showToast('❌ Terjadi kesalahan jaringan', false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <h2 className="font-semibold text-slate-900 mb-4">Aksi Pesanan</h2>
+
+      {/* PAID → tombol Mulai Proses */}
+      {order.status === 'paid' && (
+        <button
+          onClick={handleStartProcess}
+          disabled={loading}
+          className="w-full bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 disabled:opacity-50 transition-colors"
+        >
+          {loading ? '⏳ Memproses...' : '▶ Mulai Proses'}
+        </button>
+      )}
+
+      {/* PROCESSED → tombol Input Resi */}
+      {order.status === 'processed' && (
+        <button
+          onClick={() => setShowInputResi(true)}
+          className="w-full bg-purple-600 text-white py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors"
+        >
+          🚚 Input Resi &amp; Kirim
+        </button>
+      )}
+
+      {/* SHIPPED → resi info + Tandai Diterima */}
+      {order.status === 'shipped' && (
+        <div className="space-y-3">
+          <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-sm">
+            <span className="text-slate-500">Resi: </span>
+            <span className="font-semibold text-purple-800">
+              {order.shipping_courier} {order.tracking_number ?? '—'}
+            </span>
+          </div>
+          <button
+            onClick={() => setShowMarkDelivered(true)}
+            className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"
+          >
+            ✅ Tandai Sudah Diterima
+          </button>
+        </div>
+      )}
+
+      {/* DELIVERED */}
+      {order.status === 'delivered' && (
+        <div className="space-y-2 text-sm">
+          <div className="flex gap-2">
+            <span className="text-slate-500 w-32 shrink-0">Tanggal Diterima</span>
+            <span className="text-slate-900 font-medium">{formatDate(order.delivered_at)}</span>
+          </div>
+          {order.delivered_note && (
+            <div className="flex gap-2">
+              <span className="text-slate-500 w-32 shrink-0">Catatan</span>
+              <span className="text-slate-900">{order.delivered_note}</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* EXPIRED / CANCELLED */}
+      {['expired', 'cancelled'].includes(order.status) && (
+        <p className="text-sm text-slate-500">
+          Pesanan ini sudah berstatus <strong>{statusConfig[order.status]?.label ?? order.status}</strong>. Tidak ada aksi yang tersedia.
+        </p>
+      )}
+
+      {/* Toast */}
+      {toast && (
+        <div className={`mt-3 text-sm font-medium px-4 py-2 rounded-lg ${toast.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'}`}>
+          {toast.msg}
+        </div>
+      )}
+
+      {/* Modals */}
+      {showInputResi && (
+        <InputResiModal
+          orderId={order.id}
+          onClose={() => setShowInputResi(false)}
+          onSuccess={(updated) => {
+            setShowInputResi(false)
+            onOrderUpdate(updated)
+            showToast('✅ Pesanan berhasil dikirim', true)
+          }}
+        />
+      )}
+      {showMarkDelivered && (
+        <MarkDeliveredModal
+          orderId={order.id}
+          onClose={() => setShowMarkDelivered(false)}
+          onSuccess={(updated) => {
+            setShowMarkDelivered(false)
+            onOrderUpdate(updated)
+            showToast('✅ Pesanan ditandai sudah diterima', true)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+// ─── OrderTimeline ────────────────────────────────────────────────────────────
+
+function OrderTimeline({ order }: { order: Order }) {
+  const steps = [
+    { label: 'Pesanan Dibuat', key: 'created', done: true, date: order.created_at },
+    { label: 'Pembayaran', key: 'paid', done: ['paid', 'processed', 'shipped', 'delivered'].includes(order.status), date: order.paid_at },
+    { label: 'Diproses', key: 'processed', done: ['processed', 'shipped', 'delivered'].includes(order.status), date: order.processed_at },
+    { label: 'Dikirim', key: 'shipped', done: ['shipped', 'delivered'].includes(order.status), date: order.shipped_at },
+    { label: 'Selesai', key: 'delivered', done: order.status === 'delivered', date: order.delivered_at },
+  ]
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5">
+      <h2 className="font-semibold text-slate-900 mb-4">Timeline Pesanan</h2>
+      <div className="flex items-start gap-0">
+        {steps.map((step, idx) => (
+          <div key={step.key} className="flex-1 flex flex-col items-center relative">
+            {/* Connector line */}
+            {idx < steps.length - 1 && (
+              <div className={`absolute top-4 left-1/2 w-full h-0.5 ${steps[idx + 1].done ? 'bg-[#534AB7]' : 'bg-slate-200'}`} />
+            )}
+            {/* Circle */}
+            <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 ${
+              step.done
+                ? 'bg-[#534AB7] border-[#534AB7] text-white'
+                : 'bg-white border-slate-300 text-slate-400'
+            }`}>
+              {step.done ? (
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+                </svg>
+              ) : (
+                <div className="w-2 h-2 rounded-full bg-slate-300" />
+              )}
+            </div>
+            {/* Label & date */}
+            <div className="mt-2 text-center px-1">
+              <p className={`text-xs font-medium ${step.done ? 'text-[#534AB7]' : 'text-slate-400'}`}>{step.label}</p>
+              {step.date && step.done && (
+                <p className="text-xs text-slate-400 mt-0.5">{formatDate(step.date)}</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function AdminOrderDetailPage() {
   const router = useRouter()
@@ -91,83 +454,28 @@ export default function AdminOrderDetailPage() {
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [updating, setUpdating] = useState(false)
-  const [newStatus, setNewStatus] = useState('')
-  const [trackingNumber, setTrackingNumber] = useState('')
-  const [updateMsg, setUpdateMsg] = useState('')
 
-  useEffect(() => {
-    async function fetchOrder() {
-      setLoading(true)
-      try {
-        const res = await fetch(`/api/admin/orders/${orderId}`)
-        const json = await res.json()
-        if (json.data?.order) {
-          setOrder(json.data.order)
-          setTrackingNumber(json.data.order.tracking_number ?? '')
-          setNewStatus('')
-        } else {
-          setError('Pesanan tidak ditemukan')
-        }
-      } catch {
-        setError('Gagal memuat data pesanan')
-      } finally {
-        setLoading(false)
+  const fetchOrder = useCallback(async () => {
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`)
+      const json = await res.json()
+      if (json.data?.order) {
+        setOrder(json.data.order)
+      } else {
+        setError('Pesanan tidak ditemukan')
       }
+    } catch {
+      setError('Gagal memuat data pesanan')
+    } finally {
+      setLoading(false)
     }
-    fetchOrder()
   }, [orderId])
 
-  async function handleUpdateStatus() {
-    if (!order) return
-    setUpdating(true)
-    setUpdateMsg('')
-    try {
-      const body: { status?: string; tracking_number?: string } = {}
-      if (newStatus) body.status = newStatus
-      if (trackingNumber !== (order.tracking_number ?? '')) body.tracking_number = trackingNumber
+  useEffect(() => { fetchOrder() }, [fetchOrder])
 
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
-      const json = await res.json()
-      if (res.ok && json.data?.order) {
-        setOrder(prev => prev ? { ...prev, ...json.data.order } : prev)
-        setUpdateMsg('✅ Status berhasil diperbarui')
-        setNewStatus('')
-      } else {
-        setUpdateMsg(`❌ ${json.error ?? 'Gagal memperbarui'}`)
-      }
-    } catch {
-      setUpdateMsg('❌ Terjadi kesalahan')
-    } finally {
-      setUpdating(false)
-    }
-  }
-
-  async function handleMarkDelivered() {
-    setUpdating(true)
-    setUpdateMsg('')
-    try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'delivered' }),
-      })
-      const json = await res.json()
-      if (res.ok && json.data?.order) {
-        setOrder(prev => prev ? { ...prev, ...json.data.order } : prev)
-        setUpdateMsg('✅ Pesanan ditandai selesai')
-      } else {
-        setUpdateMsg(`❌ ${json.error ?? 'Gagal memperbarui'}`)
-      }
-    } catch {
-      setUpdateMsg('❌ Terjadi kesalahan')
-    } finally {
-      setUpdating(false)
-    }
+  function handleOrderUpdate(updated: Partial<Order>) {
+    setOrder((prev) => prev ? { ...prev, ...updated } : prev)
   }
 
   if (loading) {
@@ -196,6 +504,7 @@ export default function AdminOrderDetailPage() {
   }
 
   const shortId = order.id.slice(0, 8).toUpperCase()
+  const cfg = statusConfig[order.status] ?? { label: order.status, color: 'bg-slate-100 text-slate-700' }
 
   return (
     <AdminShell>
@@ -215,13 +524,21 @@ export default function AdminOrderDetailPage() {
               Order <span className="font-mono text-[#534AB7]">#{shortId}</span>
             </h1>
             <div className="flex items-center gap-3 mt-1">
-              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${STATUS_BADGE[order.status] ?? 'bg-slate-100 text-slate-700'}`}>
-                {STATUS_LABEL[order.status] ?? order.status}
+              <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
+                {cfg.label}
               </span>
               <span className="text-sm text-slate-400">{formatDate(order.created_at)}</span>
             </div>
           </div>
         </div>
+
+        {/* Timeline */}
+        <OrderTimeline order={order} />
+
+        {/* Actions */}
+        {!['pending'].includes(order.status) && (
+          <OrderActions order={order} onOrderUpdate={handleOrderUpdate} />
+        )}
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Info Customer */}
@@ -265,7 +582,9 @@ export default function AdminOrderDetailPage() {
                 </div>
                 <div className="flex gap-2">
                   <dt className="text-slate-500 w-20 shrink-0">Kota</dt>
-                  <dd className="text-slate-900">{order.shipping_addresses.city}, {order.shipping_addresses.province} {order.shipping_addresses.postal_code}</dd>
+                  <dd className="text-slate-900">
+                    {order.shipping_addresses.city}, {order.shipping_addresses.province} {order.shipping_addresses.postal_code}
+                  </dd>
                 </div>
               </dl>
             ) : (
@@ -334,88 +653,6 @@ export default function AdminOrderDetailPage() {
             >
               Lihat Invoice Xendit →
             </a>
-          )}
-        </div>
-
-        {/* Status & Aksi */}
-        <div className="bg-white rounded-xl border border-slate-200 p-5">
-          <h2 className="font-semibold text-slate-900 mb-4">Status & Aksi</h2>
-
-          {/* Timestamps */}
-          <div className="grid grid-cols-3 gap-4 mb-5 text-sm">
-            <div>
-              <div className="text-slate-400 text-xs mb-1">Dibuat</div>
-              <div className="text-slate-700">{formatDate(order.created_at)}</div>
-            </div>
-            <div>
-              <div className="text-slate-400 text-xs mb-1">Dibayar</div>
-              <div className="text-slate-700">{formatDate(order.paid_at)}</div>
-            </div>
-            <div>
-              <div className="text-slate-400 text-xs mb-1">Dikirim</div>
-              <div className="text-slate-700">{formatDate(order.shipped_at)}</div>
-            </div>
-          </div>
-
-          {/* Action area */}
-          {order.status === 'paid' && (
-            <div className="space-y-3">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Update Status</label>
-                <select
-                  value={newStatus}
-                  onChange={(e) => setNewStatus(e.target.value)}
-                  className="w-full max-w-xs border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
-                >
-                  <option value="">-- Pilih status baru --</option>
-                  <option value="shipped">Dikirim (shipped)</option>
-                  <option value="delivered">Selesai (delivered)</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">Nomor Resi</label>
-                <input
-                  type="text"
-                  value={trackingNumber}
-                  onChange={(e) => setTrackingNumber(e.target.value)}
-                  placeholder="Masukkan nomor resi pengiriman"
-                  className="w-full max-w-xs border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
-                />
-              </div>
-              <button
-                onClick={handleUpdateStatus}
-                disabled={updating || !newStatus}
-                className="px-5 py-2 bg-[#534AB7] text-white rounded-lg text-sm font-medium hover:bg-[#4238a0] disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                {updating ? 'Menyimpan...' : 'Update Status'}
-              </button>
-            </div>
-          )}
-
-          {order.status === 'shipped' && (
-            <div className="space-y-3">
-              <div className="text-sm">
-                <span className="text-slate-500">Nomor Resi: </span>
-                <span className="font-medium text-slate-900">{order.tracking_number ?? '—'}</span>
-              </div>
-              <button
-                onClick={handleMarkDelivered}
-                disabled={updating}
-                className="px-5 py-2 bg-green-600 text-white rounded-lg text-sm font-medium hover:bg-green-700 disabled:opacity-50"
-              >
-                {updating ? 'Menyimpan...' : '✓ Tandai Selesai'}
-              </button>
-            </div>
-          )}
-
-          {['delivered', 'cancelled', 'expired', 'failed'].includes(order.status) && (
-            <div className="text-sm text-slate-500">
-              Pesanan ini sudah berstatus <strong>{STATUS_LABEL[order.status]}</strong>. Tidak ada aksi yang tersedia.
-            </div>
-          )}
-
-          {updateMsg && (
-            <div className="mt-3 text-sm font-medium">{updateMsg}</div>
           )}
         </div>
       </div>
