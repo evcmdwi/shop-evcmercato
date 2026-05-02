@@ -31,7 +31,7 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
     <div className="flex flex-wrap gap-2">
       <button
         onClick={() => setCategory('')}
-        className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
           !activeSlug
             ? 'text-white shadow-sm'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
@@ -44,7 +44,7 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
         <button
           key={cat.id}
           onClick={() => setCategory(cat.slug)}
-          className={`px-4 py-1.5 rounded-full text-sm font-medium transition-all ${
+          className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${
             activeSlug === cat.slug
               ? 'text-white shadow-sm'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

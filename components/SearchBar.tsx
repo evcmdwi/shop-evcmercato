@@ -42,7 +42,7 @@ export default function SearchBar() {
         placeholder="Cari produk..."
         value={value}
         onChange={(e) => setValue(e.target.value)}
-        className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:border-transparent bg-white"
+        className="w-full pl-10 pr-10 py-2.5 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:border-transparent bg-white"
         style={{ '--tw-ring-color': '#534AB7' } as React.CSSProperties}
       />
       {value && (

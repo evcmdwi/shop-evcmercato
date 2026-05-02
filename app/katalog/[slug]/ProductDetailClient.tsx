@@ -180,16 +180,16 @@ export default function ProductDetailClient({ product }: Props) {
               <button
                 onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                 disabled={quantity <= 1}
-                className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Kurangi"
               >
                 <Minus className="w-3 h-3" />
               </button>
-              <span className="w-8 text-center font-semibold text-gray-900">{quantity}</span>
+              <span className="w-10 text-center font-semibold text-gray-900">{quantity}</span>
               <button
                 onClick={() => setQuantity((q) => Math.min(maxStock, q + 1))}
                 disabled={quantity >= maxStock}
-                className="w-8 h-8 border border-gray-300 rounded-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                 aria-label="Tambah"
               >
                 <Plus className="w-3 h-3" />
