@@ -12,6 +12,14 @@ interface Category {
   name: string
 }
 
+interface ProductVariant {
+  id: string
+  name: string
+  price: number
+  stock: number
+  is_active: boolean
+}
+
 interface Product {
   id: string
   name: string
@@ -21,6 +29,31 @@ interface Product {
   image_url: string | null
   category: Category | null
   categories: Category | null
+  product_variants?: ProductVariant[]
+}
+
+function formatRupiah(amount: number): string {
+  return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(amount)
+}
+
+function getDisplayPrice(product: Product): string {
+  const variants = product.product_variants ?? []
+  if (variants.length > 0) {
+    const prices = variants.filter(v => v.is_active).map(v => v.price)
+    if (prices.length === 0) return formatRupiah(product.price)
+    const min = Math.min(...prices)
+    const max = Math.max(...prices)
+    return min === max ? formatRupiah(min) : `${formatRupiah(min)} – ${formatRupiah(max)}`
+  }
+  return formatRupiah(product.price)
+}
+
+function getDisplayStock(product: Product): number {
+  const variants = product.product_variants ?? []
+  if (variants.length > 0) {
+    return variants.filter(v => v.is_active).reduce((sum, v) => sum + (v.stock || 0), 0)
+  }
+  return product.stock ?? 0
 }
 
 interface ProductsResponse {
@@ -125,10 +158,13 @@ export default function AdminProdukPage() {
     {
       key: 'price',
       header: 'Harga',
-      render: (row: Product) =>
-        new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(row.price),
+      render: (row: Product) => getDisplayPrice(row),
     },
-    { key: 'stock', header: 'Stok' },
+    {
+      key: 'stock',
+      header: 'Stok',
+      render: (row: Product) => getDisplayStock(row),
+    },
     {
       key: 'is_active',
       header: 'Status',

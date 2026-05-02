@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 
 interface DashboardStats {
-  orders: { pending: number; paid: number; shipped: number; delivered: number }
+  orders: { pending: number; paid: number; processed: number; shipped: number; delivered: number }
   inventory: { products: number; categories: number; users: number }
 }
 
@@ -22,6 +22,7 @@ export default function AdminDashboardPage() {
   const orderCards = [
     { label: 'Menunggu Pembayaran', count: stats?.orders.pending ?? 0, icon: '⏳', bg: 'bg-yellow-50', border: 'border-yellow-200', text: 'text-yellow-800', num: 'text-yellow-600', sub: 'perlu follow-up', href: '/sambers/pesanan?status=pending' },
     { label: 'Pesanan Baru', count: stats?.orders.paid ?? 0, icon: '📥', bg: 'bg-orange-50', border: 'border-orange-200', text: 'text-orange-800', num: 'text-orange-600', sub: 'perlu diproses', href: '/sambers/pesanan?status=paid' },
+    { label: 'Pesanan Diproses', count: stats?.orders.processed ?? 0, icon: '📦', bg: 'bg-purple-50', border: 'border-purple-200', text: 'text-purple-800', num: 'text-purple-600', sub: 'perlu input resi', href: '/sambers/pesanan?status=processed' },
     { label: 'Pesanan Terkirim', count: stats?.orders.shipped ?? 0, icon: '🚚', bg: 'bg-blue-50', border: 'border-blue-200', text: 'text-blue-800', num: 'text-blue-600', sub: 'menuju customer', href: '/sambers/pesanan?status=shipped' },
     { label: 'Pesanan Selesai', count: stats?.orders.delivered ?? 0, icon: '✅', bg: 'bg-green-50', border: 'border-green-200', text: 'text-green-800', num: 'text-green-600', sub: 'all-time', href: '/sambers/pesanan?status=delivered' },
   ]
@@ -36,7 +37,7 @@ export default function AdminDashboardPage() {
       {/* Status Pesanan */}
       <section>
         <h2 className="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-3">📦 Status Pesanan</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
           {orderCards.map(card => (
             <Link key={card.label} href={card.href} className={`${card.bg} ${card.border} border rounded-xl p-4 hover:shadow-md transition-shadow block`}>
               <span className="text-2xl">{card.icon}</span>
