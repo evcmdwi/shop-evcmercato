@@ -6,8 +6,15 @@ export function createClient() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
     {
       cookieOptions: {
-        maxAge: 7776000, // 90 hari dalam detik
-      }
+        maxAge: 60 * 60 * 24 * 30, // 30 hari
+        sameSite: 'lax',
+        secure: process.env.NODE_ENV === 'production',
+      },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
     }
   )
 }
