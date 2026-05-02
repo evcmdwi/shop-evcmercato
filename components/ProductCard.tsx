@@ -1,9 +1,7 @@
 'use client'
-
 import Image from 'next/image'
 import Link from 'next/link'
-import { ShoppingCart, Gift } from 'lucide-react'
-import { formatRupiah, formatPriceRange, getTotalStock, formatSoldCount, slugify } from '@/lib/utils'
+import { formatRupiah, formatSoldCount, formatPriceRange, getTotalStock } from '@/lib/utils'
 
 interface ProductCardProps {
   product: {
@@ -12,111 +10,101 @@ interface ProductCardProps {
     price: number
     stock: number
     has_variants: boolean
-    images: string[] | null
+    images?: string[] | null
     image_url?: string | null
-    categories?: { name: string; slug: string } | null
     initial_sold_count?: number
     total_sold?: number
+    categories?: { name: string; slug: string } | null
   }
   variants?: { price: number; stock: number; is_active: boolean }[]
+}
+
+function slugify(name: string): string {
+  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 }
 
 export default function ProductCard({ product, variants }: ProductCardProps) {
   const slug = slugify(product.name)
   const detailUrl = `/katalog/${slug}`
 
+  // Price display
   const displayPrice = product.has_variants && variants?.length
     ? formatPriceRange(variants)
     : formatRupiah(product.price)
 
+  // Stock
   const totalStock = product.has_variants && variants?.length
     ? getTotalStock(variants)
     : product.stock
-
+  const isLowStock = totalStock > 0 && totalStock <= 5
   const isOutOfStock = totalStock === 0
 
+  // Sold count
   const soldCount = product.total_sold ?? product.initial_sold_count ?? 0
 
+  // Image
+  const imageSrc = product.images?.[0] || product.image_url || null
+
   return (
-    <div className="group bg-white rounded-2xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 flex flex-col">
-      {/* Clickable area: image + info → goes to detail page */}
-      <Link href={detailUrl} className="block flex-1">
-        {/* Image */}
-        <div className="relative aspect-square bg-gray-50 overflow-hidden">
-          {product.image_url ? (
+    <Link href={detailUrl} className="block group">
+      <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
+
+        {/* Image 1:1 square */}
+        <div className="relative aspect-square bg-gray-100">
+          {imageSrc ? (
             <Image
-              src={product.image_url}
+              src={imageSrc}
               alt={product.name}
               fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              className="object-cover"
+              sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
             />
           ) : (
-            <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: '#EEEDFE' }}>
-              <ShoppingCart className="w-12 h-12 opacity-30" style={{ color: '#534AB7' }} />
+            <div className="absolute inset-0 flex items-center justify-center text-gray-300">
+              <svg className="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              </svg>
             </div>
           )}
-          {/* Category badge */}
-          {product.categories && (
-            <span
-              className="absolute top-2 left-2 text-xs font-medium px-2.5 py-1 rounded-full text-white"
-              style={{ backgroundColor: '#534AB7' }}
-            >
-              {product.categories.name}
-            </span>
+          {isOutOfStock && (
+            <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+              <span className="text-white text-xs font-semibold bg-black/60 px-2 py-1 rounded">Stok Habis</span>
+            </div>
           )}
         </div>
 
-        {/* Content */}
-        <div className="p-4 flex flex-col gap-2">
-          <h3 className="font-semibold text-gray-800 text-sm leading-snug line-clamp-2 group-hover:text-[#534AB7] transition-colors">
+        {/* Card content */}
+        <div className="p-2">
+          {/* Product name - 2 lines max */}
+          <p className="text-[13px] text-gray-800 line-clamp-2 leading-tight mb-1.5 min-h-[2.2em]">
             {product.name}
-          </h3>
+          </p>
 
-          <p className="text-lg font-bold mt-auto" style={{ color: '#534AB7' }}>
+          {/* Price */}
+          <p className="text-[15px] font-bold text-[#534AB7] leading-tight mb-1.5">
             {displayPrice}
           </p>
 
-          <span className="text-xs text-gray-500">{formatSoldCount(soldCount)}</span>
+          {/* PROMO ONGKIR badge */}
+          <div className="flex items-center gap-1 mb-1.5">
+            <span className="inline-flex items-center gap-0.5 text-[10px] font-semibold bg-green-50 text-green-700 border border-green-200 px-1.5 py-0.5 rounded">
+              📦 PROMO ONGKIR
+            </span>
+          </div>
 
-          {!isOutOfStock && totalStock <= 5 && (
-            <p className="text-xs text-orange-500">Stok tersisa {totalStock}</p>
-          )}
-          {isOutOfStock && (
-            <p className="text-xs text-red-500">Stok habis</p>
-          )}
+          {/* Stats: sold + low stock */}
+          <div className="text-[11px] text-gray-500">
+            {isLowStock ? (
+              <span className="text-orange-600 font-medium">Stok tersisa {totalStock} • </span>
+            ) : null}
+            {soldCount > 0 ? (
+              <span>⭐ 5.0 • {formatSoldCount(soldCount)}</span>
+            ) : (
+              <span className="text-gray-400">Baru</span>
+            )}
+          </div>
         </div>
-      </Link>
-
-      {/* Buttons OUTSIDE Link — no nested anchor/link */}
-      <div className="px-4 pb-4 flex gap-2">
-        {isOutOfStock ? (
-          <span
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-white opacity-50 cursor-not-allowed pointer-events-none"
-            style={{ backgroundColor: '#534AB7' }}
-          >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            Stok Habis
-          </span>
-        ) : (
-          <Link
-            href={detailUrl}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-white transition-opacity hover:opacity-90"
-            style={{ backgroundColor: '#534AB7' }}
-          >
-            <ShoppingCart className="w-3.5 h-3.5" />
-            Beli
-          </Link>
-        )}
-        <Link
-          href={detailUrl}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium border transition-colors hover:bg-emerald-50"
-          style={{ borderColor: '#1D9E75', color: '#1D9E75' }}
-        >
-          <Gift className="w-3.5 h-3.5" />
-          Tukar Points
-        </Link>
       </div>
-    </div>
+    </Link>
   )
 }
