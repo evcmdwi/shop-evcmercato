@@ -23,34 +23,35 @@ function formatTanggal(dateStr: string) {
   })
 }
 
+interface OrderItem {
+  id: string
+  product_name: string
+  variant_name?: string
+  quantity: number
+  price: number
+}
+
 interface OrderDetail {
   id: string
   status: string
   total_amount: number
   subtotal: number
-  shipping_fee: number
+  shipping_cost: number
+  shipping_cost_discount: number
   service_fee: number
-  discount_amount: number
+  service_fee_discount: number
+  points_earned: number
   created_at: string
   xendit_invoice_url?: string
   tracking_number?: string
-  evc_points_earned?: number
-  address: {
-    recipient_name: string
-    phone: string
-    full_address: string
-    city: string
-    province: string
-    postal_code: string
-  }
-  items: {
-    id: string
-    product_name: string
-    variant_name?: string
-    quantity: number
-    price: number
-    subtotal: number
-  }[]
+  // flat shipping fields from API
+  shipping_recipient_name: string
+  shipping_phone: string
+  shipping_full_address: string
+  shipping_city: string
+  shipping_province: string
+  shipping_postal_code: string
+  order_items: OrderItem[]
 }
 
 const statusConfig: Record<string, { label: string; className: string }> = {
@@ -126,7 +127,7 @@ export default function OrderDetailPage() {
 
   const status = statusConfig[order.status] ?? { label: order.status, className: 'bg-gray-100 text-gray-700' }
   const currentStep = statusOrder[order.status] ?? 0
-  const evcPoints = order.evc_points_earned ?? Math.floor((order.subtotal ?? 0) / 1000)
+  const evcPoints = order.points_earned ?? Math.floor((order.subtotal ?? 0) / 1000)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -190,10 +191,14 @@ export default function OrderDetailPage() {
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <h2 className="font-semibold text-gray-900 mb-3">Alamat Pengiriman</h2>
             <div className="text-sm text-gray-600 space-y-0.5">
-              <p className="font-semibold text-gray-900">{order.address?.recipient_name}</p>
-              <p>{order.address?.phone}</p>
-              <p>{order.address?.full_address}</p>
-              <p>{order.address?.city}, {order.address?.province} {order.address?.postal_code}</p>
+              <p className="font-semibold text-gray-900">{order.shipping_recipient_name || '-'}</p>
+              <p>{order.shipping_phone || '-'}</p>
+              <p>{order.shipping_full_address || '-'}</p>
+              <p>
+                {[order.shipping_city, order.shipping_province, order.shipping_postal_code]
+                  .filter(Boolean)
+                  .join(', ') || '-'}
+              </p>
             </div>
           </div>
 
@@ -201,18 +206,22 @@ export default function OrderDetailPage() {
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <h2 className="font-semibold text-gray-900 mb-3">Item Pesanan</h2>
             <div className="space-y-3">
-              {order.items?.map((item) => (
-                <div key={item.id} className="flex justify-between items-start text-sm">
-                  <div className="flex-1">
-                    <p className="font-medium text-gray-900">{item.product_name}</p>
-                    {item.variant_name && <p className="text-xs text-gray-500">{item.variant_name}</p>}
-                    <p className="text-xs text-gray-400">
-                      {item.quantity} × {formatRupiah(item.price)}
-                    </p>
+              {order.order_items && order.order_items.length > 0 ? (
+                order.order_items.map((item) => (
+                  <div key={item.id} className="flex justify-between items-start text-sm">
+                    <div className="flex-1">
+                      <p className="font-medium text-gray-900">{item.product_name}</p>
+                      {item.variant_name && <p className="text-xs text-gray-500">{item.variant_name}</p>}
+                      <p className="text-xs text-gray-400">
+                        {item.quantity} × {formatRupiah(item.price)}
+                      </p>
+                    </div>
+                    <p className="font-semibold text-gray-900 ml-4">{formatRupiah(item.price * item.quantity)}</p>
                   </div>
-                  <p className="font-semibold text-gray-900 ml-4">{formatRupiah(item.subtotal)}</p>
-                </div>
-              ))}
+                ))
+              ) : (
+                <p className="text-gray-500 text-sm">Tidak ada item</p>
+              )}
             </div>
           </div>
 
@@ -226,16 +235,16 @@ export default function OrderDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Ongkos Kirim</span>
-                <span>{formatRupiah(order.shipping_fee ?? 0)}</span>
+                <span>{formatRupiah((order.shipping_cost ?? 0) - (order.shipping_cost_discount ?? 0))}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Biaya Layanan</span>
                 <span>{formatRupiah(order.service_fee ?? 0)}</span>
               </div>
-              {order.discount_amount > 0 && (
+              {(order.service_fee_discount ?? 0) > 0 && (
                 <div className="flex justify-between text-[#1D9E75]">
                   <span>Promo</span>
-                  <span>-{formatRupiah(order.discount_amount)}</span>
+                  <span>-{formatRupiah(order.service_fee_discount)}</span>
                 </div>
               )}
               <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
