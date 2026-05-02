@@ -13,8 +13,11 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get('page') || '1')
   const limit = parseInt(searchParams.get('limit') || '20')
   const offset = (page - 1) * limit
+  const search = searchParams.get('search') || ''
+  const category = searchParams.get('category') || ''
+  const status = searchParams.get('status') || ''
 
-  const { data: products, error, count } = await supabaseAdmin
+  let query = supabaseAdmin
     .from('products')
     .select(`
       *,
@@ -23,10 +26,17 @@ export async function GET(req: NextRequest) {
       product_variants (
         id, name, price, stock, sku, is_active, sort_order, created_at
       ),
-      product_sold_counts!inner (total_sold)
+      product_sold_counts (total_sold)
     `, { count: 'exact' })
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
+
+  if (search) query = query.ilike('name', `%${search}%`)
+  if (category) query = query.eq('category_id', category)
+  if (status === 'active') query = query.eq('is_active', true)
+  if (status === 'inactive') query = query.eq('is_active', false)
+
+  const { data: products, error, count } = await query
 
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
@@ -42,7 +52,10 @@ export async function GET(req: NextRequest) {
 
   return NextResponse.json({
     data: productsWithSold,
-    meta: { page, limit, total: count }
+    total: count ?? 0,
+    page,
+    totalPages: Math.ceil((count ?? 0) / limit),
+    meta: { page, limit, total: count ?? 0 }
   })
 }
 

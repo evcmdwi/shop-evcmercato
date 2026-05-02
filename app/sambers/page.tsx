@@ -45,20 +45,20 @@ export default function AdminDashboardPage() {
           fetch('/api/sambers/users?limit=1'),
         ])
 
-        const products = productsRes.status === 'fulfilled' && productsRes.value.ok
+        const productsJson = productsRes.status === 'fulfilled' && productsRes.value.ok
           ? await productsRes.value.json()
-          : { total: 0 }
-        const categories = categoriesRes.status === 'fulfilled' && categoriesRes.value.ok
+          : null
+        const categoriesJson = categoriesRes.status === 'fulfilled' && categoriesRes.value.ok
           ? await categoriesRes.value.json()
-          : { total: 0 }
-        const users = usersRes.status === 'fulfilled' && usersRes.value.ok
+          : null
+        const usersJson = usersRes.status === 'fulfilled' && usersRes.value.ok
           ? await usersRes.value.json()
-          : { total: 0 }
+          : null
 
         setStats({
-          totalProducts: products.total ?? 0,
-          totalCategories: categories.total ?? 0,
-          totalUsers: users.total ?? 0,
+          totalProducts: productsJson?.total ?? productsJson?.meta?.total ?? 0,
+          totalCategories: categoriesJson?.total ?? (Array.isArray(categoriesJson?.data) ? categoriesJson.data.length : 0),
+          totalUsers: usersJson?.total ?? usersJson?.data?.total ?? 0,
         })
       } catch {
         setStats({ totalProducts: 0, totalCategories: 0, totalUsers: 0 })
