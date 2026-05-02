@@ -182,12 +182,12 @@ export default function KeranjangPage() {
                       <button
                         onClick={() => handleQuantityChange(item, item.quantity - 1)}
                         disabled={item.quantity <= 1 || updating[item.id]}
-                        className="w-7 h-7 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         aria-label="Kurangi"
                       >
                         <Minus className="w-3 h-3" />
                       </button>
-                      <span className={`w-7 text-center text-sm font-semibold ${updating[item.id] ? 'opacity-50' : ''}`}>
+                      <span className={`w-8 text-center text-sm font-semibold ${updating[item.id] ? 'opacity-50' : ''}`}>
                         {item.quantity}
                       </span>
                       <button
@@ -197,7 +197,7 @@ export default function KeranjangPage() {
                           if (item.quantity >= maxQty) return
                         }}
                         disabled={updating[item.id]}
-                        className="w-7 h-7 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+                        className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                         aria-label="Tambah"
                       >
                         <Plus className="w-3 h-3" />

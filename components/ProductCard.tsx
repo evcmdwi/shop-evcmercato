@@ -92,7 +92,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
       <div className="px-4 pb-4 flex gap-2">
         {isOutOfStock ? (
           <span
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-white opacity-50 cursor-not-allowed pointer-events-none"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-white opacity-50 cursor-not-allowed pointer-events-none"
             style={{ backgroundColor: '#534AB7' }}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
@@ -101,7 +101,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
         ) : (
           <Link
             href={detailUrl}
-            className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium text-white transition-opacity hover:opacity-90"
+            className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium text-white transition-opacity hover:opacity-90"
             style={{ backgroundColor: '#534AB7' }}
           >
             <ShoppingCart className="w-3.5 h-3.5" />
@@ -110,7 +110,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
         )}
         <Link
           href={detailUrl}
-          className="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-medium border transition-colors hover:bg-emerald-50"
+          className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-xs font-medium border transition-colors hover:bg-emerald-50"
           style={{ borderColor: '#1D9E75', color: '#1D9E75' }}
         >
           <Gift className="w-3.5 h-3.5" />
