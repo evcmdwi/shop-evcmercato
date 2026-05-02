@@ -1,110 +1,121 @@
 'use client'
-import { useEffect, useState } from 'react'
-import Link from 'next/link'
 
-interface DashboardStats {
-  orders: { pending: number; paid: number; shipped: number; delivered: number }
-  inventory: { products: number; categories: number; users: number }
+import { useEffect, useState } from 'react'
+
+interface Stats {
+  totalProducts: number
+  totalCategories: number
+  totalUsers: number
 }
 
-export default function AdminDashboard() {
-  const [stats, setStats] = useState<DashboardStats | null>(null)
+function StatCard({
+  title,
+  value,
+  icon,
+  color,
+}: {
+  title: string
+  value: number | string
+  icon: React.ReactNode
+  color: string
+}) {
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5 flex items-center gap-4">
+      <div className={`w-12 h-12 rounded-xl flex items-center justify-center ${color}`}>
+        {icon}
+      </div>
+      <div>
+        <p className="text-sm text-slate-500">{title}</p>
+        <p className="text-2xl font-bold text-slate-800">{value}</p>
+      </div>
+    </div>
+  )
+}
+
+export default function AdminDashboardPage() {
+  const [stats, setStats] = useState<Stats | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    fetch('/api/sambers/dashboard/stats')
-      .then(r => r.json())
-      .then(({ data }) => { setStats(data); setLoading(false) })
-      .catch(() => setLoading(false))
+    async function fetchStats() {
+      try {
+        const [productsRes, categoriesRes, usersRes] = await Promise.allSettled([
+          fetch('/api/sambers/products?limit=1'),
+          fetch('/api/sambers/categories?limit=1'),
+          fetch('/api/sambers/users?limit=1'),
+        ])
+
+        const productsJson = productsRes.status === 'fulfilled' && productsRes.value.ok
+          ? await productsRes.value.json()
+          : null
+        const categoriesJson = categoriesRes.status === 'fulfilled' && categoriesRes.value.ok
+          ? await categoriesRes.value.json()
+          : null
+        const usersJson = usersRes.status === 'fulfilled' && usersRes.value.ok
+          ? await usersRes.value.json()
+          : null
+
+        setStats({
+          totalProducts: productsJson?.total ?? productsJson?.meta?.total ?? 0,
+          totalCategories: categoriesJson?.total ?? (Array.isArray(categoriesJson?.data) ? categoriesJson.data.length : 0),
+          totalUsers: usersJson?.total ?? usersJson?.data?.total ?? 0,
+        })
+      } catch {
+        setStats({ totalProducts: 0, totalCategories: 0, totalUsers: 0 })
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStats()
   }, [])
 
-  const orderCards = [
-    {
-      label: 'Menunggu Pembayaran',
-      count: stats?.orders.pending ?? 0,
-      icon: '⏳',
-      color: 'bg-yellow-50 border-yellow-200 text-yellow-800',
-      countColor: 'text-yellow-600',
-      subtext: 'perlu follow-up',
-      href: '/sambers/pesanan?status=pending',
-    },
-    {
-      label: 'Pesanan Baru',
-      count: stats?.orders.paid ?? 0,
-      icon: '📥',
-      color: 'bg-orange-50 border-orange-200 text-orange-800',
-      countColor: 'text-orange-600',
-      subtext: 'perlu diproses',
-      href: '/sambers/pesanan?status=paid',
-    },
-    {
-      label: 'Pesanan Terkirim',
-      count: stats?.orders.shipped ?? 0,
-      icon: '🚚',
-      color: 'bg-blue-50 border-blue-200 text-blue-800',
-      countColor: 'text-blue-600',
-      subtext: 'menuju customer',
-      href: '/sambers/pesanan?status=shipped',
-    },
-    {
-      label: 'Pesanan Selesai',
-      count: stats?.orders.delivered ?? 0,
-      icon: '✅',
-      color: 'bg-green-50 border-green-200 text-green-800',
-      countColor: 'text-green-600',
-      subtext: 'all-time',
-      href: '/sambers/pesanan?status=delivered',
-    },
-  ]
-
   return (
-    <div className="p-6 space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
-        <p className="text-gray-500 text-sm mt-1">Selamat datang di admin EVC Mercato</p>
+    <div>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-slate-800">Dashboard</h1>
+        <p className="text-sm text-slate-500 mt-1">Selamat datang di Admin Panel EVC Mercato</p>
       </div>
 
-      {/* Order Status Cards */}
-      <section>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">📦 Status Pesanan</h2>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {orderCards.map(card => (
-            <Link key={card.label} href={card.href}>
-              <div className={`border rounded-xl p-4 hover:shadow-md transition-shadow cursor-pointer ${card.color}`}>
-                <div className="flex items-center justify-between mb-2">
-                  <span className="text-2xl">{card.icon}</span>
-                </div>
-                <p className={`text-3xl font-bold ${card.countColor}`}>
-                  {loading ? <span className="animate-pulse">—</span> : card.count}
-                </p>
-                <p className="text-sm font-medium mt-1">{card.label}</p>
-                <p className="text-xs opacity-70 mt-0.5">{card.subtext}</p>
-              </div>
-            </Link>
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="bg-white rounded-xl border border-slate-200 p-5 h-24 animate-pulse" />
           ))}
         </div>
-      </section>
-
-      {/* Inventory Stats */}
-      <section>
-        <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">📊 Inventori</h2>
-        <div className="grid grid-cols-3 gap-3">
-          {[
-            { label: 'Produk', count: stats?.inventory.products ?? 0, href: '/sambers/produk' },
-            { label: 'Kategori', count: stats?.inventory.categories ?? 0, href: '/sambers/kategori' },
-            { label: 'Pengguna', count: stats?.inventory.users ?? 0, href: '#' },
-          ].map(item => (
-            <Link key={item.label} href={item.href}>
-              <div className="border border-gray-200 rounded-xl p-4 hover:bg-gray-50 text-center">
-                <p className="text-2xl font-bold text-[#534AB7]">
-                  {loading ? '—' : item.count}
-                </p>
-                <p className="text-sm text-gray-600 mt-1">{item.label}</p>
-              </div>
-            </Link>
-          ))}
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <StatCard
+            title="Total Produk"
+            value={stats?.totalProducts ?? 0}
+            color="bg-[#EEEDFE] text-[#534AB7]"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Total Kategori"
+            value={stats?.totalCategories ?? 0}
+            color="bg-emerald-50 text-[#1D9E75]"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+            }
+          />
+          <StatCard
+            title="Total Pengguna"
+            value={stats?.totalUsers ?? 0}
+            color="bg-blue-50 text-blue-600"
+            icon={
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+            }
+          />
         </div>
-      </section>
+      )}
     </div>
   )
 }

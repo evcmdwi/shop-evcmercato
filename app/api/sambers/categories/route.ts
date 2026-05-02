@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
     product_count: counts[c.id] ?? 0,
   }))
 
-  return NextResponse.json({ data: result, error: null })
+  return NextResponse.json({ data: result, total: result.length, error: null })
 }
 
 export async function POST(req: NextRequest) {

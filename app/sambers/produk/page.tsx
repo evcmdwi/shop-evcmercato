@@ -20,6 +20,7 @@ interface Product {
   is_active: boolean
   image_url: string | null
   category: Category | null
+  categories: Category | null
 }
 
 interface ProductsResponse {
@@ -27,6 +28,7 @@ interface ProductsResponse {
   total: number
   page: number
   totalPages: number
+  meta?: { page: number; limit: number; total: number }
 }
 
 const PAGE_SIZE = 10
@@ -57,7 +59,7 @@ export default function AdminProdukPage() {
       if (!res.ok) throw new Error('Gagal memuat produk')
       const json: ProductsResponse = await res.json()
       setProducts(json.data ?? [])
-      setTotal(json.total ?? 0)
+      setTotal(json.total ?? json.meta?.total ?? 0)
     } catch (e) {
       toast('Gagal memuat produk', 'error')
     } finally {
@@ -118,7 +120,7 @@ export default function AdminProdukPage() {
     {
       key: 'category',
       header: 'Kategori',
-      render: (row: Product) => row.category?.name ?? '-',
+      render: (row: Product) => (row.category ?? row.categories)?.name ?? '-',
     },
     {
       key: 'price',
