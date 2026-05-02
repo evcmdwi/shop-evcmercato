@@ -85,13 +85,6 @@ interface Order {
   profiles?: { full_name: string | null; email: string | null; phone: string | null } | null
   shipping_addresses?: ShippingAddress | null
   order_items?: OrderItem[]
-} | null
-  profiles: { full_name: string | null; email: string | null; phone: string | null } | null
-  user?: { name: string | null; email: string | null; phone: string | null } | null
-  customer_name?: string
-  customer_email?: string
-  order_items: OrderItem[]
-  shipping_addresses: ShippingAddress | null
 }
 
 // ─── InputResiModal ───────────────────────────────────────────────────────────
