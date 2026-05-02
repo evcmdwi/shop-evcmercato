@@ -33,6 +33,8 @@ function formatDate(dateStr: string | null | undefined) {
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface OrderItem {
+  product_name?: string | null
+  variant_name?: string | null
   id: string
   quantity: number
   price: number
@@ -80,6 +82,10 @@ interface Order {
   customer_name?: string
   customer_email?: string
   user?: { name: string | null; email: string | null; phone: string | null } | null
+  profiles?: { full_name: string | null; email: string | null; phone: string | null } | null
+  shipping_addresses?: ShippingAddress | null
+  order_items?: OrderItem[]
+} | null
   profiles: { full_name: string | null; email: string | null; phone: string | null } | null
   user?: { name: string | null; email: string | null; phone: string | null } | null
   customer_name?: string
