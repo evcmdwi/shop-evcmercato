@@ -1,206 +1,119 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { supabaseAdmin } from '@/lib/supabase-admin'
-import {
-  emitOrderProcessed,
-  emitOrderShipped,
-  emitOrderDelivered,
-  type OrderStatusChangePayload,
-} from '@/lib/events/order-events'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { emitOrderProcessed, emitOrderShipped, emitOrderDelivered, type OrderStatusChangePayload } from '@/lib/events/order-events'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
-// GET /api/sambers/orders/[id] — order detail with items + user + address
 export async function GET(_req: NextRequest, { params }: RouteContext) {
-  const auth = await checkAdminAuth()
-  if (!auth.ok) {
-    return NextResponse.json(
-      { data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' },
-      { status: auth.status }
-    )
-  }
+  try {
+    const auth = await checkAdminAuth()
+    if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: auth.status })
 
-  const { id } = await params
+    const admin = getSupabaseAdmin()
+    const { id } = await params
 
-  const { data: order, error } = await supabaseAdmin
-    .from('orders')
-    .select(
-      `
-      id,
-      status,
-      total_amount,
-      subtotal,
-      shipping_cost,
-      service_fee,
-      created_at,
-      paid_at,
-      shipped_at,
-      tracking_number,
-      xendit_invoice_url,
-      profiles!orders_user_id_fkey (
-        full_name,
-        email,
-        phone
-      ),
-      order_items (
-        id,
-        quantity,
-        price,
-        subtotal,
-        product_variants (
-          id,
-          name,
-          sku,
-          products (
-            id,
-            name,
-            images
-          )
+    const { data: order, error } = await admin
+      .from('orders')
+      .select(`
+        id, status, total_amount, subtotal, shipping_cost, shipping_cost_discount,
+        service_fee, service_fee_discount, created_at, paid_at, processed_at,
+        shipped_at, delivered_at, delivered_note, tracking_number, shipping_courier,
+        xendit_invoice_url, user_id, points_earned,
+        shipping_recipient_name, shipping_phone, shipping_full_address,
+        shipping_city, shipping_province, shipping_postal_code,
+        order_items (
+          id, quantity, price, product_name, variant_name
         )
-      ),
-      shipping_addresses (
-        recipient_name,
-        recipient_phone,
-        address_line1,
-        address_line2,
-        city,
-        province,
-        postal_code
-      )
-    `
-    )
-    .eq('id', id)
-    .single()
+      `)
+      .eq('id', id)
+      .single()
 
-  if (error || !order) {
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 })
+    if (error || !order) {
+      console.error('[/api/sambers/orders/[id]] error:', error?.message)
+      return NextResponse.json({ error: 'Pesanan tidak ditemukan' }, { status: 404 })
+    }
+
+    // Fetch user info separately
+    const { data: user } = await admin
+      .from('users')
+      .select('id, name, email, phone')
+      .eq('id', (order as any).user_id)
+      .single()
+
+    const enriched = {
+      ...order,
+      short_id: (order as any).id.slice(0, 8).toUpperCase(),
+      user: user ?? null,
+      customer_name: (user as any)?.name || (order as any).shipping_recipient_name || '—',
+      customer_email: (user as any)?.email || '—',
+    }
+
+    return NextResponse.json({ data: { order: enriched } })
+  } catch (err) {
+    console.error('[/api/sambers/orders/[id]] error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
   }
-
-  return NextResponse.json({ data: { order } })
 }
 
-// PATCH /api/sambers/orders/[id] — update status + tracking_number
 export async function PATCH(req: NextRequest, { params }: RouteContext) {
-  const auth = await checkAdminAuth()
-  if (!auth.ok) {
-    return NextResponse.json(
-      { data: null, error: auth.status === 401 ? 'Unauthorized' : 'Forbidden' },
-      { status: auth.status }
-    )
-  }
+  try {
+    const auth = await checkAdminAuth()
+    if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: auth.status })
 
-  const { id } = await params
-  const body = await req.json() as {
-    status?: string
-    tracking_number?: string
-    shipping_courier?: string
-    delivered_note?: string
-  }
+    const admin = getSupabaseAdmin()
+    const { id } = await params
+    const body = await req.json()
+    const { status, tracking_number, shipping_courier, delivered_note } = body
 
-  const { status, tracking_number, shipping_courier, delivered_note } = body
+    let updateData: Record<string, unknown> = {}
 
-  // Fetch current order status
-  const { data: existing, error: fetchError } = await supabaseAdmin
-    .from('orders')
-    .select('id, status')
-    .eq('id', id)
-    .single()
-
-  if (fetchError || !existing) {
-    return NextResponse.json({ error: 'Order not found' }, { status: 404 })
-  }
-
-  // Validate status transitions
-  const validTransitions: Record<string, string[]> = {
-    paid: ['processed', 'shipped', 'delivered'],
-    processed: ['shipped'],
-    shipped: ['delivered'],
-  }
-
-  if (status) {
-    const allowed = validTransitions[existing.status as string] ?? []
-    if (!allowed.includes(status)) {
-      return NextResponse.json(
-        { error: `Invalid status transition: ${existing.status} → ${status}` },
-        { status: 400 }
-      )
-    }
-  }
-
-  const updateData: Record<string, unknown> = {}
-
-  if (status === 'processed') {
-    updateData.status = 'processed'
-    updateData.processed_at = new Date().toISOString()
-  } else if (status === 'shipped') {
-    if (!tracking_number || !shipping_courier) {
-      return NextResponse.json(
-        { error: 'Nomor resi dan ekspedisi wajib diisi' },
-        { status: 400 }
-      )
-    }
-    updateData.status = 'shipped'
-    updateData.tracking_number = tracking_number
-    updateData.shipping_courier = shipping_courier
-    updateData.shipped_at = new Date().toISOString()
-  } else if (status === 'delivered') {
-    updateData.status = 'delivered'
-    updateData.delivered_at = new Date().toISOString()
-    updateData.delivered_note = delivered_note || null
-  } else if (status) {
-    updateData.status = status
-  }
-
-  if (tracking_number !== undefined && status !== 'shipped') {
-    updateData.tracking_number = tracking_number
-  }
-
-  const { data: updated, error: updateError } = await supabaseAdmin
-    .from('orders')
-    .update(updateData)
-    .eq('id', id)
-    .select('id, status, tracking_number, shipped_at, processed_at, delivered_at, shipping_courier')
-    .single()
-
-  if (updateError) {
-    return NextResponse.json({ error: updateError.message }, { status: 500 })
-  }
-
-  // Emit WA events for status transitions
-  if (status && ['processed', 'shipped', 'delivered'].includes(status)) {
-    try {
-      const { data: orderInfo } = await supabaseAdmin
-        .from('orders')
-        .select('id, user_id, shipping_phone, shipping_recipient_name, shipping_courier, tracking_number')
-        .eq('id', id)
-        .single()
-
-      const { data: userInfo } = orderInfo?.user_id
-        ? await supabaseAdmin
-            .from('profiles')
-            .select('full_name, phone')
-            .eq('id', orderInfo.user_id)
-            .single()
-        : { data: null }
-
-      const eventPayload: OrderStatusChangePayload = {
-        orderId: id,
-        orderShortId: id.slice(0, 8).toUpperCase(),
-        customerName: (userInfo as any)?.full_name || orderInfo?.shipping_recipient_name || 'Customer',
-        payerPhone: (userInfo as any)?.phone || orderInfo?.shipping_phone || '',
-        status,
-        courier: (updateData.shipping_courier as string) || undefined,
-        trackingNumber: (updateData.tracking_number as string) || undefined,
-        deliveredNote: delivered_note || undefined,
+    if (status === 'processed') {
+      updateData = { status: 'processed', processed_at: new Date().toISOString() }
+    } else if (status === 'shipped') {
+      if (!tracking_number || !shipping_courier) {
+        return NextResponse.json({ error: 'Nomor resi dan ekspedisi wajib diisi' }, { status: 400 })
       }
-
-      if (status === 'processed') emitOrderProcessed(eventPayload).catch(console.error)
-      else if (status === 'shipped') emitOrderShipped(eventPayload).catch(console.error)
-      else if (status === 'delivered') emitOrderDelivered(eventPayload).catch(console.error)
-    } catch (err) {
-      console.error('[admin PATCH] failed to emit WA event:', err)
+      updateData = { status: 'shipped', tracking_number, shipping_courier, shipped_at: new Date().toISOString() }
+    } else if (status === 'delivered') {
+      updateData = { status: 'delivered', delivered_at: new Date().toISOString(), delivered_note: delivered_note || null }
+    } else {
+      return NextResponse.json({ error: 'Status tidak valid' }, { status: 400 })
     }
-  }
 
-  return NextResponse.json({ data: { order: updated } })
+    const { data: updatedOrder, error } = await admin
+      .from('orders')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      console.error('[/api/sambers/orders/[id] PATCH]', error.message)
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+
+    // Fetch user for WA notification
+    const { data: orderData } = await admin.from('orders').select('user_id, shipping_phone, shipping_recipient_name').eq('id', id).single()
+    const { data: userData } = orderData ? await admin.from('users').select('name, phone').eq('id', orderData.user_id).single() : { data: null }
+
+    const payload: OrderStatusChangePayload = {
+      orderId: id,
+      orderShortId: id.slice(0, 8).toUpperCase(),
+      customerName: (userData as any)?.name || (orderData as any)?.shipping_recipient_name || 'Customer',
+      payerPhone: (userData as any)?.phone || (orderData as any)?.shipping_phone || '',
+      status: status as string,
+      courier: shipping_courier,
+      trackingNumber: tracking_number,
+    }
+
+    if (status === 'processed') emitOrderProcessed(payload).catch(console.error)
+    else if (status === 'shipped') emitOrderShipped(payload).catch(console.error)
+    else if (status === 'delivered') emitOrderDelivered(payload).catch(console.error)
+
+    return NextResponse.json({ data: { order: updatedOrder }, message: 'Status berhasil diperbarui' })
+  } catch (err) {
+    console.error('[/api/sambers/orders/[id] PATCH] error:', err)
+    return NextResponse.json({ error: 'Server error' }, { status: 500 })
+  }
 }

@@ -53,11 +53,17 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    const enriched = (orders ?? []).map((o: any) => ({
-      ...o,
-      user: userMap[o.user_id] ?? null,
-      items_count: Array.isArray(o.order_items) ? o.order_items.length : 0,
-    }))
+    const enriched = (orders ?? []).map((o: any) => {
+      const user = userMap[o.user_id] ?? null
+      return {
+        ...o,
+        short_id: o.id.slice(0, 8).toUpperCase(),
+        customer_name: user?.name || o.shipping_recipient_name || '—',
+        customer_email: user?.email || '—',
+        user,
+        items_count: Array.isArray(o.order_items) ? o.order_items.length : 0,
+      }
+    })
 
     return NextResponse.json({
       data: enriched,
