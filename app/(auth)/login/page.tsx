@@ -7,12 +7,12 @@ import { createClient } from '@/lib/supabase'
 
 const safeRedirect = (url: string): string => {
   if (url.startsWith('/') && !url.startsWith('//')) return url
-  return '/dashboard'
+  return ''
 }
 
 function LoginForm() {
   const searchParams = useSearchParams()
-  const redirectTo = safeRedirect(searchParams.get('redirect_to') || '/dashboard')
+  const redirectTo = safeRedirect(searchParams.get('redirect_to') || '')
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -34,11 +34,11 @@ function LoginForm() {
     }
 
     const { data: { user } } = await supabase.auth.getUser()
-    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map(e => e.trim())
-    if (adminEmails.includes(user?.email || '')) {
+    const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase())
+    if (adminEmails.includes(user?.email?.toLowerCase() || '')) {
       window.location.href = '/admin'
     } else {
-      window.location.href = redirectTo
+      window.location.href = redirectTo || '/katalog'
     }
   }
 
@@ -48,7 +48,7 @@ function LoginForm() {
       <p className="text-slate-500 text-sm mb-6">
         Belum punya akun?{' '}
         <Link
-          href={`/register${redirectTo !== '/dashboard' ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
+          href={`/register${redirectTo ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
           className="text-teal-600 font-medium hover:underline"
         >
           Daftar sekarang

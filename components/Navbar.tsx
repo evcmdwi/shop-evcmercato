@@ -2,11 +2,12 @@
 
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { ShoppingBag, ShoppingCart, Package, User } from 'lucide-react'
+import { ShoppingBag, ShoppingCart, Package } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase'
 import type { User as SupabaseUser } from '@supabase/supabase-js'
 import { useCartContext } from '@/components/CartContext'
+import AuthNavButtons from '@/components/AuthNavButtons'
 
 export default function Navbar() {
   const pathname = usePathname()
@@ -60,27 +61,7 @@ export default function Navbar() {
               </Link>
             )}
 
-            {user ? (
-              <Link
-                href="/profile"
-                className={`flex items-center gap-1.5 text-sm font-medium transition-colors hover:opacity-80 ${
-                  pathname?.startsWith('/profile') ? 'text-[#534AB7]' : 'text-gray-600'
-                }`}
-              >
-                <div className="w-7 h-7 rounded-full bg-[#EEEDFE] flex items-center justify-center text-[#534AB7] text-xs font-bold flex-shrink-0">
-                  {user.email?.[0]?.toUpperCase()}
-                </div>
-                <span className="hidden sm:inline">Profil</span>
-              </Link>
-            ) : (
-              <Link
-                href="/login"
-                className="text-sm font-medium text-white px-4 py-2.5 rounded-lg transition-opacity hover:opacity-90"
-                style={{ backgroundColor: '#534AB7' }}
-              >
-                Masuk
-              </Link>
-            )}
+            <AuthNavButtons />
           </div>
         </div>
       </div>
