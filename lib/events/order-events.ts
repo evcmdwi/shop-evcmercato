@@ -55,6 +55,35 @@ export async function emitOrderPaid(payload: OrderPaidPayload) {
   }
 }
 
+export interface OrderStatusChangePayload {
+  orderId: string
+  orderShortId: string
+  customerName: string
+  payerPhone: string
+  status: string
+  courier?: string
+  trackingNumber?: string
+  deliveredNote?: string
+}
+
+const orderProcessedListeners: Listener<OrderStatusChangePayload>[] = []
+const orderShippedListeners: Listener<OrderStatusChangePayload>[] = []
+const orderDeliveredListeners: Listener<OrderStatusChangePayload>[] = []
+
+export function subscribeToOrderProcessed(l: Listener<OrderStatusChangePayload>) { orderProcessedListeners.push(l) }
+export function subscribeToOrderShipped(l: Listener<OrderStatusChangePayload>) { orderShippedListeners.push(l) }
+export function subscribeToOrderDelivered(l: Listener<OrderStatusChangePayload>) { orderDeliveredListeners.push(l) }
+
+export async function emitOrderProcessed(p: OrderStatusChangePayload) {
+  await Promise.allSettled(orderProcessedListeners.map(l => l(p).catch(e => console.error(e))))
+}
+export async function emitOrderShipped(p: OrderStatusChangePayload) {
+  await Promise.allSettled(orderShippedListeners.map(l => l(p).catch(e => console.error(e))))
+}
+export async function emitOrderDelivered(p: OrderStatusChangePayload) {
+  await Promise.allSettled(orderDeliveredListeners.map(l => l(p).catch(e => console.error(e))))
+}
+
 export async function emitOrderExpired(orderId: string) {
   await Promise.allSettled(
     orderExpiredListeners.map(listener => listener({ orderId }))

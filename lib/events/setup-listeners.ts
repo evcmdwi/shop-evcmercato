@@ -1,4 +1,7 @@
-import { subscribeToOrderPaid, subscribeToOrderExpired } from './order-events'
+import { subscribeToOrderPaid, subscribeToOrderExpired, subscribeToOrderProcessed, subscribeToOrderShipped, subscribeToOrderDelivered } from './order-events'
+import { generateOrderProcessedBuyerWA } from '../whatsapp-templates/order-processed'
+import { generateOrderShippedBuyerWA } from '../whatsapp-templates/order-shipped'
+import { generateOrderDeliveredBuyerWA } from '../whatsapp-templates/order-delivered'
 import { sendEmail } from '../email'
 import { generateOrderPaidEmail } from '../email-templates/order-paid'
 import { generateOrderExpiredEmail } from '../email-templates/order-expired'
@@ -57,6 +60,32 @@ export function setupEventListeners() {
     // Phase 1: log placeholder — need to fetch user data from DB
     console.log('[whatsapp] order.expired placeholder —', orderId)
     // TODO Phase 2: fetch user phone + name from orders/users, send expired WA
+  })
+
+  // WA ke buyer saat order PROCESSED
+  subscribeToOrderProcessed(async (payload) => {
+    if (!payload.payerPhone) return
+    const message = generateOrderProcessedBuyerWA(payload.orderShortId, payload.customerName)
+    await sendWhatsApp({ to: payload.payerPhone, message })
+  })
+
+  // WA ke buyer saat order SHIPPED
+  subscribeToOrderShipped(async (payload) => {
+    if (!payload.payerPhone || !payload.courier || !payload.trackingNumber) return
+    const message = generateOrderShippedBuyerWA(
+      payload.orderShortId,
+      payload.customerName,
+      payload.courier,
+      payload.trackingNumber
+    )
+    await sendWhatsApp({ to: payload.payerPhone, message })
+  })
+
+  // WA ke buyer saat order DELIVERED
+  subscribeToOrderDelivered(async (payload) => {
+    if (!payload.payerPhone) return
+    const message = generateOrderDeliveredBuyerWA(payload.orderShortId, payload.customerName)
+    await sendWhatsApp({ to: payload.payerPhone, message })
   })
 
   console.log('[events] Email + WhatsApp listeners initialized')
