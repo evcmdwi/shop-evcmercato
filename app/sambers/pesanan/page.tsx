@@ -86,8 +86,8 @@ function AdminPesananPageInner() {
       const res = await fetch(`/api/sambers/orders?${params}`)
       const json = await res.json()
       if (json.data) {
-        setOrders(json.data.orders)
-        setTotal(json.data.total)
+        setOrders(Array.isArray(json.data) ? json.data : json.data.orders ?? [])
+        setTotal(json.total ?? json.data.total ?? 0)
       }
     } finally {
       setLoading(false)
