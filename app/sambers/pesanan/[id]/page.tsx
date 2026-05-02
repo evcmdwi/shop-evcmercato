@@ -612,7 +612,7 @@ export default function AdminOrderDetailPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {order.order_items.map((item) => (
+              {(order.order_items ?? []).map((item) => (
                 <tr key={item.id}>
                   <td className="px-5 py-3">
                     <div className="font-medium text-slate-900">{item.product_name || item.product_variants?.products?.name || '—'}</div>
@@ -620,7 +620,7 @@ export default function AdminOrderDetailPage() {
                   </td>
                   <td className="px-5 py-3 text-center text-slate-700">{item.quantity}</td>
                   <td className="px-5 py-3 text-right text-slate-700">{formatRp(item.price)}</td>
-                  <td className="px-5 py-3 text-right font-medium text-slate-900">{formatRp(item.subtotal ?? (item.price * item.quantity) ?? 0)}</td>
+                  <td className="px-5 py-3 text-right font-medium text-slate-900">{formatRp(item.subtotal ?? (item.price * item.quantity) || 0)}</td>
                 </tr>
               ))}
             </tbody>
