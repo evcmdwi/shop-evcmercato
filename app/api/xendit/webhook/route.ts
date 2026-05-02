@@ -29,12 +29,18 @@ export async function POST(req: NextRequest) {
     amount: number
   }
 
-  console.log('[webhook] Received:', { external_id, status })
+  console.log('[webhook] Received + token OK:', { external_id, status })
 
-  // ALWAYS return 200 fast to Xendit (they retry on non-200)
-  // Process async after response
-  processWebhook(external_id, status, payment_method, paid_at, amount)
-    .catch(err => console.error('[webhook] processWebhook error:', err))
+  // Process SYNCHRONOUSLY before returning — Vercel serverless terminates the
+  // function immediately after response, so fire-and-forget never completes.
+  // Xendit webhook timeout is ~30s — plenty of time to await processWebhook.
+  try {
+    await processWebhook(external_id, status, payment_method, paid_at, amount)
+  } catch (err) {
+    // Log error but still return 200 — Xendit does NOT retry on 200, so
+    // returning non-200 would cause unwanted duplicate processing on retry.
+    console.error('[webhook] processWebhook error:', err)
+  }
 
   return NextResponse.json({ received: true })
 }
@@ -47,6 +53,8 @@ async function processWebhook(
   amount: number
 ) {
   const admin = getSupabaseAdmin()
+
+  console.log('[webhook] Processing:', { orderId, status })
 
   // Get current order (for idempotency check)
   const { data: order, error } = await admin
@@ -62,9 +70,11 @@ async function processWebhook(
     .single()
 
   if (error || !order) {
-    console.error('[webhook] Order not found:', orderId)
+    console.error('[webhook] Order not found:', orderId, error?.message)
     return
   }
+
+  console.log('[webhook] Order found:', { id: order.id, currentStatus: order.status })
 
   if (status === 'PAID') {
     // IDEMPOTENCY: skip jika sudah paid
@@ -73,8 +83,10 @@ async function processWebhook(
       return
     }
 
+    console.log('[webhook] Updating status to paid:', orderId)
+
     // Update order status
-    await admin
+    const { error: updateError } = await admin
       .from('orders')
       .update({
         status: 'paid',
@@ -82,6 +94,13 @@ async function processWebhook(
         xendit_payment_method: paymentMethod,
       })
       .eq('id', orderId)
+
+    if (updateError) {
+      console.error('[webhook] DB update failed:', updateError.message)
+      throw updateError
+    }
+
+    console.log('[webhook] Status updated to paid:', orderId)
 
     // Get order items
     const { data: items } = await admin
@@ -155,5 +174,5 @@ async function processWebhook(
       .eq('id', orderId)
   }
 
-  console.log('[webhook] Processed:', { orderId, status })
+  console.log('[webhook] Processed OK:', { orderId, status })
 }
