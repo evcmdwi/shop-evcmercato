@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-// GET /api/admin/products — list all products with their variants
+// GET /api/sambers/products — list all products with their variants
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) {
@@ -46,7 +46,7 @@ export async function GET(req: NextRequest) {
   })
 }
 
-// POST /api/admin/products — create product, optionally with variants
+// POST /api/sambers/products — create product, optionally with variants
 export async function POST(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) {

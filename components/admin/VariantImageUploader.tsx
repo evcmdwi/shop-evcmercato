@@ -34,7 +34,7 @@ export default function VariantImageUploader({ value, onChange }: VariantImageUp
       const formData = new FormData()
       formData.append('file', file)
 
-      const res = await fetch('/api/admin/upload', {
+      const res = await fetch('/api/sambers/upload', {
         method: 'POST',
         body: formData,
       })
@@ -61,7 +61,7 @@ export default function VariantImageUploader({ value, onChange }: VariantImageUp
 
     if (urlToDelete.includes('supabase.co')) {
       try {
-        await fetch('/api/admin/delete-image', {
+        await fetch('/api/sambers/delete-image', {
           method: 'DELETE',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ url: urlToDelete }),

@@ -48,7 +48,7 @@ export default function TambahProdukPage() {
   const [initialSoldCount, setInitialSoldCount] = useState(0)
 
   useEffect(() => {
-    fetch('/api/admin/categories?limit=100')
+    fetch('/api/sambers/categories?limit=100')
       .then((r) => r.json())
       .then((j) => setCategories(j.data ?? []))
       .catch(() => {})
@@ -91,7 +91,7 @@ export default function TambahProdukPage() {
     if (!validate()) return
     setSubmitting(true)
     try {
-      const res = await fetch('/api/admin/products', {
+      const res = await fetch('/api/sambers/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -114,7 +114,7 @@ export default function TambahProdukPage() {
         throw new Error(err.error ?? 'Gagal menambah produk')
       }
       toast('Produk berhasil ditambahkan', 'success')
-      router.push('/admin/produk')
+      router.push('/sambers/produk')
     } catch (e: unknown) {
       toast(e instanceof Error ? e.message : 'Gagal menambah produk', 'error')
     } finally {

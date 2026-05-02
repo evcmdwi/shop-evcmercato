@@ -99,7 +99,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
         .insert(variantRows)
 
       if (variantError) {
-        console.error('[PATCH /api/admin/products/:id] variant error:', variantError)
+        console.error('[PATCH /api/sambers/products/:id] variant error:', variantError)
       }
     }
   }

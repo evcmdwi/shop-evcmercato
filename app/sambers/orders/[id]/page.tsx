@@ -97,7 +97,7 @@ function InputResiModal({ orderId, onClose, onSuccess }: InputResiModalProps) {
     setLoading(true)
     setError('')
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/sambers/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'shipped', shipping_courier: courier, tracking_number: resi.trim() }),
@@ -192,7 +192,7 @@ function MarkDeliveredModal({ orderId, onClose, onSuccess }: MarkDeliveredModalP
     try {
       const body: Record<string, string> = { status: 'delivered' }
       if (note.trim()) body.delivered_note = note.trim()
-      const res = await fetch(`/api/admin/orders/${orderId}`, {
+      const res = await fetch(`/api/sambers/orders/${orderId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
@@ -276,7 +276,7 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
   async function handleStartProcess() {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/orders/${order.id}`, {
+      const res = await fetch(`/api/sambers/orders/${order.id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'processed' }),
@@ -458,7 +458,7 @@ export default function AdminOrderDetailPage() {
   const fetchOrder = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/admin/orders/${orderId}`)
+      const res = await fetch(`/api/sambers/orders/${orderId}`)
       const json = await res.json()
       if (json.data?.order) {
         setOrder(json.data.order)
@@ -495,7 +495,7 @@ export default function AdminOrderDetailPage() {
       <AdminShell>
         <div className="p-6">
           <p className="text-red-600">{error || 'Pesanan tidak ditemukan'}</p>
-          <button onClick={() => router.push('/admin/orders')} className="mt-4 text-[#534AB7] hover:underline">
+          <button onClick={() => router.push('/sambers/orders')} className="mt-4 text-[#534AB7] hover:underline">
             ← Kembali ke daftar pesanan
           </button>
         </div>
@@ -512,7 +512,7 @@ export default function AdminOrderDetailPage() {
         {/* Header */}
         <div className="flex items-center gap-4">
           <button
-            onClick={() => router.push('/admin/orders')}
+            onClick={() => router.push('/sambers/orders')}
             className="p-2 rounded-lg hover:bg-slate-100 text-slate-600"
           >
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">

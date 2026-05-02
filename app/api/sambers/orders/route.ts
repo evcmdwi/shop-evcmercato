@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
-// GET /api/admin/orders — list all orders with pagination + filter
+// GET /api/sambers/orders — list all orders with pagination + filter
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) {

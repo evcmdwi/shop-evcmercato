@@ -42,7 +42,7 @@ export default function AdminKategoriPage() {
   const fetchCategories = useCallback(async () => {
     setLoading(true)
     try {
-      const res = await fetch('/api/admin/categories?limit=100')
+      const res = await fetch('/api/sambers/categories?limit=100')
       if (!res.ok) throw new Error()
       const json = await res.json()
       setCategories(json.data ?? [])
@@ -71,7 +71,7 @@ export default function AdminKategoriPage() {
 
     setAddLoading(true)
     try {
-      const res = await fetch('/api/admin/categories', {
+      const res = await fetch('/api/sambers/categories', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(addForm),
@@ -101,7 +101,7 @@ export default function AdminKategoriPage() {
     if (!editId) return
     setEditLoading(true)
     try {
-      const res = await fetch(`/api/admin/categories/${editId}`, {
+      const res = await fetch(`/api/sambers/categories/${editId}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editForm),
@@ -121,7 +121,7 @@ export default function AdminKategoriPage() {
     if (!deleteId) return
     setDeleting(true)
     try {
-      const res = await fetch(`/api/admin/categories/${deleteId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/sambers/categories/${deleteId}`, { method: 'DELETE' })
       if (!res.ok) throw new Error()
       toast('Kategori berhasil dihapus', 'success')
       setDeleteId(null)

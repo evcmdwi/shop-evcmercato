@@ -40,9 +40,9 @@ export default function AdminDashboardPage() {
     async function fetchStats() {
       try {
         const [productsRes, categoriesRes, usersRes] = await Promise.allSettled([
-          fetch('/api/admin/products?limit=1'),
-          fetch('/api/admin/categories?limit=1'),
-          fetch('/api/admin/users?limit=1'),
+          fetch('/api/sambers/products?limit=1'),
+          fetch('/api/sambers/categories?limit=1'),
+          fetch('/api/sambers/users?limit=1'),
         ])
 
         const products = productsRes.status === 'fulfilled' && productsRes.value.ok
