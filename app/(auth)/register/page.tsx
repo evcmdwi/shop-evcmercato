@@ -79,7 +79,10 @@ function RegisterForm() {
 
     // Sign out immediately so user goes through login flow
     await supabase.auth.signOut()
-    const loginUrl = redirectTo !== '/dashboard' ? `/login?redirect_to=${encodeURIComponent(redirectTo)}` : '/login'
+    // Redirect to /katalog after register; honor redirect_to if provided
+    const loginUrl = redirectTo && redirectTo !== '/dashboard'
+      ? `/login?redirect_to=${encodeURIComponent(redirectTo)}`
+      : '/login?registered=true'
     router.push(loginUrl)
   }
 
@@ -89,7 +92,7 @@ function RegisterForm() {
       <p className="text-slate-500 text-sm mb-6">
         Sudah punya akun?{' '}
         <Link
-          href={`/login${redirectTo !== '/dashboard' ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
+          href={`/login${redirectTo && redirectTo !== '/dashboard' ? `?redirect_to=${encodeURIComponent(redirectTo)}` : ''}`}
           className="text-teal-600 font-medium hover:underline"
         >
           Masuk di sini

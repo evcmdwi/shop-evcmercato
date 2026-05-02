@@ -2,9 +2,9 @@ import { test, expect } from '@playwright/test'
 import { TEST_USER, login, logout } from './helpers/auth'
 
 test.describe('Authentication', () => {
-  test('[smoke] login sukses redirect ke dashboard @smoke', async ({ page }) => {
+  test('[smoke] login sukses redirect ke katalog @smoke', async ({ page }) => {
     await login(page)
-    await expect(page).toHaveURL('/dashboard')
+    await expect(page).toHaveURL('/katalog')
   })
 
   test('login dengan redirect_to — harus redirect ke path tujuan', async ({ page }) => {
@@ -22,8 +22,8 @@ test.describe('Authentication', () => {
     await page.fill('input[type="email"]', TEST_USER.email)
     await page.fill('input[type="password"]', TEST_USER.password)
     await page.click('button[type="submit"]')
-    // Harus redirect ke /dashboard, bukan evil.com
-    await expect(page).toHaveURL('/dashboard')
+    // Harus redirect ke /katalog, bukan evil.com
+    await expect(page).toHaveURL('/katalog')
   })
 
   test('logout berhasil', async ({ page }) => {
