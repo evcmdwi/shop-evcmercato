@@ -43,9 +43,9 @@ export function setupEventListeners() {
 
   // WA ke admin saat order paid
   subscribeToOrderPaid(async (payload) => {
-    const adminPhone = process.env.ADMIN_OPERATIONAL_PHONE
+    const adminPhone = process.env.FONNTE_ADMIN_PHONE
     if (!adminPhone) {
-      console.log('[whatsapp] admin — ADMIN_OPERATIONAL_PHONE not set, skipping')
+      console.log('[whatsapp] admin — FONNTE_ADMIN_PHONE not set, skipping')
       return
     }
     const message = generateOrderPaidAdminWA(payload)
