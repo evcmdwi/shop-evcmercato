@@ -50,12 +50,12 @@ test.describe('Regression Tests — Bug fixes', () => {
     expect(failedImages).toBe(0)
   })
 
-  test('[BUG-NESTED] Tombol Beli di /katalog bisa diklik', async ({ page }) => {
+  test('[BUG-NESTED] Produk card di /katalog bisa diklik', async ({ page }) => {
     await page.goto('/katalog')
-    await page.waitForSelector('[href*="/katalog/"]', { timeout: 5000 })
-    // Tombol Beli harus ada dan clickable
-    const beliBtn = page.locator('a:has-text("Beli")').first()
-    await expect(beliBtn).toBeVisible()
-    await expect(beliBtn).toBeEnabled()
+    // Card produk (Link ke detail) harus ada dan clickable
+    // New design: entire card is a Link, no separate "Beli" button on card
+    const productCard = page.locator('a[href*="/katalog/"]').first()
+    await expect(productCard).toBeVisible({ timeout: 5000 })
+    await expect(productCard).toBeEnabled()
   })
 })
