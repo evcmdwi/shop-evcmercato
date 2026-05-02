@@ -70,10 +70,12 @@ export async function createInvoice(params: CreateInvoiceParams): Promise<Xendit
           email: params.payer_email,
           mobile_number: params.customer_phone,
         },
+        // DISABLE Xendit auto-email — kita pakai Resend sendiri
+        should_send_email: false,
         customer_notification_preference: {
-          invoice_created: ['email'],
-          invoice_reminder: ['email'],
-          invoice_paid: ['email'],
+          invoice_created: [],
+          invoice_reminder: [],
+          invoice_paid: [],
         },
       }),
       signal: controller.signal,

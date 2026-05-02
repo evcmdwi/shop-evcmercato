@@ -1,7 +1,11 @@
 import { Resend } from 'resend'
 
-function getResend() {
-  return new Resend(process.env.RESEND_API_KEY || 'placeholder')
+function getResend(): Resend {
+  const apiKey = process.env.RESEND_API_KEY
+  if (!apiKey || apiKey === 'placeholder') {
+    throw new Error('[email] RESEND_API_KEY not configured')
+  }
+  return new Resend(apiKey)
 }
 
 export async function sendEmail({
@@ -21,10 +25,17 @@ export async function sendEmail({
       subject,
       html,
     })
-    console.log('[email] sent', { to, subject, id: result.data?.id })
+
+    // Check for error in result
+    if (result.error) {
+      console.error('[email] Resend API error:', result.error)
+      return { success: false, error: result.error }
+    }
+
+    console.log('[email] sent successfully', { to, subject, id: result.data?.id })
     return { success: true, id: result.data?.id }
   } catch (err) {
-    console.error('[email] failed', { to, subject, error: err })
+    console.error('[email] failed', { to, subject, error: String(err) })
     return { success: false, error: err }
   }
 }
