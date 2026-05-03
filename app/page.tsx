@@ -92,7 +92,7 @@ export default function HomePage() {
               <p className="text-2xl sm:text-3xl font-extrabold text-[#7FB300]">{s.number}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 {'starStat' in s && s.starStat ? (
-                  <><span style={{ color: '#F59E0B' }}>5★</span>{' Reviews Marketplace'}</>
+                  <>5 ⭐️ Review di Marketplace</>
                 ) : s.label}
               </p>
             </div>
