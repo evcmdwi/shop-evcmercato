@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const limit = Number(searchParams.get('limit') ?? '50')
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('categories')
     .select('id, name, slug, description')
     .order('name', { ascending: true })
@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
   const ids = (data ?? []).map((c: { id: string }) => c.id)
   let counts: Record<string, number> = {}
   if (ids.length > 0) {
-    const { data: countData } = await supabaseAdmin
+    const { data: countData } = await getSupabaseAdmin()
       .from('products')
       .select('category_id')
       .in('category_id', ids)
@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
     const slug = rawSlug?.trim() ||
       name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
 
-    const { data, error } = await supabaseAdmin
+    const { data, error } = await getSupabaseAdmin()
       .from('categories')
       .insert({ name: name.trim(), slug, description: description?.trim() || null })
       .select()
