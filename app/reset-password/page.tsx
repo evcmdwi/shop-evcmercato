@@ -19,29 +19,27 @@ function ResetPasswordForm() {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
     )
 
-    // Listen for PASSWORD_RECOVERY event — fired when Supabase processes hash token
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === 'PASSWORD_RECOVERY' && session) {
-        setSessionReady(true)
-      }
-    })
+    // Baca hash fragment manual dari URL — paling reliable di Next.js App Router
+    const hash = window.location.hash.substring(1)
+    const params = new URLSearchParams(hash)
+    const accessToken = params.get('access_token')
+    const refreshToken = params.get('refresh_token') || ''
+    const type = params.get('type')
 
-    // Also check if session already exists (e.g. user refreshed page)
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) setSessionReady(true)
-    })
-
-    // Timeout — kalau 10 detik tidak ada session, tampilkan error
-    const timeout = setTimeout(() => {
-      setSessionReady(prev => {
-        if (!prev) setSessionError(true)
-        return prev
-      })
-    }, 10000)
-
-    return () => {
-      subscription.unsubscribe()
-      clearTimeout(timeout)
+    if (accessToken && type === 'recovery') {
+      // Set session langsung dari token di URL hash
+      supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+        .then(({ error }) => {
+          if (error) {
+            console.error('[reset-password] setSession error:', error)
+            setSessionError(true)
+          } else {
+            setSessionReady(true)
+          }
+        })
+    } else {
+      // Tidak ada token di hash — link tidak valid atau sudah dipakai
+      setSessionError(true)
     }
   }, [])
 
@@ -83,9 +81,9 @@ function ResetPasswordForm() {
     return (
       <div className="text-center">
         <div className="text-5xl mb-4">⚠️</div>
-        <h2 className="text-xl font-bold text-gray-900 mb-2">Link Tidak Valid</h2>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Link Tidak Valid atau Kadaluarsa</h2>
         <p className="text-gray-600 text-sm mb-6">
-          Link reset password sudah kadaluarsa atau tidak valid. Silakan minta link baru.
+          Link reset password sudah kadaluarsa atau sudah pernah dipakai. Silakan minta link baru.
         </p>
         <a href="/lupa-password" className="text-[#7FB300] font-semibold hover:underline text-sm">
           Minta Link Baru →
