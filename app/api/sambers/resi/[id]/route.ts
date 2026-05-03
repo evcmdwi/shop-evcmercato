@@ -64,9 +64,11 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       background: white;
       display: flex; flex-direction: column;
       padding: 0.2cm; overflow: hidden;
+      box-sizing: border-box;
     }
     .header {
       display: flex; justify-content: space-between; align-items: center;
+      flex-shrink: 0;
       height: 1.6cm; margin-bottom: 0.15cm;
       border-bottom: 1px solid #ccc; padding-bottom: 0.1cm;
     }
@@ -74,15 +76,18 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     .header-left img { height: 1.2cm; width: auto; }
     .header-left span { font-size: 0.38cm; color: #333; font-weight: bold; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; }
-    .header-right img { height: 1.0cm; width: auto; }
+    .header-right img { height: 1.3cm; width: auto; }
     .courier-badge { font-size: 0.35cm; font-weight: bold; text-align: center; margin-bottom: 0.1cm; letter-spacing: 0.05cm; }
     .barcode-section {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 3.2cm; border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
+      flex-shrink: 0;
+      max-height: 2.8cm; overflow: hidden;
+      border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
+      padding: 0.05cm 0;
     }
-    .barcode-section img { max-height: 2.8cm; max-width: 9cm; object-fit: contain; }
+    .barcode-section img { max-height: 2.2cm; max-width: 8.5cm; object-fit: contain; width: auto; }
     .grab-logo { height: 2.1cm; width: auto; }
-    .address-section { display: flex; flex: 1; gap: 0.15cm; margin-bottom: 0.15cm; }
+    .address-section { display: flex; flex: 1; min-height: 0; overflow: hidden; gap: 0.15cm; margin-bottom: 0.1cm; }
     .penerima { flex: 6; border-right: 1px solid #ccc; padding-right: 0.15cm; }
     .pengirim { flex: 4; }
     .addr-heading { font-size: 0.32cm; font-weight: bold; text-transform: uppercase; margin-bottom: 0.1cm; }
@@ -90,14 +95,17 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     .addr-phone { font-size: 0.35cm; margin-bottom: 0.06cm; }
     .addr-detail { font-size: 0.32cm; line-height: 1.4; color: #333; }
     .delivery-note {
+      flex-shrink: 0;
       background: #FEF3C7; border-left: 4px solid #F59E0B;
-      padding: 0.2cm; margin-bottom: 0.1cm;
+      padding: 0.15cm; margin-bottom: 0.1cm;
     }
     .delivery-note-heading { font-size: 0.35cm; font-weight: bold; margin-bottom: 0.08cm; }
     .delivery-note-body { font-size: 0.42cm; font-weight: bold; color: #7f1d1d; }
     .footer {
       display: flex; justify-content: space-between;
+      flex-shrink: 0;
       border-top: 1px solid #ccc; padding-top: 0.1cm;
+      margin-top: auto;
     }
     .footer-left { font-size: 0.27cm; font-weight: bold; }
     .footer-right { font-size: 0.27cm; }
