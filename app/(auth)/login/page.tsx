@@ -94,6 +94,12 @@ function LoginForm() {
           />
         </div>
 
+        <div className="text-right">
+          <Link href="/lupa-password" className="text-sm text-[#7FB300] hover:underline">
+            Lupa Password?
+          </Link>
+        </div>
+
         <button
           type="submit"
           disabled={loading}
