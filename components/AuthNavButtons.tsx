@@ -1,27 +1,15 @@
 'use client'
-import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth/auth-context'
 import UserHeaderWidget from './UserHeaderWidget'
 
 export default function AuthNavButtons() {
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null)
+  const { user, loading } = useAuth()
 
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setIsLoggedIn(!!user)
-    })
+  // Show skeleton while loading initial state
+  if (loading) return <div className="w-20 h-10" />
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
-      setIsLoggedIn(!!session)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
-
-  if (isLoggedIn === null) return <div className="w-20 h-10" /> // skeleton placeholder
-
-  if (isLoggedIn) return <UserHeaderWidget />
+  if (user) return <UserHeaderWidget />
 
   return (
     <div className="flex items-center gap-2">

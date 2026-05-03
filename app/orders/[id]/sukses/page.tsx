@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
-import { createClient } from '@/lib/supabase'
+import { useAuth } from '@/lib/auth/auth-context'
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -38,16 +38,10 @@ export default function OrderSuksesPage() {
 
   const [order, setOrder] = useState<OrderSummary | null>(null)
   const [loading, setLoading] = useState(true)
-  const [userEmail, setUserEmail] = useState<string | null>(null)
+  const { user } = useAuth()
+  const userEmail = user?.email ?? null
   const [polling, setPolling] = useState(false)
   const [pollExhausted, setPollExhausted] = useState(false)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      if (data?.user?.email) setUserEmail(data.user.email)
-    })
-  }, [])
 
   const fetchOrder = useCallback(async (): Promise<OrderSummary | null> => {
     try {

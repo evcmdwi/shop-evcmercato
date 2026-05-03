@@ -1,7 +1,8 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createClient } from '@/lib/supabase'
+import { createBrowserClient } from '@supabase/ssr'
+import { useAuth } from '@/lib/auth/auth-context'
 
 interface UserProfile {
   name: string | null
@@ -10,37 +11,27 @@ interface UserProfile {
 }
 
 export default function UserHeaderWidget() {
-  const [user, setUser] = useState<{ email: string; id: string } | null>(null)
+  const { user } = useAuth()
   const [profile, setProfile] = useState<UserProfile | null>(null)
 
   useEffect(() => {
-    const supabase = createClient()
-
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      if (!user) return
-      setUser(user as { email: string; id: string })
-
-      // Fetch profile dari public.users
-      supabase
-        .from('users')
-        .select('name, total_points, tier')
-        .eq('id', user.id)
-        .single()
-        .then(({ data }) => {
-          if (data) setProfile(data as UserProfile)
-        })
-    })
-
-    // Listen auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (!session) {
-        setUser(null)
-        setProfile(null)
-      }
-    })
-
-    return () => subscription.unsubscribe()
-  }, [])
+    if (!user) {
+      setProfile(null)
+      return
+    }
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    supabase
+      .from('users')
+      .select('name, total_points, tier')
+      .eq('id', user.id)
+      .single()
+      .then(({ data }) => {
+        if (data) setProfile(data as UserProfile)
+      })
+  }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!user) return null
 
