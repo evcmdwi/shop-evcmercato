@@ -79,6 +79,9 @@ interface Order {
   shipping_city: string | null
   shipping_province: string | null
   shipping_postal_code: string | null
+  shipping_district_name?: string | null
+  shipping_regency_name?: string | null
+  shipping_province_name?: string | null
   courier_type: string | null
   resi_barcode_url: string | null
   delivery_note: string | null
@@ -887,9 +890,9 @@ export default function AdminOrderDetailPage() {
                   </dd>
                 </div>
                 <div className="flex gap-2">
-                  <dt className="text-slate-500 w-20 shrink-0">Kota</dt>
+                  <dt className="text-slate-500 w-20 shrink-0">Wilayah</dt>
                   <dd className="text-slate-900">
-                    {[order.shipping_addresses?.city || order.shipping_city, order.shipping_addresses?.province || order.shipping_province, order.shipping_addresses?.postal_code || order.shipping_postal_code].filter(Boolean).join(', ')}
+                    {[order.shipping_district_name, order.shipping_regency_name || order.shipping_addresses?.city || order.shipping_city, order.shipping_province_name || order.shipping_addresses?.province || order.shipping_province].filter(Boolean).join(', ') || '—'}
                   </dd>
                 </div>
               </dl>

@@ -1,8 +1,17 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { Address } from '@/types/address'
-import { getProvinces, getCitiesByProvince } from '@/lib/indonesia-regions'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
+
+interface SelectedAddress {
+  district_id: string
+  district_name: string
+  regency_id: string
+  regency_name: string
+  province_id: string
+  province_name: string
+}
 
 interface AddressFormProps {
   initialData?: Address | null
@@ -14,32 +23,37 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
   const [form, setForm] = useState({
     recipient_name: initialData?.recipient_name ?? '',
     phone: initialData?.phone ?? '',
-    province: initialData?.province ?? '',
-    city: initialData?.city ?? '',
-    postal_code: initialData?.postal_code ?? '',
     full_address: initialData?.full_address ?? '',
     is_default: initialData?.is_default ?? false,
   })
-  const [cities, setCities] = useState<string[]>([])
+
+  // Build initial selected address from existing data if available
+  const [selectedAddress, setSelectedAddress] = useState<SelectedAddress | null>(
+    initialData?.district_id
+      ? {
+          district_id: initialData.district_id,
+          district_name: initialData.district_name ?? '',
+          regency_id: initialData.regency_id ?? '',
+          regency_name: initialData.regency_name ?? initialData.city ?? '',
+          province_id: initialData.province_id ?? '',
+          province_name: initialData.province_name ?? initialData.province ?? '',
+        }
+      : initialData?.city
+      ? {
+          district_id: '',
+          district_name: '',
+          regency_id: '',
+          regency_name: initialData.city ?? '',
+          province_id: '',
+          province_name: initialData.province ?? '',
+        }
+      : null
+  )
+  const [addressError, setAddressError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const provinces = getProvinces()
-
-  useEffect(() => {
-    if (form.province) {
-      const c = getCitiesByProvince(form.province)
-      setCities(c)
-      // reset city if province changed and current city not in new list
-      if (!c.includes(form.city)) {
-        setForm(prev => ({ ...prev, city: '' }))
-      }
-    } else {
-      setCities([])
-    }
-  }, [form.province]) // eslint-disable-line react-hooks/exhaustive-deps
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target
     setForm(prev => ({
       ...prev,
@@ -51,8 +65,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
     if (!form.recipient_name.trim()) return 'Nama penerima wajib diisi'
     if (!form.phone.trim()) return 'Nomor telepon wajib diisi'
     if (form.phone.replace(/\D/g, '').length < 10) return 'Nomor telepon minimal 10 digit'
-    if (!form.province) return 'Provinsi wajib dipilih'
-    if (!form.city) return 'Kota wajib dipilih'
+    if (!selectedAddress) { setAddressError('Pilih kecamatan terlebih dahulu'); return 'Pilih kecamatan terlebih dahulu' }
     if (!form.full_address.trim()) return 'Alamat lengkap wajib diisi'
     return null
   }
@@ -60,6 +73,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
+    setAddressError(null)
 
     const validationError = validate()
     if (validationError) {
@@ -73,10 +87,24 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
       const url = isEdit ? `/api/addresses/${initialData.id}` : '/api/addresses'
       const method = isEdit ? 'PATCH' : 'POST'
 
+      const payload = {
+        ...form,
+        // Legacy fields for backward compat
+        province: selectedAddress!.province_name,
+        city: selectedAddress!.regency_name,
+        // New region fields
+        district_id: selectedAddress!.district_id,
+        district_name: selectedAddress!.district_name,
+        regency_id: selectedAddress!.regency_id,
+        regency_name: selectedAddress!.regency_name,
+        province_id: selectedAddress!.province_id,
+        province_name: selectedAddress!.province_name,
+      }
+
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify(payload),
       })
 
       if (!res.ok) {
@@ -132,51 +160,14 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
       </div>
 
       <div>
-        <label htmlFor="province" className={labelClass}>Provinsi <span className="text-red-500">*</span></label>
-        <select
-          id="province"
-          name="province"
-          required
-          value={form.province}
-          onChange={handleChange}
-          className={inputClass}
-        >
-          <option value="">Pilih Provinsi</option>
-          {provinces.map(p => (
-            <option key={p} value={p}>{p}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="city" className={labelClass}>Kota / Kabupaten <span className="text-red-500">*</span></label>
-        <select
-          id="city"
-          name="city"
-          required
-          value={form.city}
-          onChange={handleChange}
-          disabled={!form.province}
-          className={`${inputClass} disabled:bg-gray-100 disabled:text-gray-400`}
-        >
-          <option value="">{form.province ? 'Pilih Kota/Kabupaten' : 'Pilih provinsi dulu'}</option>
-          {cities.map(c => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-      </div>
-
-      <div>
-        <label htmlFor="postal_code" className={labelClass}>Kode Pos</label>
-        <input
-          id="postal_code"
-          name="postal_code"
-          type="text"
-          value={form.postal_code}
-          onChange={handleChange}
-          className={inputClass}
-          placeholder="Contoh: 76115"
-          maxLength={5}
+        <label className={labelClass}>Kecamatan <span className="text-red-500">*</span></label>
+        <AddressAutocomplete
+          value={selectedAddress}
+          onChange={(addr) => {
+            setSelectedAddress(addr)
+            if (addr) setAddressError(null)
+          }}
+          error={addressError ?? undefined}
         />
       </div>
 
@@ -190,7 +181,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
           onChange={handleChange}
           className={`${inputClass} resize-none`}
           rows={3}
-          placeholder="Nama jalan, No. rumah, RT/RW, Kelurahan, Kecamatan"
+          placeholder="Tulis alamat lengkap, nama gedung, nomor unit, kelurahan, atau perkiraan lokasi di sini"
         />
       </div>
 
