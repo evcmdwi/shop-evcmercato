@@ -239,14 +239,7 @@ export default function ProductDetailClient({ product }: Props) {
                 </button>
               </>
             )}
-            <button
-              disabled
-              className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold border-2 transition-colors cursor-not-allowed opacity-60"
-              style={{ borderColor: '#1D9E75', color: '#1D9E75' }}
-            >
-              <Gift className="w-4 h-4" />
-              Tukar dengan Points
-            </button>
+
           </div>
 
           {/* EVC Points info */}
