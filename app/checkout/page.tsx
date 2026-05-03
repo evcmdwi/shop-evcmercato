@@ -349,7 +349,7 @@ export default function CheckoutPage() {
                     {qualifiesForFreeShipping && totalSaved > 0 && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                         <p className="text-sm text-green-700 font-medium text-center">
-                          💚 Hemat {formatRupiah(totalSaved)} dari ongkir &amp; biaya layanan!
+                          💚 Hemat {formatRupiah(totalSaved)}{' '}dari ongkir &amp; biaya layanan!
                         </p>
                       </div>
                     )}
