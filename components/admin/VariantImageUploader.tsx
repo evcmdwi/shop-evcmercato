@@ -107,7 +107,7 @@ export default function VariantImageUploader({ value, onChange }: VariantImageUp
             className={`inline-flex items-center gap-1 px-2 py-1 rounded border border-dashed text-xs cursor-pointer
               ${uploading
                 ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                : 'border-[#534AB7] text-[#534AB7] hover:bg-[#EEEDFE]'
+                : 'border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1]'
               }`}
           >
             {uploading ? '⏳' : '📷'}

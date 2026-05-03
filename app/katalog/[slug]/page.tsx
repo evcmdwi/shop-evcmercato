@@ -43,7 +43,7 @@ export async function generateMetadata({ params }: Props) {
 
   return {
     title: `${product.name} — EVC Mercato`,
-    description: product.description ?? `Beli ${product.name} di EVC Mercato Balikpapan.`,
+    description: product.description ?? `Beli ${product.name} di EVC Mercato.`,
   }
 }
 

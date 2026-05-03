@@ -92,7 +92,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
     }
   }
 
-  const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#534AB7] focus:border-transparent'
+  const inputClass = 'w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:outline-none focus:ring-2 focus:ring-[#7FB300] focus:border-transparent'
   const labelClass = 'block text-sm font-medium text-gray-700 mb-1'
 
   return (
@@ -201,7 +201,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
           type="checkbox"
           checked={form.is_default}
           onChange={handleChange}
-          className="w-4 h-4 accent-[#534AB7]"
+          className="w-4 h-4 accent-[#7FB300]"
         />
         <label htmlFor="is_default" className="text-sm text-gray-700">Jadikan alamat utama</label>
       </div>
@@ -219,7 +219,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
           type="submit"
           disabled={loading}
           className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-colors disabled:opacity-50"
-          style={{ backgroundColor: '#534AB7' }}
+          style={{ backgroundColor: '#7FB300' }}
         >
           {loading ? 'Menyimpan...' : initialData ? 'Simpan Perubahan' : 'Tambah Alamat'}
         </button>

@@ -1,84 +1,241 @@
 import Link from 'next/link'
-import { ShoppingBag, ArrowRight, Star, Shield, Truck } from 'lucide-react'
+import FAQSection from '@/components/FAQSection'
+
+// Stats data
+const stats = [
+  { number: '36.000+', label: 'Transaksi Berhasil' },
+  { number: '32.000+', label: '5★ Reviews Marketplace' },
+  { number: '23 Tahun', label: 'Pengalaman Sejak 2003' },
+  { number: '30', label: 'Hub Pengiriman' },
+]
+
+// Trust cards
+const trustCards = [
+  {
+    icon: '🚚',
+    iconColor: 'text-[#7FB300]',
+    title: 'KIRIMAN PRIORITAS',
+    body: 'Instan / Same-day di 30 kota Indonesia.\nNext-day / Reguler ke seluruh Indonesia.\nLEBIH cepat dibanding Marketplace.',
+    border: 'border-gray-200',
+  },
+  {
+    icon: '🎁',
+    iconColor: 'text-amber-500',
+    title: 'EVC POINTS',
+    body: 'Produk GRATIS untuk penukaran EVC Points Anda.',
+    border: 'border-amber-200',
+  },
+  {
+    icon: '✓',
+    iconColor: 'text-[#7FB300]',
+    title: 'ORIGINAL & TERPERCAYA',
+    body: 'Distributor resmi KKI Group sejak 2003.\n23 Tahun membangun kepercayaan.',
+    border: 'border-gray-200',
+  },
+]
+
+// Category icons
+const categories = [
+  { name: 'Natesh', slug: 'natesh', emoji: '🩱' },
+  { name: 'Fitsol', slug: 'fitsol', emoji: '💊' },
+  { name: 'Suplemen', slug: 'suplemen', emoji: '🌿' },
+  { name: 'Kecantikan', slug: 'kecantikan', emoji: '✨' },
+  { name: 'Lihat Semua', slug: '', emoji: '🛍️' },
+]
+
+// FAQ
+const faqs = [
+  {
+    q: 'Bagaimana cara pemesanan di EVC Mercato?',
+    a: 'Pilih produk → Tambah ke Keranjang → Checkout → Pilih metode pembayaran. Setelah pembayaran berhasil, pesanan akan diproses dan dikirim sesuai estimasi.',
+  },
+  {
+    q: 'Berapa lama pengiriman ke alamat saya?',
+    a: 'Untuk 30 kota dengan gudang EVC: same-day atau next-day. Untuk kota lain di Indonesia: 2-5 hari kerja melalui partner JNE/JNT.',
+  },
+  {
+    q: 'Bagaimana cara mendapat dan menggunakan EVC Points?',
+    a: 'Setiap pembelian Rp 1.000 = 1 EVC Point otomatis masuk akun Anda. Tukar Points dengan produk pilihan di halaman "Tukar Points" (login required).',
+  },
+  {
+    q: 'Apakah produk dijamin original?',
+    a: '100% original. EVC Mercato adalah distributor resmi KKI Group sejak 2003. Setiap produk dikirim langsung dari gudang resmi dengan packaging segel.',
+  },
+  {
+    q: 'Bisa dikembalikan jika produk tidak sesuai?',
+    a: 'Bisa, dalam 7 hari sejak diterima dengan syarat produk belum dipakai dan kemasan utuh. Detail di halaman Kebijakan Pengembalian.',
+  },
+]
+
+// Payment & shipping
+const paymentMethods = ['BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'Permata', 'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'Visa', 'Mastercard', 'JCB', 'Alfamart', 'Indomaret']
+const shippingMethods = ['JNE', 'JNT', 'Grab Express', 'Gojek']
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between h-16">
-            <div className="flex items-center gap-2 font-bold text-lg" style={{ color: '#534AB7' }}>
-              <ShoppingBag className="w-6 h-6" />
-              <span>EVC Mercato</span>
+    <div className="min-h-screen">
+
+      {/* HERO */}
+      <section className="bg-gradient-to-b from-[#E8F4D1] to-[#F0FDF4] py-16 px-4 text-center">
+        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
+          Belanja Nyaman Terpercaya,<br />Sejak 2003
+        </h1>
+        <p className="text-lg sm:text-xl text-gray-500 font-medium mb-10">
+          Kiriman LEBIH Cepat untuk Anda ⚡
+        </p>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
+          {stats.map(s => (
+            <div key={s.label} className="bg-white rounded-xl shadow-sm p-4 sm:p-5">
+              <p className="text-2xl sm:text-3xl font-extrabold text-[#7FB300]">{s.number}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">{s.label}</p>
             </div>
-            <Link
-              href="/login"
-              className="text-sm font-medium text-white px-4 py-2 rounded-lg transition-opacity hover:opacity-90"
-              style={{ backgroundColor: '#534AB7' }}
+          ))}
+        </div>
+
+        <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+          Mulai Belanja Sekarang →
+        </Link>
+      </section>
+
+      {/* KENAPA EVC - 4 CARDS */}
+      <section className="py-16 px-4 bg-white">
+        <div className="max-w-6xl mx-auto">
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-12">🎯 KENAPA BELANJA DI EVC?</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {/* Cards 1-3 */}
+            {trustCards.map(card => (
+              <div key={card.title} className={`bg-white border ${card.border} rounded-2xl p-6 hover:shadow-md transition-shadow`}>
+                <div className={`text-5xl mb-4 ${card.iconColor}`}>{card.icon}</div>
+                <h3 className="font-bold text-lg text-gray-900 mb-3">{card.title}</h3>
+                <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
+              </div>
+            ))}
+
+            {/* Card 4 — Evie Health SPECIAL */}
+            <a
+              href="https://t.me/evie_evc_bot?start=6285820852908"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block rounded-2xl p-6 transition-all hover:scale-105 relative overflow-hidden"
+              style={{
+                background: 'linear-gradient(135deg, #0A0E27 0%, #1E1B4B 50%, #0F172A 100%)',
+                boxShadow: '0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(34, 211, 238, 0.1)',
+              }}
             >
-              Login
+              {/* Neon glow border */}
+              <div className="absolute inset-0 rounded-2xl" style={{
+                background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(34,211,238,0.3))',
+                padding: '1px',
+                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+                WebkitMaskComposite: 'xor',
+              }} />
+              {/* Sparkles */}
+              <div className="absolute top-3 right-3 text-cyan-400 opacity-60 text-xl">✦</div>
+              <div className="absolute bottom-8 left-4 text-purple-400 opacity-40 text-xs">✦</div>
+
+              <div className="text-5xl mb-3">🤖</div>
+              <p className="text-[11px] font-semibold tracking-wider mb-2" style={{ color: '#22D3EE' }}>
+                ⚡ Powered by Evie Health AI
+              </p>
+              <h3 className="font-bold text-lg text-white mb-3">KONSULTASI KESEHATAN 24 JAM</h3>
+              <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.85)' }}>
+                Tim EVC Health siap membantu konsultasi kesehatan Anda kapan saja.
+              </p>
+              <div className="inline-flex items-center gap-1.5 font-semibold text-white text-sm px-5 py-2.5 rounded-full transition-all hover:shadow-lg" style={{
+                background: 'linear-gradient(90deg, #A855F7, #3B82F6)',
+              }}>
+                Chat di Telegram →
+              </div>
+            </a>
+          </div>
+
+          {/* CTA bawah */}
+          <div className="text-center mt-12">
+            <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+              → MULAI BELANJA SEKARANG
             </Link>
           </div>
         </div>
-      </nav>
+      </section>
 
-      {/* Hero */}
-      <main className="flex-1">
-        <section className="py-20 px-4 text-center" style={{ background: 'linear-gradient(135deg, #EEEDFE 0%, #ffffff 60%)' }}>
-          <div className="max-w-3xl mx-auto">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium mb-6" style={{ backgroundColor: '#EEEDFE', color: '#534AB7' }}>
-              <Star className="w-4 h-4" />
-              <span>Program EVC Points — Belanja & Dapatkan Reward</span>
-            </div>
-
-            <div className="flex items-center justify-center gap-3 mb-6">
-              <div className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg" style={{ backgroundColor: '#534AB7' }}>
-                <ShoppingBag className="w-8 h-8 text-white" />
-              </div>
-            </div>
-
-            <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 mb-4 leading-tight">
-              Selamat Datang di{' '}
-              <span style={{ color: '#534AB7' }}>EVC Mercato</span>
-            </h1>
-            <p className="text-lg text-gray-500 mb-8 max-w-xl mx-auto">
-              Temukan produk KKI pilihan terbaik. Belanja, kumpulkan EVC Points, dan tukar dengan produk gratis.
-            </p>
-
-            <Link
-              href="/katalog"
-              className="inline-flex items-center gap-2 px-8 py-3.5 rounded-xl text-white font-semibold text-lg transition-opacity hover:opacity-90 shadow-lg"
-              style={{ backgroundColor: '#534AB7' }}
-            >
-              Lihat Produk
-              <ArrowRight className="w-5 h-5" />
-            </Link>
-          </div>
-        </section>
-
-        {/* Features */}
-        <section className="py-16 px-4 bg-white">
-          <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-8 text-center">
-            {[
-              { icon: Star, title: 'EVC Points', desc: '1 poin per Rp 1.000 belanja. Tukar dengan produk gratis!' },
-              { icon: Shield, title: 'Produk Terpercaya', desc: 'Produk KKI original dengan jaminan kualitas terbaik.' },
-              { icon: Truck, title: 'Pengiriman Balikpapan', desc: 'Layanan pengiriman cepat ke seluruh Balikpapan & sekitarnya.' },
-            ].map(({ icon: Icon, title, desc }) => (
-              <div key={title} className="flex flex-col items-center gap-3">
-                <div className="w-12 h-12 rounded-xl flex items-center justify-center" style={{ backgroundColor: '#EEEDFE' }}>
-                  <Icon className="w-6 h-6" style={{ color: '#534AB7' }} />
+      {/* JELAJAHI PRODUK */}
+      <section className="py-16 px-4 bg-[#F9FAFB]">
+        <div className="max-w-2xl mx-auto text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-10">🌿 JELAJAHI PRODUK</h2>
+          <div className="flex flex-wrap justify-center gap-8">
+            {categories.map(cat => (
+              <Link
+                key={cat.name}
+                href={cat.slug ? `/katalog?kategori=${cat.slug}` : '/katalog'}
+                className="flex flex-col items-center group"
+              >
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center text-3xl sm:text-4xl group-hover:scale-105 group-hover:shadow-lg transition-all">
+                  {cat.emoji}
                 </div>
-                <h3 className="font-semibold text-gray-800">{title}</h3>
-                <p className="text-sm text-gray-500">{desc}</p>
-              </div>
+                <span className="mt-3 text-sm sm:text-base font-semibold text-gray-800">{cat.name}</span>
+              </Link>
             ))}
           </div>
-        </section>
-      </main>
+        </div>
+      </section>
 
-      <footer className="py-6 text-center text-sm text-gray-400 border-t border-gray-100">
-        © 2026 EVC Mercato, Balikpapan. All rights reserved.
+      {/* FAQ */}
+      <FAQSection faqs={faqs} />
+
+      {/* FOOTER */}
+      <footer className="bg-white border-t border-gray-200">
+        <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">💬 CHAT CS</h3>
+            <div className="space-y-2 text-sm">
+              <a href="https://wa.me/6285820852908" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-600 hover:text-[#7FB300]">
+                📱 +62 858-2085-2908
+              </a>
+              <a href="mailto:cs@evcmercato.com" className="flex items-center gap-2 text-gray-600 hover:text-[#7FB300]">
+                ✉️ cs@evcmercato.com
+              </a>
+            </div>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">💳 PEMBAYARAN</h3>
+            <div className="flex flex-wrap gap-2">
+              {paymentMethods.map(m => (
+                <span key={m} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{m}</span>
+              ))}
+            </div>
+            <p className="text-xs text-gray-400 mt-2">Powered by Xendit</p>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">🚚 PENGIRIMAN</h3>
+            <div className="flex flex-wrap gap-2 mb-4">
+              {shippingMethods.map(m => (
+                <span key={m} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{m}</span>
+              ))}
+            </div>
+            <h3 className="font-bold text-gray-900 mb-2">📱 IKUTI KAMI</h3>
+            <a href="https://instagram.com/evcmercato" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#7FB300]">
+              📸 @evcmercato
+            </a>
+          </div>
+
+          <div>
+            <h3 className="font-bold text-gray-900 mb-4">⚖️ LEGAL</h3>
+            <div className="space-y-2 text-sm">
+              <Link href="/privacy" className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
+              <Link href="/terms" className="block text-gray-600 hover:text-[#7FB300]">Syarat & Ketentuan</Link>
+              <Link href="/return-policy" className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Pengembalian</Link>
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-[#F9FAFB] border-t border-gray-200 py-4 text-center">
+          <p className="text-sm text-gray-500">© 2026 EVC Mercato. Trusted since 2003 ✓</p>
+        </div>
       </footer>
     </div>
   )

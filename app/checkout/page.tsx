@@ -127,7 +127,7 @@ export default function CheckoutPage() {
                 <h2 className="font-semibold text-gray-900">Alamat Pengiriman</h2>
                 <button
                   onClick={() => setShowAddressModal(true)}
-                  className="flex items-center gap-1 text-sm text-[#534AB7] font-medium hover:opacity-80"
+                  className="flex items-center gap-1 text-sm text-[#7FB300] font-medium hover:opacity-80"
                 >
                   <Plus className="w-4 h-4" />
                   Tambah Alamat Baru
@@ -155,7 +155,7 @@ export default function CheckoutPage() {
                       <select
                         value={selectedAddressId ?? ''}
                         onChange={(e) => setSelectedAddressId(e.target.value)}
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm appearance-none pr-8 focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
                       >
                         {addresses.map((addr) => (
                           <option key={addr.id} value={addr.id}>
@@ -169,9 +169,9 @@ export default function CheckoutPage() {
                   )}
 
                   {selectedAddress && (
-                    <div className="border border-[#534AB7] bg-[#EEEDFE] rounded-xl p-4">
+                    <div className="border border-[#7FB300] bg-[#E8F4D1] rounded-xl p-4">
                       <div className="flex items-start gap-2">
-                        <CheckCircle2 className="w-4 h-4 text-[#534AB7] mt-0.5 flex-shrink-0" />
+                        <CheckCircle2 className="w-4 h-4 text-[#7FB300] mt-0.5 flex-shrink-0" />
                         <div className="text-sm">
                           <p className="font-semibold text-gray-900">{selectedAddress.recipient_name}</p>
                           <p className="text-gray-600">{selectedAddress.phone}</p>
@@ -189,9 +189,9 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h2 className="font-semibold text-gray-900 mb-4">Metode Pengiriman</h2>
               <div className="space-y-3">
-                <label className="flex items-center justify-between p-3 border border-[#534AB7] bg-[#EEEDFE] rounded-xl cursor-pointer">
+                <label className="flex items-center justify-between p-3 border border-[#7FB300] bg-[#E8F4D1] rounded-xl cursor-pointer">
                   <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" defaultChecked className="accent-[#534AB7]" />
+                    <input type="radio" name="shipping" defaultChecked className="accent-[#7FB300]" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">Reguler</p>
                       <p className="text-xs text-gray-500">Estimasi 1-3 hari kerja</p>
@@ -211,7 +211,7 @@ export default function CheckoutPage() {
 
                 <label className="flex items-center justify-between p-3 border border-gray-200 rounded-xl opacity-50 cursor-not-allowed">
                   <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" disabled className="accent-[#534AB7]" />
+                    <input type="radio" name="shipping" disabled className="accent-[#7FB300]" />
                     <div>
                       <p className="text-sm font-medium text-gray-600">Instan</p>
                       <p className="text-xs text-gray-400">Belum tersedia</p>
@@ -251,7 +251,7 @@ export default function CheckoutPage() {
                             className="object-cover"
                           />
                         ) : (
-                          <div className="w-full h-full bg-[#EEEDFE] flex items-center justify-center text-[#534AB7] text-xs font-bold">
+                          <div className="w-full h-full bg-[#E8F4D1] flex items-center justify-center text-[#7FB300] text-xs font-bold">
                             {item.product.name[0]}
                           </div>
                         )}
@@ -316,7 +316,7 @@ export default function CheckoutPage() {
                     </div>
                     <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
                       <span>Total Bayar</span>
-                      <span style={{ color: '#534AB7' }}>{formatRupiah(totalAmount)}</span>
+                      <span style={{ color: '#7FB300' }}>{formatRupiah(totalAmount)}</span>
                     </div>
                     {!qualifiesForFreeShipping && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
@@ -344,7 +344,7 @@ export default function CheckoutPage() {
                     onClick={handlePay}
                     disabled={paying || !selectedAddressId}
                     className="mt-4 w-full py-3 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: '#534AB7' }}
+                    style={{ backgroundColor: '#7FB300' }}
                   >
                     {paying ? (
                       <>
@@ -368,7 +368,7 @@ export default function CheckoutPage() {
                   {evcPoints > 0 && (
                     <p className="mt-3 text-xs text-gray-500 text-center">
                       ℹ️ Kamu akan mendapat{' '}
-                      <span className="font-semibold text-[#534AB7]">{evcPoints} EVC Points</span>{' '}
+                      <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
                       dari pembelian ini
                     </p>
                   )}
@@ -383,12 +383,12 @@ export default function CheckoutPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 sm:hidden z-40">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Total Bayar</span>
-          <span className="font-bold text-[#534AB7]">{formatRupiah(totalAmount)}</span>
+          <span className="font-bold text-[#7FB300]">{formatRupiah(totalAmount)}</span>
         </div>
         <button
           onClick={handlePay}
           disabled={paying || !selectedAddressId}
-          className="w-full bg-[#534AB7] text-white py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
+          className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {paying ? (
             <>

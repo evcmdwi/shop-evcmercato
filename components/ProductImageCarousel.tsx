@@ -22,9 +22,9 @@ export default function ProductImageCarousel({ images, productName, variantImage
     return (
       <div
         className="relative aspect-square rounded-xl overflow-hidden flex items-center justify-center"
-        style={{ backgroundColor: '#EEEDFE' }}
+        style={{ backgroundColor: '#E8F4D1' }}
       >
-        <Package className="w-20 h-20 opacity-30" style={{ color: '#534AB7' }} />
+        <Package className="w-20 h-20 opacity-30" style={{ color: '#7FB300' }} />
       </div>
     )
   }
@@ -53,8 +53,8 @@ export default function ProductImageCarousel({ images, productName, variantImage
               onClick={() => setSelectedIndex(idx)}
               className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors shrink-0 ${
                 idx === selectedIndex
-                  ? 'border-[#534AB7]'
-                  : 'border-transparent hover:border-[#534AB7]/40'
+                  ? 'border-[#7FB300]'
+                  : 'border-transparent hover:border-[#7FB300]/40'
               }`}
             >
               <Image

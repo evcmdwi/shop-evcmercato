@@ -82,7 +82,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
           </p>
 
           {/* Price */}
-          <p className="text-[15px] font-bold text-[#534AB7] leading-tight mb-1.5">
+          <p className="text-[15px] font-bold text-[#7FB300] leading-tight mb-1.5">
             {displayPrice}
           </p>
 

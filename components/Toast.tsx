@@ -19,7 +19,7 @@ interface ToastItemProps extends ToastProps {
 const typeStyles: Record<ToastType, string> = {
   success: 'bg-[#1D9E75] text-white',
   error: 'bg-red-500 text-white',
-  info: 'bg-[#534AB7] text-white',
+  info: 'bg-[#7FB300] text-white',
 }
 
 function ToastItem({ id, message, type = 'info', action, duration = 3000, onDismiss }: ToastItemProps) {

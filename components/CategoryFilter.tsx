@@ -36,7 +36,7 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
             ? 'text-white shadow-sm'
             : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
         }`}
-        style={!activeSlug ? { backgroundColor: '#534AB7' } : {}}
+        style={!activeSlug ? { backgroundColor: '#7FB300' } : {}}
       >
         Semua
       </button>
@@ -49,7 +49,7 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
               ? 'text-white shadow-sm'
               : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           }`}
-          style={activeSlug === cat.slug ? { backgroundColor: '#534AB7' } : {}}
+          style={activeSlug === cat.slug ? { backgroundColor: '#7FB300' } : {}}
         >
           {cat.name}
         </button>

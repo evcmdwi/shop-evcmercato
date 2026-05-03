@@ -154,7 +154,7 @@ export default function AdminKategoriPage() {
         <div className="flex gap-2">
           <button
             onClick={() => startEdit(row)}
-            className="px-2 py-1 rounded text-xs bg-[#EEEDFE] text-[#534AB7] hover:bg-[#534AB7] hover:text-white transition-colors"
+            className="px-2 py-1 rounded text-xs bg-[#E8F4D1] text-[#7FB300] hover:bg-[#7FB300] hover:text-white transition-colors"
           >
             Edit
           </button>
@@ -178,7 +178,7 @@ export default function AdminKategoriPage() {
         </div>
         <button
           onClick={() => setShowAddForm(!showAddForm)}
-          className="px-4 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#7FB300] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] transition-colors flex items-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -191,9 +191,9 @@ export default function AdminKategoriPage() {
       {showAddForm && (
         <form
           onSubmit={handleAdd}
-          className="bg-[#EEEDFE] rounded-xl border border-[#534AB7]/20 p-5 mb-5 space-y-4"
+          className="bg-[#E8F4D1] rounded-xl border border-[#7FB300]/20 p-5 mb-5 space-y-4"
         >
-          <h3 className="font-semibold text-[#534AB7] text-sm">Tambah Kategori Baru</h3>
+          <h3 className="font-semibold text-[#7FB300] text-sm">Tambah Kategori Baru</h3>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
               <label className="text-xs font-medium text-slate-600">
@@ -203,7 +203,7 @@ export default function AdminKategoriPage() {
                 value={addForm.name}
                 onChange={(e) => setAddForm({ ...addForm, name: e.target.value })}
                 placeholder="Nama kategori"
-                className={`mt-1 w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-[#534AB7] ${
+                className={`mt-1 w-full px-3 py-2 rounded-lg border text-sm focus:outline-none focus:border-[#7FB300] ${
                   addErrors.name ? 'border-red-400' : 'border-slate-200 bg-white'
                 }`}
               />
@@ -215,7 +215,7 @@ export default function AdminKategoriPage() {
                 value={addForm.slug}
                 onChange={(e) => setAddForm({ ...addForm, slug: e.target.value })}
                 placeholder="slug-otomatis"
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#534AB7]"
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#7FB300]"
               />
             </div>
             <div>
@@ -224,7 +224,7 @@ export default function AdminKategoriPage() {
                 value={addForm.description}
                 onChange={(e) => setAddForm({ ...addForm, description: e.target.value })}
                 placeholder="Opsional"
-                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#534AB7]"
+                className="mt-1 w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm focus:outline-none focus:border-[#7FB300]"
               />
             </div>
           </div>
@@ -239,7 +239,7 @@ export default function AdminKategoriPage() {
             <button
               type="submit"
               disabled={addLoading}
-              className="px-5 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] disabled:opacity-50"
+              className="px-5 py-2 bg-[#7FB300] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] disabled:opacity-50"
             >
               {addLoading ? 'Menyimpan...' : 'Simpan'}
             </button>

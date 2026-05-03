@@ -167,18 +167,18 @@ export default function OrderDetailPage() {
                         <div
                           className={`w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold ${
                             done
-                              ? 'bg-[#534AB7] border-[#534AB7] text-white'
+                              ? 'bg-[#7FB300] border-[#7FB300] text-white'
                               : 'bg-white border-gray-300 text-gray-400'
-                          } ${active ? 'ring-2 ring-[#EEEDFE]' : ''}`}
+                          } ${active ? 'ring-2 ring-[#E8F4D1]' : ''}`}
                         >
                           {idx + 1}
                         </div>
-                        <span className={`text-[10px] text-center mt-1 leading-tight ${done ? 'text-[#534AB7] font-medium' : 'text-gray-400'}`}>
+                        <span className={`text-[10px] text-center mt-1 leading-tight ${done ? 'text-[#7FB300] font-medium' : 'text-gray-400'}`}>
                           {step.label}
                         </span>
                       </div>
                       {idx < timelineSteps.length - 1 && (
-                        <div className={`h-0.5 w-6 mx-0.5 flex-shrink-0 ${idx < currentStep ? 'bg-[#534AB7]' : 'bg-gray-200'}`} />
+                        <div className={`h-0.5 w-6 mx-0.5 flex-shrink-0 ${idx < currentStep ? 'bg-[#7FB300]' : 'bg-gray-200'}`} />
                       )}
                     </div>
                   )
@@ -249,14 +249,14 @@ export default function OrderDetailPage() {
               )}
               <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
                 <span>Total Bayar</span>
-                <span style={{ color: '#534AB7' }}>{formatRupiah(order.total_amount)}</span>
+                <span style={{ color: '#7FB300' }}>{formatRupiah(order.total_amount)}</span>
               </div>
             </div>
           </div>
 
           {/* EVC Points */}
           {evcPoints > 0 && (
-            <div className="bg-[#EEEDFE] rounded-2xl p-4 text-sm text-center text-[#534AB7]">
+            <div className="bg-[#E8F4D1] rounded-2xl p-4 text-sm text-center text-[#7FB300]">
               ℹ️ Kamu akan mendapat <strong>{evcPoints} EVC Points</strong> dari pesanan ini
               <br />
               <span className="text-xs text-gray-500">(dicatat setelah barang diterima)</span>
@@ -268,7 +268,7 @@ export default function OrderDetailPage() {
             <a
               href={order.xendit_invoice_url}
               className="block w-full py-3 rounded-xl text-white font-semibold text-sm text-center"
-              style={{ backgroundColor: '#534AB7' }}
+              style={{ backgroundColor: '#7FB300' }}
             >
               Bayar Sekarang
             </a>
@@ -283,7 +283,7 @@ export default function OrderDetailPage() {
                 </span>
                 <button
                   onClick={handleCopyTracking}
-                  className="p-2 rounded-xl bg-[#EEEDFE] text-[#534AB7] hover:opacity-80 transition-opacity"
+                  className="p-2 rounded-xl bg-[#E8F4D1] text-[#7FB300] hover:opacity-80 transition-opacity"
                 >
                   {copied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
                 </button>
@@ -295,7 +295,7 @@ export default function OrderDetailPage() {
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
             <Link
               href="/katalog"
-              className="flex-1 flex items-center justify-center gap-2 bg-[#534AB7] text-white py-3 rounded-xl font-semibold hover:bg-[#4338a0]"
+              className="flex-1 flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#4338a0]"
             >
               🛍️ Lanjut Belanja
             </Link>

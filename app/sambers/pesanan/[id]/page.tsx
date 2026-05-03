@@ -142,7 +142,7 @@ function InputResiModal({ orderId, onClose, onSuccess }: InputResiModalProps) {
             <select
               value={courier}
               onChange={(e) => setCourier(e.target.value)}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
             >
               {['JNE', 'JNT'].map((c) => (
                 <option key={c} value={c}>{c}</option>
@@ -156,7 +156,7 @@ function InputResiModal({ orderId, onClose, onSuccess }: InputResiModalProps) {
               value={resi}
               onChange={(e) => setResi(e.target.value)}
               placeholder="Contoh: JNE1234567890"
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7]"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -239,7 +239,7 @@ function MarkDeliveredModal({ orderId, onClose, onSuccess }: MarkDeliveredModalP
               onChange={(e) => setNote(e.target.value)}
               placeholder="Diterima oleh..."
               rows={3}
-              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#534AB7] resize-none"
+              className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] resize-none"
             />
           </div>
           {error && <p className="text-sm text-red-600">{error}</p>}
@@ -424,12 +424,12 @@ function OrderTimeline({ order }: { order: Order }) {
           <div key={step.key} className="flex-1 flex flex-col items-center relative">
             {/* Connector line */}
             {idx < steps.length - 1 && (
-              <div className={`absolute top-4 left-1/2 w-full h-0.5 ${steps[idx + 1].done ? 'bg-[#534AB7]' : 'bg-slate-200'}`} />
+              <div className={`absolute top-4 left-1/2 w-full h-0.5 ${steps[idx + 1].done ? 'bg-[#7FB300]' : 'bg-slate-200'}`} />
             )}
             {/* Circle */}
             <div className={`relative z-10 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium border-2 ${
               step.done
-                ? 'bg-[#534AB7] border-[#534AB7] text-white'
+                ? 'bg-[#7FB300] border-[#7FB300] text-white'
                 : 'bg-white border-slate-300 text-slate-400'
             }`}>
               {step.done ? (
@@ -442,7 +442,7 @@ function OrderTimeline({ order }: { order: Order }) {
             </div>
             {/* Label & date */}
             <div className="mt-2 text-center px-1">
-              <p className={`text-xs font-medium ${step.done ? 'text-[#534AB7]' : 'text-slate-400'}`}>{step.label}</p>
+              <p className={`text-xs font-medium ${step.done ? 'text-[#7FB300]' : 'text-slate-400'}`}>{step.label}</p>
               {step.date && step.done && (
                 <p className="text-xs text-slate-400 mt-0.5">{formatDate(step.date)}</p>
               )}
@@ -502,7 +502,7 @@ export default function AdminOrderDetailPage() {
     return (
       <div className="p-6">
         <p className="text-red-600">{error || 'Pesanan tidak ditemukan'}</p>
-        <button onClick={() => router.push('/sambers/pesanan')} className="mt-4 text-[#534AB7] hover:underline">
+        <button onClick={() => router.push('/sambers/pesanan')} className="mt-4 text-[#7FB300] hover:underline">
           ← Kembali ke daftar pesanan
         </button>
       </div>
@@ -526,7 +526,7 @@ export default function AdminOrderDetailPage() {
           </button>
           <div className="flex-1">
             <h1 className="text-xl font-bold text-slate-900">
-              Order <span className="font-mono text-[#534AB7]">#{shortId}</span>
+              Order <span className="font-mono text-[#7FB300]">#{shortId}</span>
             </h1>
             <div className="flex items-center gap-3 mt-1">
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
@@ -645,7 +645,7 @@ export default function AdminOrderDetailPage() {
             </div>
             <div className="flex justify-between pt-2 border-t border-slate-200">
               <dt className="font-semibold text-slate-900">Total</dt>
-              <dd className="font-semibold text-[#534AB7] text-base">{formatRp(order.total_amount)}</dd>
+              <dd className="font-semibold text-[#7FB300] text-base">{formatRp(order.total_amount)}</dd>
             </div>
           </dl>
           {order.xendit_invoice_url && (
@@ -653,7 +653,7 @@ export default function AdminOrderDetailPage() {
               href={order.xendit_invoice_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="mt-3 inline-flex items-center gap-1 text-sm text-[#534AB7] hover:underline"
+              className="mt-3 inline-flex items-center gap-1 text-sm text-[#7FB300] hover:underline"
             >
               Lihat Invoice Xendit →
             </a>

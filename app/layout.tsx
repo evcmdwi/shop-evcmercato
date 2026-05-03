@@ -3,6 +3,8 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { ToastContainer } from "@/components/Toast";
+import Navbar from "@/components/Navbar";
+import PromoBanner from "@/components/PromoBanner";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -16,7 +18,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "EVC Mercato",
-  description: "Toko Online EVC Mercato Balikpapan",
+  description: "Toko Online EVC Mercato — Distributor Resmi KKI Group, Terpercaya Sejak 2003.",
 };
 
 export default function RootLayout({
@@ -31,6 +33,8 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <CartProvider>
+          <PromoBanner />
+          <Navbar />
           {children}
           <ToastContainer />
         </CartProvider>

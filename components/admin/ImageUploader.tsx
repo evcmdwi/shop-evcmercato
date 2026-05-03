@@ -104,7 +104,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
                 className="object-cover rounded-lg border border-gray-200"
               />
               {index === 0 && (
-                <span className="absolute top-1 left-1 text-xs bg-[#534AB7] text-white px-1 rounded">
+                <span className="absolute top-1 left-1 text-xs bg-[#7FB300] text-white px-1 rounded">
                   Utama
                 </span>
               )}
@@ -138,7 +138,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
             className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed cursor-pointer
               ${uploading
                 ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                : 'border-[#534AB7] text-[#534AB7] hover:bg-[#EEEDFE]'
+                : 'border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1]'
               }`}
           >
             {uploading ? (
