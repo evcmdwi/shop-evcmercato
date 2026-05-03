@@ -126,9 +126,8 @@ export default function HomePage() {
               target="_blank"
               rel="noopener noreferrer"
               className="block rounded-2xl overflow-hidden hover:scale-105 transition-all hover:shadow-xl cursor-pointer"
-              style={{ minHeight: '280px' }}
             >
-              <div className="relative w-full h-full" style={{ minHeight: '280px' }}>
+              <div className="relative w-full" style={{ minHeight: '280px' }}>
                 <Image
                   src="/evie-health-reference.jpg"
                   alt="Evie Health — Konsultasi Kesehatan 24 Jam"
@@ -136,6 +135,9 @@ export default function HomePage() {
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 25vw"
                 />
+              </div>
+              <div className="bg-white py-2 px-3 text-center">
+                <p className="text-sm text-gray-500 italic">Klik gambar untuk memulai konsultasi</p>
               </div>
             </a>
           </div>
