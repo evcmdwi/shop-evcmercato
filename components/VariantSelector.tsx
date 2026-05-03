@@ -54,9 +54,10 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
       {selectedVariant && (
         <div className="text-sm text-slate-500">
           Stok:{' '}
-          {selectedVariant.stock > 5 ? (
+          {/* stock shown in ProductDetailClient above */}
+          {false ? (
             <span className="font-medium text-green-600">{selectedVariant.stock} tersedia</span>
-          ) : selectedVariant.stock > 0 ? (
+          ) : false ? (
             <span className="font-medium text-orange-500">Tersisa {selectedVariant.stock}</span>
           ) : (
             <span className="font-medium text-red-500">Habis</span>
