@@ -79,12 +79,239 @@ interface Order {
   shipping_city: string | null
   shipping_province: string | null
   shipping_postal_code: string | null
+  courier_type: string | null
+  resi_barcode_url: string | null
+  delivery_note: string | null
+  resi_generated_at: string | null
   customer_name?: string
   customer_email?: string
   user?: { name: string | null; email: string | null; phone: string | null } | null
   profiles?: { full_name: string | null; email: string | null; phone: string | null } | null
   shipping_addresses?: ShippingAddress | null
   order_items?: OrderItem[]
+}
+
+// ─── CetakResiModal ──────────────────────────────────────────────────────────
+
+interface CetakResiModalProps {
+  orderId: string
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
+  const [courierType, setCourierType] = useState<'jnt' | 'grab' | null>(null)
+  const [barcodeFile, setBarcodeFile] = useState<File | null>(null)
+  const [barcodePreview, setBarcodePreview] = useState<string | null>(null)
+  const [deliveryNote, setDeliveryNote] = useState('')
+  const [resiLoading, setResiLoading] = useState(false)
+
+  const handleGenerateResi = async () => {
+    if (!courierType) return
+    setResiLoading(true)
+    try {
+      const formData = new FormData()
+      formData.append('courier_type', courierType)
+      if (barcodeFile) formData.append('barcode', barcodeFile)
+      if (deliveryNote.trim()) formData.append('delivery_note', deliveryNote.trim())
+
+      const res = await fetch(`/api/sambers/orders/${orderId}/print-resi`, {
+        method: 'POST',
+        body: formData,
+      })
+      const json = await res.json()
+      if (!res.ok) { alert(json.error || 'Gagal generate resi'); return }
+
+      onClose()
+      window.open(`/sambers/pesanan/${orderId}/resi`, '_blank')
+      onSuccess()
+    } catch {
+      alert('Terjadi kesalahan')
+    } finally {
+      setResiLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-900">Cetak Resi Pengiriman</h2>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 text-xl">✕</button>
+        </div>
+
+        {/* Pilih Ekspedisi */}
+        <div className="mb-6">
+          <label className="block text-sm font-semibold mb-2">Pilih Ekspedisi *</label>
+          <div className="grid grid-cols-2 gap-3">
+            <button
+              onClick={() => setCourierType('jnt')}
+              className={`border-2 rounded-xl p-4 text-center transition-all ${
+                courierType === 'jnt' ? 'border-[#7FB300] bg-[#E8F4D1]' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="font-bold">JNT</div>
+              <div className="text-xs text-gray-500">Reguler</div>
+            </button>
+            <button
+              onClick={() => setCourierType('grab')}
+              className={`border-2 rounded-xl p-4 text-center transition-all ${
+                courierType === 'grab' ? 'border-[#00B14F] bg-green-50' : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="font-bold">Grab Express</div>
+              <div className="text-xs text-gray-500">Instan/Sameday</div>
+            </button>
+          </div>
+        </div>
+
+        {/* Upload Barcode (JNT only) */}
+        {courierType === 'jnt' && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2">Upload Barcode JNT *</label>
+            <p className="text-xs text-gray-500 mb-2">Screenshot dari JNT mobile app</p>
+            {barcodePreview ? (
+              <div className="relative">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={barcodePreview} alt="Barcode preview" className="w-full h-40 object-contain border rounded-xl" />
+                <button
+                  onClick={() => { setBarcodeFile(null); setBarcodePreview(null) }}
+                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
+                >✕</button>
+              </div>
+            ) : (
+              <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center cursor-pointer hover:border-[#7FB300] transition-colors">
+                <span className="text-3xl mb-2">📷</span>
+                <span className="text-sm text-gray-600">Drag &amp; drop atau klik upload</span>
+                <span className="text-xs text-gray-400 mt-1">JPEG/PNG, max 2MB</span>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0]
+                    if (!file) return
+                    if (file.size > 2 * 1024 * 1024) { alert('File maksimal 2MB'); return }
+                    setBarcodeFile(file)
+                    setBarcodePreview(URL.createObjectURL(file))
+                  }}
+                />
+              </label>
+            )}
+          </div>
+        )}
+
+        {/* Pesan Kurir */}
+        <div className="mb-6">
+          <label className="block text-sm font-semibold mb-2">
+            Pesan untuk Kurir <span className="text-gray-400 font-normal">(opsional)</span>
+          </label>
+          <textarea
+            value={deliveryNote}
+            onChange={(e) => setDeliveryNote(e.target.value)}
+            placeholder="Contoh: Titipkan di reception apartemen Tower Ruby"
+            rows={3}
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+          />
+        </div>
+
+        {/* Buttons */}
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 border border-gray-200 rounded-xl py-3 text-sm font-medium hover:bg-slate-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleGenerateResi}
+            disabled={!courierType || (courierType === 'jnt' && !barcodeFile) || resiLoading}
+            className="flex-1 bg-[#7FB300] text-white rounded-xl py-3 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {resiLoading ? 'Generating...' : 'Generate Resi →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── KonfirmasiKirimModal ─────────────────────────────────────────────────────
+
+interface KonfirmasiKirimModalProps {
+  order: Order
+  onClose: () => void
+  onSuccess: () => void
+}
+
+function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModalProps) {
+  const [resiNumber, setResiNumber] = useState('')
+  const [shipLoading, setShipLoading] = useState(false)
+
+  const handleConfirmShipment = async () => {
+    setShipLoading(true)
+    try {
+      const res = await fetch(`/api/sambers/orders/${order.id}/confirm-shipment`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ resi_number: resiNumber.trim() }),
+      })
+      const json = await res.json()
+      if (!res.ok) { alert(json.error || 'Gagal konfirmasi'); return }
+      onClose()
+      onSuccess()
+    } catch {
+      alert('Terjadi kesalahan')
+    } finally {
+      setShipLoading(false)
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md shadow-xl">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-slate-900">Konfirmasi Pengiriman</h2>
+          <button onClick={onClose} className="p-1 hover:bg-slate-100 rounded-lg text-slate-400 text-xl">✕</button>
+        </div>
+
+        <div className="bg-gray-50 rounded-xl p-4 mb-6 text-sm">
+          <div><span className="font-semibold">Ekspedisi:</span> {order.courier_type === 'grab' ? 'Grab Express' : 'JNT'}</div>
+          <div><span className="font-semibold">Resi Generated:</span> {order.resi_generated_at ? new Date(order.resi_generated_at).toLocaleString('id-ID') : '—'}</div>
+        </div>
+
+        <div className="mb-6">
+          <label className="block text-sm font-semibold mb-2">
+            {order.courier_type === 'grab' ? 'Grab Order ID *' : 'No. Resi JNT *'}
+          </label>
+          <input
+            type="text"
+            value={resiNumber}
+            onChange={(e) => setResiNumber(e.target.value)}
+            placeholder={order.courier_type === 'grab' ? 'GRAB-XYZ-12345' : 'JD1234567890123'}
+            className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          <p className="text-xs text-gray-400 mt-1">Minimal 8 karakter</p>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={onClose}
+            className="flex-1 border border-gray-200 rounded-xl py-3 text-sm font-medium hover:bg-slate-50"
+          >
+            Batal
+          </button>
+          <button
+            onClick={handleConfirmShipment}
+            disabled={resiNumber.trim().length < 8 || shipLoading}
+            className="flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {shipLoading ? 'Memproses...' : 'Konfirmasi Kirim →'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ─── InputResiModal ───────────────────────────────────────────────────────────
@@ -277,6 +504,8 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
   const [toast, setToast] = useState<{ msg: string; ok: boolean } | null>(null)
   const [showInputResi, setShowInputResi] = useState(false)
   const [showMarkDelivered, setShowMarkDelivered] = useState(false)
+  const [showCetakResi, setShowCetakResi] = useState(false)
+  const [showKonfirmasiKirim, setShowKonfirmasiKirim] = useState(false)
 
   function showToast(msg: string, ok: boolean) {
     setToast({ msg, ok })
@@ -320,14 +549,48 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
         </button>
       )}
 
-      {/* PROCESSED → tombol Input Resi */}
+      {/* PROCESSED → Cetak Resi + Konfirmasi Kirim */}
       {order.status === 'processed' && (
-        <button
-          onClick={() => setShowInputResi(true)}
-          className="w-full bg-purple-600 text-white py-3 rounded-xl font-semibold hover:bg-purple-700 transition-colors"
-        >
-          🚚 Input Resi &amp; Kirim
-        </button>
+        <div className="space-y-3">
+          {/* Cetak Resi (belum generate) */}
+          {!order.resi_generated_at && (
+            <button
+              onClick={() => setShowCetakResi(true)}
+              className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6a9600] transition-colors"
+            >
+              🖨️ Cetak Resi
+            </button>
+          )}
+
+          {/* Cetak Ulang (sudah generate) */}
+          {order.resi_generated_at && (
+            <button
+              onClick={() => {
+                if (confirm('Resi sebelumnya akan diganti?')) setShowCetakResi(true)
+              }}
+              className="w-full border-2 border-[#7FB300] text-[#7FB300] py-3 rounded-xl font-semibold hover:bg-[#E8F4D1] transition-colors"
+            >
+              🖨️ Cetak Ulang
+            </button>
+          )}
+
+          {/* Konfirmasi Kirim (setelah resi generated) */}
+          {order.resi_generated_at && (
+            <button
+              onClick={() => setShowKonfirmasiKirim(true)}
+              className="w-full bg-blue-600 text-white py-3 rounded-xl font-semibold hover:bg-blue-700 transition-colors"
+            >
+              🚚 Konfirmasi Kirim
+            </button>
+          )}
+
+          {/* Resi info jika sudah di-generate */}
+          {order.resi_generated_at && (
+            <div className="text-xs text-slate-500 text-center">
+              Resi dibuat: {formatDate(order.resi_generated_at)} · Ekspedisi: {order.courier_type === 'grab' ? 'Grab Express' : 'JNT'}
+            </div>
+          )}
+        </div>
       )}
 
       {/* SHIPPED → resi info + Tandai Diterima */}
@@ -398,6 +661,26 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
             setShowMarkDelivered(false)
             onOrderUpdate(updated)
             showToast('✅ Pesanan ditandai sudah diterima', true)
+          }}
+        />
+      )}
+      {showCetakResi && (
+        <CetakResiModal
+          orderId={order.id}
+          onClose={() => setShowCetakResi(false)}
+          onSuccess={() => {
+            onOrderUpdate({ resi_generated_at: new Date().toISOString(), courier_type: null })
+            showToast('✅ Resi berhasil di-generate', true)
+          }}
+        />
+      )}
+      {showKonfirmasiKirim && (
+        <KonfirmasiKirimModal
+          order={order}
+          onClose={() => setShowKonfirmasiKirim(false)}
+          onSuccess={() => {
+            onOrderUpdate({ status: 'shipped', shipped_at: new Date().toISOString() })
+            showToast('✅ Pesanan berhasil dikirim', true)
           }}
         />
       )}
