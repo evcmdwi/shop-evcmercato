@@ -51,18 +51,7 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
         })}
       </div>
 
-      {selectedVariant && (
-        <div className="text-sm text-slate-500">
-          Stok:{' '}
-          {selectedVariant.stock > 5 ? (
-            <span className="font-medium text-green-600">{selectedVariant.stock} tersedia</span>
-          ) : selectedVariant.stock > 0 ? (
-            <span className="font-medium text-orange-500">Tersisa {selectedVariant.stock}</span>
-          ) : (
-            <span className="font-medium text-red-500">Habis</span>
-          )}
-        </div>
-      )}
+      {/* Stock shown in ProductDetailClient — removed from here to avoid duplicate */}
 
       {!selectedVariant && (
         <p className="text-sm text-slate-400 italic">Pilih varian untuk melihat harga</p>
@@ -70,7 +59,7 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
 
       {selectedVariant && (
         <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
-          {formatRupiah(selectedVariant.price)}
+          {/* price shown above in ProductDetailClient */}
         </p>
       )}
     </div>
