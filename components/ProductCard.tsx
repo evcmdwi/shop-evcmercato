@@ -1,5 +1,4 @@
 'use client'
-import FastDeliveryIcon from '@/components/icons/FastDeliveryIcon'
 import Image from 'next/image'
 import Link from 'next/link'
 import { formatRupiah, formatSoldCount, formatPriceRange, getTotalStock } from '@/lib/utils'
@@ -95,10 +94,23 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
 
           {/* Stats: FAST badge + sold + low stock */}
           <div className="text-[11px] text-gray-500 flex flex-wrap items-center gap-1">
-            {/* FAST badge — always show */}
-            <span className="inline-flex items-center gap-0.5 bg-green-50 border border-green-100 text-green-600 font-bold px-1.5 py-0.5 rounded-full" style={{letterSpacing: '0.5px'}}>
-              <FastDeliveryIcon size={14} color="#16A34A" />
-              <span className="text-[10px]">FAST</span>
+            {/* FAST badge - motion lines only */}
+            <span className="inline-flex items-center gap-1 bg-green-50 border border-green-100 text-green-600 font-bold px-2 py-0.5 rounded-full" style={{fontSize:'10px', letterSpacing:'0.5px'}}>
+              <svg width="12" height="8" viewBox="0 0 12 8" fill="none">
+                <rect className="fast-line-1" x="0" y="0.5" width="5" height="1.2" rx="0.6" fill="#16A34A" opacity="0.5"/>
+                <rect className="fast-line-2" x="0" y="3.5" width="8" height="1.2" rx="0.6" fill="#16A34A" opacity="0.8"/>
+                <rect className="fast-line-3" x="0" y="6.5" width="4" height="1.2" rx="0.6" fill="#16A34A" opacity="0.5"/>
+                <style>{`
+                  .fast-line-1 { animation: fastSlide 1.2s ease-in-out infinite; }
+                  .fast-line-2 { animation: fastSlide 1.2s ease-in-out infinite 0.2s; }
+                  .fast-line-3 { animation: fastSlide 1.2s ease-in-out infinite 0.4s; }
+                  @keyframes fastSlide {
+                    0%, 100% { transform: translateX(0); opacity: 0.3; }
+                    50% { transform: translateX(2px); opacity: 0.9; }
+                  }
+                `}</style>
+              </svg>
+              FAST
             </span>
             <span className="text-gray-300">•</span>
             {isLowStock ? (
