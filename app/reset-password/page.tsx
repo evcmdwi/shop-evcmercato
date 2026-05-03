@@ -1,5 +1,5 @@
 'use client'
-import { useState, Suspense } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 
@@ -10,6 +10,40 @@ function ResetPasswordForm() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [done, setDone] = useState(false)
+  const [sessionReady, setSessionReady] = useState(false)
+  const [sessionError, setSessionError] = useState(false)
+
+  useEffect(() => {
+    const supabase = createBrowserClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+
+    // Listen for PASSWORD_RECOVERY event — fired when Supabase processes hash token
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (event === 'PASSWORD_RECOVERY' && session) {
+        setSessionReady(true)
+      }
+    })
+
+    // Also check if session already exists (e.g. user refreshed page)
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session) setSessionReady(true)
+    })
+
+    // Timeout — kalau 10 detik tidak ada session, tampilkan error
+    const timeout = setTimeout(() => {
+      setSessionReady(prev => {
+        if (!prev) setSessionError(true)
+        return prev
+      })
+    }, 10000)
+
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
+  }, [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -41,6 +75,30 @@ function ResetPasswordForm() {
         <div className="text-5xl mb-4">✅</div>
         <h2 className="text-xl font-bold text-gray-900 mb-2">Password Berhasil Diubah!</h2>
         <p className="text-gray-600 text-sm">Kamu akan diarahkan ke halaman login...</p>
+      </div>
+    )
+  }
+
+  if (sessionError) {
+    return (
+      <div className="text-center">
+        <div className="text-5xl mb-4">⚠️</div>
+        <h2 className="text-xl font-bold text-gray-900 mb-2">Link Tidak Valid</h2>
+        <p className="text-gray-600 text-sm mb-6">
+          Link reset password sudah kadaluarsa atau tidak valid. Silakan minta link baru.
+        </p>
+        <a href="/lupa-password" className="text-[#7FB300] font-semibold hover:underline text-sm">
+          Minta Link Baru →
+        </a>
+      </div>
+    )
+  }
+
+  if (!sessionReady) {
+    return (
+      <div className="text-center py-8">
+        <div className="w-8 h-8 border-4 border-[#7FB300] border-t-transparent rounded-full animate-spin mx-auto mb-4" />
+        <p className="text-gray-500 text-sm">Memverifikasi link reset password...</p>
       </div>
     )
   }
