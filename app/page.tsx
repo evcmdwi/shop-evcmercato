@@ -1,4 +1,5 @@
 import Link from 'next/link'
+import Image from 'next/image'
 import FAQSection from '@/components/FAQSection'
 
 // Stats data
@@ -22,7 +23,7 @@ const trustCards = [
     icon: '🎁',
     iconColor: 'text-amber-500',
     title: 'EVC POINTS',
-    body: 'Produk GRATIS untuk penukaran EVC Points Anda.',
+    body: 'Produk GRATIS untuk penukaran EVC Points Anda.\nRp 1.000 = 1 EVC Points',
     border: 'border-amber-200',
   },
   {
@@ -91,7 +92,7 @@ export default function HomePage() {
               <p className="text-2xl sm:text-3xl font-extrabold text-[#7FB300]">{s.number}</p>
               <p className="text-xs sm:text-sm text-gray-500 mt-1">
                 {'starStat' in s && s.starStat ? (
-                  <><span style={{ color: '#F59E0B' }}>★</span>{' Reviews Marketplace'}</>
+                  <><span style={{ color: '#F59E0B' }}>5★</span>{' Reviews Marketplace'}</>
                 ) : s.label}
               </p>
             </div>
@@ -119,40 +120,22 @@ export default function HomePage() {
               </div>
             ))}
 
-            {/* Card 4 — Evie Health SPECIAL */}
+            {/* Card 4 — Evie Health: Full poster, clickable */}
             <a
               href="https://t.me/evie_evc_bot?start=6285820852908"
               target="_blank"
               rel="noopener noreferrer"
-              className="block rounded-2xl p-6 transition-all hover:scale-105 relative overflow-hidden"
-              style={{
-                background: 'linear-gradient(135deg, #0A0E27 0%, #1E1B4B 50%, #0F172A 100%)',
-                boxShadow: '0 0 30px rgba(139, 92, 246, 0.3), 0 0 60px rgba(34, 211, 238, 0.1)',
-              }}
+              className="block rounded-2xl overflow-hidden hover:scale-105 transition-all hover:shadow-xl cursor-pointer"
+              style={{ minHeight: '280px' }}
             >
-              {/* Neon glow border */}
-              <div className="absolute inset-0 rounded-2xl" style={{
-                background: 'linear-gradient(135deg, rgba(139,92,246,0.3), rgba(34,211,238,0.3))',
-                padding: '1px',
-                WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
-                WebkitMaskComposite: 'xor',
-              }} />
-              {/* Sparkles */}
-              <div className="absolute top-3 right-3 text-cyan-400 opacity-60 text-xl">✦</div>
-              <div className="absolute bottom-8 left-4 text-purple-400 opacity-40 text-xs">✦</div>
-
-              <div className="text-5xl mb-3">🤖</div>
-              <p className="text-[11px] font-semibold tracking-wider mb-2" style={{ color: '#22D3EE' }}>
-                ⚡ Powered by Evie Health AI
-              </p>
-              <h3 className="font-bold text-lg text-white mb-3">KONSULTASI KESEHATAN 24 JAM</h3>
-              <p className="text-sm leading-relaxed mb-5" style={{ color: 'rgba(255,255,255,0.85)' }}>
-                Tim EVC Health siap membantu konsultasi kesehatan Anda kapan saja.
-              </p>
-              <div className="inline-flex items-center gap-1.5 font-semibold text-white text-sm px-5 py-2.5 rounded-full transition-all hover:shadow-lg" style={{
-                background: 'linear-gradient(90deg, #A855F7, #3B82F6)',
-              }}>
-                Chat di Telegram →
+              <div className="relative w-full h-full" style={{ minHeight: '280px' }}>
+                <Image
+                  src="/evie-health-reference.jpg"
+                  alt="Evie Health — Konsultasi Kesehatan 24 Jam"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 768px) 100vw, 25vw"
+                />
               </div>
             </a>
           </div>
@@ -180,7 +163,7 @@ export default function HomePage() {
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center group-hover:scale-105 group-hover:shadow-lg transition-all">
                   <span className="text-xs sm:text-sm font-bold text-[#5B8400] text-center px-1 leading-tight">{cat.name}</span>
                 </div>
-                <span className="mt-3 text-sm sm:text-base font-semibold text-gray-800">{cat.name}</span>
+
               </Link>
             ))}
           </div>
