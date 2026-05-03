@@ -353,6 +353,13 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     )}
+                    {evcPoints > 0 && (
+                      <p className="text-xs text-gray-500 text-center mt-2">
+                        ℹ️ Kamu akan mendapat{' '}
+                        <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
+                        dari pembelian ini
+                      </p>
+                    )}
                   </div>
 
                   {!qualifiesForFreeShipping && (
@@ -390,13 +397,6 @@ export default function CheckoutPage() {
             'Bayar Sekarang'
           )}
         </button>
-        {evcPoints > 0 && (
-          <p className="mt-2 text-xs text-gray-500 text-center">
-            ℹ️ Kamu akan mendapat{' '}
-            <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
-            dari pembelian ini
-          </p>
-        )}
       </div>
 
       {/* Modal AddressForm */}
