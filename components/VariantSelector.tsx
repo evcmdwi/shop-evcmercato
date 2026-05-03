@@ -70,7 +70,7 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
 
       {selectedVariant && (
         <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
-          {formatRupiah(selectedVariant.price)}
+          {/* price shown above in ProductDetailClient */}
         </p>
       )}
     </div>
