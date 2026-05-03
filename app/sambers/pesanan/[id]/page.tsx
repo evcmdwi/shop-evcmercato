@@ -103,7 +103,6 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
   const [courierType, setCourierType] = useState<'jnt' | 'grab' | null>(null)
   const [barcodeFile, setBarcodeFile] = useState<File | null>(null)
   const [barcodePreview, setBarcodePreview] = useState<string | null>(null)
-  const [deliveryNote, setDeliveryNote] = useState('')
   const [resiLoading, setResiLoading] = useState(false)
   const [resiUrl, setResiUrl] = useState<string | null>(null)
 
@@ -114,7 +113,6 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
       const formData = new FormData()
       formData.append('courier_type', courierType)
       if (barcodeFile) formData.append('barcode', barcodeFile)
-      if (deliveryNote.trim()) formData.append('delivery_note', deliveryNote.trim())
 
       const res = await fetch(`/api/sambers/orders/${orderId}/print-resi`, {
         method: 'POST',
@@ -229,20 +227,6 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
             )}
           </div>
         )}
-
-        {/* Pesan Kurir */}
-        <div className="mb-6">
-          <label className="block text-sm font-semibold mb-2">
-            Pesan untuk Kurir <span className="text-gray-400 font-normal">(opsional)</span>
-          </label>
-          <textarea
-            value={deliveryNote}
-            onChange={(e) => setDeliveryNote(e.target.value)}
-            placeholder="Contoh: Titipkan di reception apartemen Tower Ruby"
-            rows={3}
-            className="w-full border border-gray-200 rounded-xl p-3 text-sm resize-none focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
-          />
-        </div>
 
         {/* Buttons */}
         <div className="flex gap-3">
@@ -880,6 +864,12 @@ export default function AdminOrderDetailPage() {
           {/* Alamat Pengiriman */}
           <div className="bg-white rounded-xl border border-slate-200 p-5">
             <h2 className="font-semibold text-slate-900 mb-3">Alamat Pengiriman</h2>
+            {order.delivery_note && (
+              <div className="bg-amber-50 border-l-4 border-amber-400 rounded-xl p-4 mb-4">
+                <p className="text-xs font-semibold text-amber-700 uppercase mb-1">⚠️ Pesan untuk Kurir</p>
+                <p className="text-sm font-medium text-gray-800">{order.delivery_note}</p>
+              </div>
+            )}
             {(order.shipping_addresses || order.shipping_recipient_name) ? (
               <dl className="space-y-2 text-sm">
                 <div className="flex gap-2">
