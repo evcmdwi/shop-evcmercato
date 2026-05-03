@@ -13,7 +13,16 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse body
-    const { address_id, delivery_note } = await req.json()
+    const {
+      address_id,
+      delivery_note,
+      shipping_district_id,
+      shipping_district_name,
+      shipping_regency_id,
+      shipping_regency_name,
+      shipping_province_id,
+      shipping_province_name,
+    } = await req.json()
     if (!address_id) {
       return NextResponse.json({ error: 'Alamat pengiriman wajib dipilih' }, { status: 400 })
     }
@@ -122,6 +131,12 @@ export async function POST(req: NextRequest) {
         shipping_method: 'reguler',
         points_earned: Math.floor(subtotal / 1000),
         delivery_note: delivery_note?.trim() || null,
+        shipping_district_id: shipping_district_id || null,
+        shipping_district_name: shipping_district_name || null,
+        shipping_regency_id: shipping_regency_id || null,
+        shipping_regency_name: shipping_regency_name || null,
+        shipping_province_id: shipping_province_id || null,
+        shipping_province_name: shipping_province_name || null,
       })
       .select('id')
       .single()
