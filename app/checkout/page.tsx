@@ -355,37 +355,13 @@ export default function CheckoutPage() {
                     )}
                   </div>
 
-                  <button
-                    onClick={handlePay}
-                    disabled={paying || !selectedAddressId}
-                    className="mt-4 w-full py-3 rounded-xl text-white font-semibold text-sm flex items-center justify-center gap-2 disabled:opacity-60 transition-opacity hover:opacity-90"
-                    style={{ backgroundColor: '#7FB300' }}
-                  >
-                    {paying ? (
-                      <>
-                        <Loader2 className="w-4 h-4 animate-spin" />
-                        Memproses...
-                      </>
-                    ) : (
-                      'Bayar Sekarang'
-                    )}
-                  </button>
-
                   {!qualifiesForFreeShipping && (
                     <Link
                       href="/keranjang"
-                      className="flex items-center justify-center gap-2 w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors mt-2"
+                      className="flex items-center justify-center gap-2 w-full border border-gray-300 text-gray-600 py-3 rounded-xl text-sm hover:bg-gray-50 transition-colors mt-4"
                     >
                       ← Kembali ke Keranjang
                     </Link>
-                  )}
-
-                  {evcPoints > 0 && (
-                    <p className="mt-3 text-xs text-gray-500 text-center">
-                      ℹ️ Kamu akan mendapat{' '}
-                      <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
-                      dari pembelian ini
-                    </p>
                   )}
                 </>
               )}
@@ -394,8 +370,8 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Sticky bottom bar — mobile only */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 sm:hidden z-40">
+      {/* Sticky bottom bar */}
+      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-gray-600">Total Bayar</span>
           <span className="font-bold text-[#7FB300]">{formatRupiah(totalAmount)}</span>
@@ -414,6 +390,13 @@ export default function CheckoutPage() {
             'Bayar Sekarang'
           )}
         </button>
+        {evcPoints > 0 && (
+          <p className="mt-2 text-xs text-gray-500 text-center">
+            ℹ️ Kamu akan mendapat{' '}
+            <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
+            dari pembelian ini
+          </p>
+        )}
       </div>
 
       {/* Modal AddressForm */}
