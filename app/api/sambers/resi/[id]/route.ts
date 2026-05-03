@@ -72,7 +72,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     }
     .header-left { display: flex; flex-direction: row; align-items: center; gap: 0.15cm; }
     .header-left img { height: 1.2cm; width: auto; }
-    .header-left span { font-size: 0.28cm; color: #666; }
+    .header-left span { font-size: 0.38cm; color: #333; font-weight: bold; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; }
     .header-right img { height: 1.0cm; width: auto; }
     .courier-badge { font-size: 0.35cm; font-weight: bold; text-align: center; margin-bottom: 0.1cm; letter-spacing: 0.05cm; }
@@ -81,7 +81,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       height: 3.2cm; border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
     }
     .barcode-section img { max-height: 2.8cm; max-width: 9cm; object-fit: contain; }
-    .grab-logo { height: 1.4cm; width: auto; }
+    .grab-logo { height: 2.1cm; width: auto; }
     .address-section { display: flex; flex: 1; gap: 0.15cm; margin-bottom: 0.15cm; }
     .penerima { flex: 6; border-right: 1px solid #ccc; padding-right: 0.15cm; }
     .pengirim { flex: 4; }
