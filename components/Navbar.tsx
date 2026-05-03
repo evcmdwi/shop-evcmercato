@@ -26,6 +26,7 @@ export default function Navbar() {
           <div className="flex items-center gap-3 sm:gap-4">
             <Link
               href="/katalog"
+              prefetch={false}
               className={`hidden sm:block text-sm font-medium transition-colors hover:opacity-80 ${
                 pathname?.startsWith('/katalog') ? 'text-[#7FB300]' : 'text-gray-600'
               }`}
@@ -40,6 +41,7 @@ export default function Navbar() {
             {user && (
               <Link
                 href="/orders"
+                prefetch={false}
                 className={`flex items-center gap-1 text-sm font-medium transition-colors hover:opacity-80 ${
                   pathname?.startsWith('/orders') ? 'text-[#7FB300]' : 'text-gray-600'
                 }`}
@@ -60,7 +62,7 @@ export default function Navbar() {
 function NavCartIcon() {
   const { itemCount } = useCartContext()
   return (
-    <Link href="/keranjang" className="relative p-1" aria-label="Keranjang">
+    <Link href="/keranjang" prefetch={false} className="relative p-1" aria-label="Keranjang">
       <ShoppingCart className="w-6 h-6 text-gray-700" />
       {itemCount > 0 && (
         <span className="absolute -top-1 -right-1 bg-[#7FB300] text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
