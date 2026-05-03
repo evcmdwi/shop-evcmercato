@@ -123,7 +123,7 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
       if (!res.ok) { alert(json.error || 'Gagal generate resi'); return }
 
       onClose()
-      window.open(`/sambers/pesanan/${orderId}/resi`, '_blank')
+      window.open(`/api/sambers/resi/${orderId}`, '_blank')
       onSuccess()
     } catch {
       alert('Terjadi kesalahan')
