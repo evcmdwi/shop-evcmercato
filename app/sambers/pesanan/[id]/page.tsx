@@ -105,6 +105,7 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
   const [barcodePreview, setBarcodePreview] = useState<string | null>(null)
   const [deliveryNote, setDeliveryNote] = useState('')
   const [resiLoading, setResiLoading] = useState(false)
+  const [resiUrl, setResiUrl] = useState<string | null>(null)
 
   const handleGenerateResi = async () => {
     if (!courierType) return
@@ -122,14 +123,42 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
       const json = await res.json()
       if (!res.ok) { alert(json.error || 'Gagal generate resi'); return }
 
-      onClose()
-      window.open(`/api/sambers/resi/${orderId}`, '_blank')
+      setResiUrl(`/api/sambers/resi/${orderId}`)
       onSuccess()
     } catch {
       alert('Terjadi kesalahan')
     } finally {
       setResiLoading(false)
     }
+  }
+
+  if (resiUrl) {
+    return (
+      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="bg-white rounded-2xl p-6 w-full max-w-md text-center">
+          <div className="text-5xl mb-4">✅</div>
+          <h2 className="text-xl font-bold mb-2">Resi Siap!</h2>
+          <p className="text-gray-500 text-sm mb-6">Klik tombol di bawah untuk membuka resi di tab baru.</p>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setResiUrl(null); onClose() }}
+              className="flex-1 border border-gray-200 rounded-xl py-3 text-sm font-medium"
+            >
+              Tutup
+            </button>
+            <a
+              href={resiUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={() => { setTimeout(() => { setResiUrl(null); onClose() }, 300) }}
+              className="flex-1 bg-[#7FB300] text-white rounded-xl py-3 text-sm font-bold text-center block"
+            >
+              🖨️ Buka Resi
+            </a>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
