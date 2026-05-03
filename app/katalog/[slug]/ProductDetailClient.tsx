@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ArrowLeft, Tag, Gift, Minus, Plus } from 'lucide-react'
 import ProductImageCarousel from '@/components/ProductImageCarousel'
 import VariantSelector, { ProductVariant } from '@/components/VariantSelector'
-import { useCart } from '@/hooks/useCart'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useCartContext } from '@/components/CartContext'
 import { toast } from '@/components/Toast'
 import { formatRupiah, formatPriceRange, getTotalStock, formatSoldCount } from '@/lib/utils'
@@ -31,8 +31,8 @@ export default function ProductDetailClient({ product }: Props) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  const { addItem } = useCart()
-  const { refreshCart } = useCartContext()
+  const { user } = useAuth()
+  const { addItem, refreshCart } = useCartContext()
 
   const images = Array.isArray(product.images) && product.images.length > 0
     ? product.images
@@ -61,9 +61,7 @@ export default function ProductDetailClient({ product }: Props) {
   const soldCount = product.total_sold ?? product.initial_sold_count ?? 0
 
   const handleAddToCart = async () => {
-    // Check auth — attempt to fetch cart; 401 means not logged in
-    const authCheck = await fetch('/api/cart')
-    if (authCheck.status === 401) {
+    if (!user) {
       router.push(`/login?redirect_to=${encodeURIComponent(window.location.pathname)}`)
       return
     }
@@ -89,8 +87,7 @@ export default function ProductDetailClient({ product }: Props) {
   }
 
   const handleBuyNow = async () => {
-    const authCheck = await fetch('/api/cart')
-    if (authCheck.status === 401) {
+    if (!user) {
       router.push(`/login?redirect_to=${encodeURIComponent(window.location.pathname)}`)
       return
     }

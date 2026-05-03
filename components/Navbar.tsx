@@ -4,26 +4,13 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { ShoppingCart, Package } from 'lucide-react'
-import { useEffect, useState } from 'react'
-import { createClient } from '@/lib/supabase'
-import type { User as SupabaseUser } from '@supabase/supabase-js'
+import { useAuth } from '@/lib/auth/auth-context'
 import { useCartContext } from '@/components/CartContext'
 import AuthNavButtons from '@/components/AuthNavButtons'
 
 export default function Navbar() {
   const pathname = usePathname()
-  const [user, setUser] = useState<SupabaseUser | null>(null)
-
-  useEffect(() => {
-    const supabase = createClient()
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user)
-    })
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null)
-    })
-    return () => subscription.unsubscribe()
-  }, [])
+  const { user } = useAuth()
 
   return (
     <nav className="sticky top-0 z-50 bg-white border-b border-gray-100 shadow-sm">

@@ -5,6 +5,8 @@ import { CartProvider } from "@/components/CartContext";
 import { ToastContainer } from "@/components/Toast";
 import Navbar from "@/components/Navbar";
 import PromoBanner from "@/components/PromoBanner";
+import { AuthProvider } from "@/lib/auth/auth-context";
+import { createClient } from "@/lib/supabase-server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -28,23 +30,30 @@ export const metadata: Metadata = {
   description: "Toko Online EVC Mercato — Distributor Resmi KKI Group, Terpercaya Sejak 2003.",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const supabase = await createClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
   return (
     <html
       lang="id"
       className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <CartProvider>
-          <PromoBanner />
-          <Navbar />
-          {children}
-          <ToastContainer />
-        </CartProvider>
+        <AuthProvider initialUser={user}>
+          <CartProvider>
+            <PromoBanner />
+            <Navbar />
+            {children}
+            <ToastContainer />
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );
