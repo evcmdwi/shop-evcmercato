@@ -14,7 +14,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
     const formData = await req.formData()
     const courierType = formData.get('courier_type') as string
-    const deliveryNote = formData.get('delivery_note') as string | null
     const barcodeFile = formData.get('barcode') as File | null
 
     if (!courierType || !['jnt', 'grab'].includes(courierType)) {
@@ -65,7 +64,6 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
       .update({
         courier_type: courierType,
         resi_barcode_url: barcodeUrl,
-        delivery_note: deliveryNote || null,
         resi_generated_at: now,
       })
       .eq('id', id)
