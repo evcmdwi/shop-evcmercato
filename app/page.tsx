@@ -4,7 +4,7 @@ import FAQSection from '@/components/FAQSection'
 // Stats data
 const stats = [
   { number: '36.000+', label: 'Transaksi Berhasil' },
-  { number: '32.000+', label: '5★ Reviews Marketplace' },
+  { number: '32.000+', label: '★ Reviews Marketplace', starStat: true },
   { number: '23 Tahun', label: 'Pengalaman Sejak 2003' },
   { number: '30', label: 'Hub Pengiriman' },
 ]
@@ -51,7 +51,7 @@ const faqs = [
   },
   {
     q: 'Berapa lama pengiriman ke alamat saya?',
-    a: 'Untuk 30 kota dengan gudang EVC: same-day atau next-day. Untuk kota lain di Indonesia: 2-5 hari kerja melalui partner JNE/JNT.',
+    a: 'Untuk 30 kota di Hub EVC: tersedia instan / same-day. Next-day maupun Reguler untuk kota lain di Indonesia: 1-4 hari kerja melalui partner JNE/JNT.',
   },
   {
     q: 'Bagaimana cara mendapat dan menggunakan EVC Points?',
@@ -89,27 +89,33 @@ export default function HomePage() {
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-xl shadow-sm p-4 sm:p-5">
               <p className="text-2xl sm:text-3xl font-extrabold text-[#7FB300]">{s.number}</p>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">{s.label}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                {'starStat' in s && s.starStat ? (
+                  <><span style={{ color: '#F59E0B' }}>★</span>{' Reviews Marketplace'}</>
+                ) : s.label}
+              </p>
             </div>
           ))}
         </div>
 
         <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
-          Mulai Belanja Sekarang →
+          Mulai Belanja Sekarang
         </Link>
       </section>
 
       {/* KENAPA EVC - 4 CARDS */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-12">🎯 KENAPA BELANJA DI EVC?</h2>
+          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-12">KENAPA BELANJA DI EVC?</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Cards 1-3 */}
             {trustCards.map(card => (
               <div key={card.title} className={`bg-white border ${card.border} rounded-2xl p-6 hover:shadow-md transition-shadow`}>
-                <div className={`text-5xl mb-4 ${card.iconColor}`}>{card.icon}</div>
-                <h3 className="font-bold text-lg text-gray-900 mb-3">{card.title}</h3>
-                <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
+                <div className="flex flex-col items-center text-center">
+                  <div className={`text-5xl mb-4 ${card.iconColor}`}>{card.icon}</div>
+                  <h3 className="font-bold text-lg text-gray-900 mb-3">{card.title}</h3>
+                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
+                </div>
               </div>
             ))}
 
@@ -154,7 +160,7 @@ export default function HomePage() {
           {/* CTA bawah */}
           <div className="text-center mt-12">
             <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
-              → MULAI BELANJA SEKARANG
+              MULAI BELANJA SEKARANG
             </Link>
           </div>
         </div>
@@ -163,7 +169,7 @@ export default function HomePage() {
       {/* JELAJAHI PRODUK */}
       <section className="py-16 px-4 bg-[#F9FAFB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-10">🌿 JELAJAHI PRODUK</h2>
+          <h2 className="text-3xl font-bold text-gray-900 mb-10">JELAJAHI PRODUK</h2>
           <div className="flex flex-wrap justify-center gap-8">
             {categories.map(cat => (
               <Link
@@ -171,8 +177,8 @@ export default function HomePage() {
                 href={cat.slug ? `/katalog?kategori=${cat.slug}` : '/katalog'}
                 className="flex flex-col items-center group"
               >
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center text-3xl sm:text-4xl group-hover:scale-105 group-hover:shadow-lg transition-all">
-                  {cat.emoji}
+                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center group-hover:scale-105 group-hover:shadow-lg transition-all">
+                  <span className="text-xs sm:text-sm font-bold text-[#5B8400] text-center px-1 leading-tight">{cat.name}</span>
                 </div>
                 <span className="mt-3 text-sm sm:text-base font-semibold text-gray-800">{cat.name}</span>
               </Link>

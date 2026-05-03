@@ -12,7 +12,7 @@ export default function FAQSection({ faqs }: { faqs: FAQ[] }) {
   return (
     <section className="py-16 px-4 bg-white">
       <div className="max-w-3xl mx-auto">
-        <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">❓ FAQ</h2>
+        <h2 className="text-3xl font-bold text-gray-900 text-center mb-10">TANYA JAWAB</h2>
         <div className="space-y-3">
           {faqs.map((faq, i) => (
             <div key={i} className="border border-gray-200 rounded-xl overflow-hidden">
