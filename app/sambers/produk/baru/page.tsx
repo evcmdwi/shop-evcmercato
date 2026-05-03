@@ -206,13 +206,13 @@ export default function TambahProdukPage() {
                   {variants.map((v, idx) => (
                     <tr key={idx} className="border-t border-slate-100">
                       <td className="px-3 py-2">
-                        <input value={v.name} onChange={(e) => updateVariant(idx, 'name', e.target.value)} placeholder="Contoh: 250ml" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
+                        <input value={v.name} onChange={(e) => updateVariant(idx, 'name', e.target.value)} placeholder="Contoh: 250ml" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#7FB300]" />
                       </td>
                       <td className="px-3 py-2">
-                        <input type="number" min="0" value={v.price} onChange={(e) => updateVariant(idx, 'price', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
+                        <input type="number" min="0" value={v.price} onChange={(e) => updateVariant(idx, 'price', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#7FB300]" />
                       </td>
                       <td className="px-3 py-2">
-                        <input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(idx, 'stock', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
+                        <input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(idx, 'stock', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#7FB300]" />
                       </td>
                       <td className="px-3 py-2">
                         <VariantImageUploader
@@ -228,7 +228,7 @@ export default function TambahProdukPage() {
                 </tbody>
               </table>
             </div>
-            <button type="button" onClick={addVariant} className="mt-2 text-sm text-[#534AB7] hover:underline">+ Tambah Varian</button>
+            <button type="button" onClick={addVariant} className="mt-2 text-sm text-[#7FB300] hover:underline">+ Tambah Varian</button>
           </div>
         )}
 
@@ -239,7 +239,7 @@ export default function TambahProdukPage() {
             value={initialSoldCount}
             onChange={(e) => setInitialSoldCount(Number(e.target.value))}
             placeholder="0"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#534AB7]"
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#7FB300]"
           />
           <p className="text-xs text-gray-400 mt-1">Counter terjual sebelum penjualan via shop. Auto-bertambah saat ada order baru.</p>
         </FormField>
@@ -250,7 +250,7 @@ export default function TambahProdukPage() {
 
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={() => router.back()} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm hover:bg-slate-50">Batal</button>
-          <button type="submit" disabled={submitting} className="px-5 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] disabled:opacity-50">
+          <button type="submit" disabled={submitting} className="px-5 py-2 bg-[#7FB300] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] disabled:opacity-50">
             {submitting ? 'Menyimpan...' : 'Tambah Produk'}
           </button>
         </div>

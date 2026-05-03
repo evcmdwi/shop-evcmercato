@@ -10,7 +10,7 @@ export function generateOrderExpiredEmail(orderId: string, orderShortId: string,
     <p>Pesanan <strong>#${orderShortId}</strong> telah kedaluwarsa karena pembayaran tidak diterima dalam 24 jam.</p>
     <p>Stok produk sudah dikembalikan. Kamu bisa melakukan pemesanan baru kapan saja.</p>
     <div style="text-align: center; margin: 24px 0;">
-      <a href="https://shop.evcmercato.com/katalog" style="background: #534AB7; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: bold;">Belanja Lagi</a>
+      <a href="https://shop.evcmercato.com/katalog" style="background: #7FB300; color: #fff; padding: 12px 32px; border-radius: 6px; text-decoration: none; font-weight: bold;">Belanja Lagi</a>
     </div>
     <p style="color: #888; font-size: 12px;">EVC Mercato — orders@evcmercato.com</p>
   </div>

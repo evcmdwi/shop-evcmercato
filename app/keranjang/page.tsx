@@ -129,7 +129,7 @@ export default function KeranjangPage() {
           <Link
             href="/katalog"
             className="mt-2 px-6 py-3 rounded-xl text-sm font-semibold text-white"
-            style={{ backgroundColor: '#534AB7' }}
+            style={{ backgroundColor: '#7FB300' }}
           >
             Jelajahi Produk
           </Link>
@@ -167,7 +167,7 @@ export default function KeranjangPage() {
                 {item.variant && (
                   <p className="text-xs text-gray-500">{item.variant.name}</p>
                 )}
-                <p className="text-sm font-medium" style={{ color: '#534AB7' }}>
+                <p className="text-sm font-medium" style={{ color: '#7FB300' }}>
                   {formatRupiah(item.display_price)}
                 </p>
 
@@ -233,7 +233,7 @@ export default function KeranjangPage() {
               <span className="text-gray-600">
                 Subtotal ({itemCount} item)
               </span>
-              <span className="text-lg font-bold" style={{ color: '#534AB7' }}>
+              <span className="text-lg font-bold" style={{ color: '#7FB300' }}>
                 {formatRupiah(cart.subtotal)}
               </span>
             </div>
@@ -241,14 +241,14 @@ export default function KeranjangPage() {
               onClick={() => router.push('/checkout')}
               disabled={hasOutOfStock}
               className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-              style={{ backgroundColor: '#534AB7' }}
+              style={{ backgroundColor: '#7FB300' }}
             >
               Lanjut ke Checkout
               <ArrowRight className="w-4 h-4" />
             </button>
             <Link
               href="/katalog"
-              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-center border border-[#534AB7] text-[#534AB7] hover:bg-[#EEEDFE] transition-colors"
+              className="w-full flex items-center justify-center gap-2 py-3.5 rounded-xl font-semibold text-center border border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1] transition-colors"
             >
               ← Belanja Lagi
             </Link>

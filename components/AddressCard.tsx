@@ -14,7 +14,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
         <div className="flex items-center gap-2 flex-wrap">
           <span className="font-semibold text-gray-900">{address.recipient_name}</span>
           {address.is_default && (
-            <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: '#534AB7' }}>
+            <span className="text-xs px-2 py-0.5 rounded-full text-white font-medium" style={{ backgroundColor: '#7FB300' }}>
               Default
             </span>
           )}
@@ -30,7 +30,7 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
       <div className="flex gap-2 pt-1 flex-wrap">
         <button
           onClick={() => onEdit(address)}
-          className="text-sm px-3 py-1.5 rounded-lg border border-[#534AB7] text-[#534AB7] hover:bg-[#EEEDFE] transition-colors"
+          className="text-sm px-3 py-1.5 rounded-lg border border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1] transition-colors"
         >
           Edit
         </button>

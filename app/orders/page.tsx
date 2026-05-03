@@ -94,7 +94,7 @@ export default function OrdersPage() {
             <Link
               href="/katalog"
               className="inline-block px-5 py-2 rounded-xl text-white text-sm font-semibold"
-              style={{ backgroundColor: '#534AB7' }}
+              style={{ backgroundColor: '#7FB300' }}
             >
               Belanja Sekarang
             </Link>
@@ -118,7 +118,7 @@ export default function OrdersPage() {
                     </span>
                   </div>
                   <p className="text-xs text-gray-400 mb-2">{formatTanggal(order.created_at)}</p>
-                  <p className="text-base font-bold" style={{ color: '#534AB7' }}>
+                  <p className="text-base font-bold" style={{ color: '#7FB300' }}>
                     {formatRupiah(order.total_amount)}
                   </p>
                 </Link>

@@ -22,7 +22,7 @@ export default function AddToCartButton({ product }: Props) {
       <button
         disabled
         className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white opacity-50 cursor-not-allowed"
-        style={{ backgroundColor: '#534AB7' }}
+        style={{ backgroundColor: '#7FB300' }}
       >
         <ShoppingCart className="w-4 h-4" />
         Stok Habis
@@ -34,7 +34,7 @@ export default function AddToCartButton({ product }: Props) {
     <button
       onClick={handleAdd}
       className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95"
-      style={{ backgroundColor: added ? '#1D9E75' : '#534AB7' }}
+      style={{ backgroundColor: added ? '#1D9E75' : '#7FB300' }}
     >
       {added ? (
         <>

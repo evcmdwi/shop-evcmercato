@@ -46,7 +46,7 @@ export function ToastContainer() {
               ? 'bg-[#1D9E75]'
               : t.type === 'error'
               ? 'bg-red-500'
-              : 'bg-[#534AB7]'
+              : 'bg-[#7FB300]'
           }`}
         >
           {t.message}

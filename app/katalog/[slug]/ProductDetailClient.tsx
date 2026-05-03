@@ -115,7 +115,7 @@ export default function ProductDetailClient({ product }: Props) {
     <main className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-400 mb-6">
-        <Link href="/katalog" className="flex items-center gap-1 hover:text-[#534AB7] transition-colors">
+        <Link href="/katalog" className="flex items-center gap-1 hover:text-[#7FB300] transition-colors">
           <ArrowLeft className="w-4 h-4" />
           Katalog
         </Link>
@@ -132,8 +132,8 @@ export default function ProductDetailClient({ product }: Props) {
           {/* Category */}
           {product.categories && (
             <div className="flex items-center gap-1.5">
-              <Tag className="w-4 h-4" style={{ color: '#534AB7' }} />
-              <span className="text-sm font-medium" style={{ color: '#534AB7' }}>
+              <Tag className="w-4 h-4" style={{ color: '#7FB300' }} />
+              <span className="text-sm font-medium" style={{ color: '#7FB300' }}>
                 {product.categories.name}
               </span>
             </div>
@@ -146,7 +146,7 @@ export default function ProductDetailClient({ product }: Props) {
           )}
 
           {/* Price */}
-          <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
+          <p className="text-3xl font-bold" style={{ color: '#7FB300' }}>
             {displayPrice}
           </p>
 
@@ -211,7 +211,7 @@ export default function ProductDetailClient({ product }: Props) {
             {product.has_variants && !selectedVariant ? (
               <button
                 disabled
-                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-[#534AB7]/40 text-white cursor-not-allowed"
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold bg-[#7FB300]/40 text-white cursor-not-allowed"
               >
                 Pilih varian terlebih dahulu
               </button>
@@ -228,15 +228,15 @@ export default function ProductDetailClient({ product }: Props) {
                   onClick={handleAddToCart}
                   disabled={addingToCart || addToCartDisabled}
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold text-white transition-all hover:opacity-90 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ backgroundColor: '#534AB7' }}
+                  style={{ backgroundColor: '#7FB300' }}
                 >
                   {addingToCart ? 'Menambahkan...' : '🛒 Tambah ke Keranjang'}
                 </button>
                 <button
                   onClick={handleBuyNow}
                   disabled={addingToCart || addToCartDisabled}
-                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-[#EEEDFE] disabled:opacity-50 disabled:cursor-not-allowed"
-                  style={{ borderColor: '#534AB7', color: '#534AB7' }}
+                  className="w-full flex items-center justify-center gap-2 py-3 rounded-xl text-sm font-semibold border-2 transition-all hover:bg-[#E8F4D1] disabled:opacity-50 disabled:cursor-not-allowed"
+                  style={{ borderColor: '#7FB300', color: '#7FB300' }}
                 >
                   Beli Sekarang
                 </button>
@@ -253,7 +253,7 @@ export default function ProductDetailClient({ product }: Props) {
           </div>
 
           {/* EVC Points info */}
-          <div className="mt-2 p-3 rounded-xl text-sm" style={{ backgroundColor: '#EEEDFE', color: '#534AB7' }}>
+          <div className="mt-2 p-3 rounded-xl text-sm" style={{ backgroundColor: '#E8F4D1', color: '#7FB300' }}>
             💎 Kumpulkan{' '}
             <strong>
               {Math.floor((selectedVariant ? selectedVariant.price : product.price) / 1000)} EVC Points

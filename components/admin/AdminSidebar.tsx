@@ -73,7 +73,7 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
       >
         {/* Logo */}
         <div className="flex items-center gap-3 px-6 py-5 border-b border-slate-800">
-          <div className="w-8 h-8 rounded-lg bg-[#534AB7] flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-8 h-8 rounded-lg bg-[#7FB300] flex items-center justify-center text-white font-bold text-sm">
             E
           </div>
           <div>
@@ -100,7 +100,7 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
               onClick={onClose}
               className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                 isActive(item.href)
-                  ? 'bg-[#534AB7] text-white'
+                  ? 'bg-[#7FB300] text-white'
                   : 'text-slate-300 hover:bg-slate-800 hover:text-white'
               }`}
             >

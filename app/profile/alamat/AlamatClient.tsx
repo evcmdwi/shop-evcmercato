@@ -106,7 +106,7 @@ export default function AlamatClient() {
           <button
             onClick={openAdd}
             className="text-sm font-semibold px-4 py-2 rounded-xl text-white"
-            style={{ backgroundColor: '#534AB7' }}
+            style={{ backgroundColor: '#7FB300' }}
           >
             + Tambah Alamat
           </button>
@@ -141,7 +141,7 @@ export default function AlamatClient() {
           <button
             onClick={openAdd}
             className="px-6 py-2.5 rounded-xl text-white font-semibold text-sm"
-            style={{ backgroundColor: '#534AB7' }}
+            style={{ backgroundColor: '#7FB300' }}
           >
             + Tambah Alamat
           </button>

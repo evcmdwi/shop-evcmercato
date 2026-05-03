@@ -92,7 +92,7 @@ export default async function DashboardPage() {
           <div className="mt-8 flex justify-center">
             <Link
               href="/katalog"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#534AB7] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#4338a0] transition-colors"
+              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#7FB300] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#4338a0] transition-colors"
             >
               🛍️ Lanjut Belanja
             </Link>

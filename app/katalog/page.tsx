@@ -13,7 +13,7 @@ interface KatalogPageProps {
 
 export const metadata = {
   title: 'Katalog Produk — EVC Mercato',
-  description: 'Temukan produk KKI pilihan terbaik di EVC Mercato Balikpapan.',
+  description: 'Temukan produk KKI pilihan terbaik di EVC Mercato.',
 }
 
 export default async function KatalogPage({ searchParams }: KatalogPageProps) {

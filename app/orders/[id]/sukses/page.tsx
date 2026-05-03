@@ -107,7 +107,7 @@ export default function OrderSuksesPage() {
         ) : order ? (
           <>
             <p className="text-sm text-gray-500 mb-1">Order #{order.id.slice(0, 8).toUpperCase()}</p>
-            <p className="text-2xl font-bold mb-3" style={{ color: '#534AB7' }}>
+            <p className="text-2xl font-bold mb-3" style={{ color: '#7FB300' }}>
               {formatRupiah(order.total_amount)}
             </p>
 
@@ -161,7 +161,7 @@ export default function OrderSuksesPage() {
           <Link
             href={`/orders/${id}`}
             className="block w-full py-3 rounded-xl text-white font-semibold text-sm"
-            style={{ backgroundColor: '#534AB7' }}
+            style={{ backgroundColor: '#7FB300' }}
           >
             Lihat Detail Pesanan
           </Link>

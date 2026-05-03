@@ -188,7 +188,7 @@ export default function AdminProdukPage() {
         <div className="flex gap-2">
           <Link
             href={`/sambers/produk/${row.id}/edit`}
-            className="px-2 py-1 rounded text-xs bg-[#EEEDFE] text-[#534AB7] hover:bg-[#534AB7] hover:text-white transition-colors"
+            className="px-2 py-1 rounded text-xs bg-[#E8F4D1] text-[#7FB300] hover:bg-[#7FB300] hover:text-white transition-colors"
           >
             Edit
           </Link>
@@ -212,7 +212,7 @@ export default function AdminProdukPage() {
         </div>
         <Link
           href="/sambers/produk/baru"
-          className="px-4 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] transition-colors flex items-center gap-2"
+          className="px-4 py-2 bg-[#7FB300] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] transition-colors flex items-center gap-2"
         >
           <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -228,12 +228,12 @@ export default function AdminProdukPage() {
           placeholder="Cari produk..."
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#534AB7]"
+          className="flex-1 px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#7FB300]"
         />
         <select
           value={filterCategory}
           onChange={(e) => { setFilterCategory(e.target.value); setPage(1) }}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#534AB7]"
+          className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#7FB300]"
         >
           <option value="">Semua Kategori</option>
           {categories.map((c) => (
@@ -243,7 +243,7 @@ export default function AdminProdukPage() {
         <select
           value={filterStatus}
           onChange={(e) => { setFilterStatus(e.target.value); setPage(1) }}
-          className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#534AB7]"
+          className="px-3 py-2 rounded-lg border border-slate-200 text-sm focus:outline-none focus:border-[#7FB300]"
         >
           <option value="">Semua Status</option>
           <option value="active">Aktif</option>

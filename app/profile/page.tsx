@@ -22,7 +22,7 @@ export default async function ProfilePage() {
       {/* Info user */}
       <div className="bg-white rounded-xl border p-6 mb-4">
         <div className="flex items-center gap-4 mb-4">
-          <div className="w-16 h-16 rounded-full bg-[#EEEDFE] flex items-center justify-center text-[#534AB7] text-2xl font-bold">
+          <div className="w-16 h-16 rounded-full bg-[#E8F4D1] flex items-center justify-center text-[#7FB300] text-2xl font-bold">
             {userData?.name?.[0]?.toUpperCase() ?? user.email?.[0]?.toUpperCase()}
           </div>
           <div>
@@ -32,14 +32,14 @@ export default async function ProfilePage() {
         </div>
 
         {/* EVC Points */}
-        <div className="bg-[#EEEDFE] rounded-lg p-4 flex justify-between items-center">
+        <div className="bg-[#E8F4D1] rounded-lg p-4 flex justify-between items-center">
           <div>
             <p className="text-sm text-gray-600">EVC Points</p>
-            <p className="text-2xl font-bold text-[#534AB7]">{userData?.total_points ?? 0}</p>
+            <p className="text-2xl font-bold text-[#7FB300]">{userData?.total_points ?? 0}</p>
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-500">Tier</p>
-            <p className="text-sm font-semibold text-[#534AB7] capitalize">{userData?.tier ?? 'silver'}</p>
+            <p className="text-sm font-semibold text-[#7FB300] capitalize">{userData?.tier ?? 'silver'}</p>
           </div>
         </div>
       </div>

@@ -52,10 +52,10 @@ export default function UserHeaderWidget() {
   return (
     <Link
       href="/dashboard"
-      className="flex items-center gap-2 hover:bg-[#EEEDFE] rounded-lg px-2 py-1.5 transition-colors min-h-[44px]"
+      className="flex items-center gap-2 hover:bg-[#E8F4D1] rounded-lg px-2 py-1.5 transition-colors min-h-[44px]"
     >
       {/* Avatar circle */}
-      <div className="w-8 h-8 rounded-full bg-[#534AB7] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
+      <div className="w-8 h-8 rounded-full bg-[#7FB300] text-white flex items-center justify-center text-sm font-bold flex-shrink-0">
         {initial}
       </div>
 
@@ -64,11 +64,11 @@ export default function UserHeaderWidget() {
         <span className="text-xs font-medium text-gray-700 truncate max-w-[80px]">
           {displayName.split(' ').slice(0, 2).join(' ')}
         </span>
-        <span className="text-xs text-[#534AB7]">⭐ {points} pt</span>
+        <span className="text-xs text-[#7FB300]">⭐ {points} pt</span>
       </div>
 
       {/* Points only on mobile (xs) */}
-      <span className="sm:hidden text-xs text-[#534AB7] font-medium">
+      <span className="sm:hidden text-xs text-[#7FB300] font-medium">
         {points} pt
       </span>
     </Link>

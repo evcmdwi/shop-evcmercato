@@ -44,7 +44,7 @@ export default function OrderGagalPage() {
             onClick={handleRetry}
             disabled={retrying}
             className="flex items-center justify-center gap-2 w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-70"
-            style={{ backgroundColor: '#534AB7' }}
+            style={{ backgroundColor: '#7FB300' }}
           >
             {retrying ? (
               <>

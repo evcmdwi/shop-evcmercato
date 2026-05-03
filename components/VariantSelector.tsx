@@ -38,10 +38,10 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
               disabled={isOutOfStock}
               className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
                 isSelected
-                  ? 'border-[#534AB7] bg-[#EEEDFE] text-[#534AB7]'
+                  ? 'border-[#7FB300] bg-[#E8F4D1] text-[#7FB300]'
                   : isOutOfStock
                   ? 'border-slate-200 text-slate-400 bg-slate-50 cursor-not-allowed line-through'
-                  : 'border-slate-200 text-slate-700 hover:border-[#534AB7]/50 hover:bg-[#EEEDFE]/50'
+                  : 'border-slate-200 text-slate-700 hover:border-[#7FB300]/50 hover:bg-[#E8F4D1]/50'
               }`}
             >
               {variant.name}
@@ -58,7 +58,7 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
       )}
 
       {selectedVariant && (
-        <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
+        <p className="text-3xl font-bold" style={{ color: '#7FB300' }}>
           {/* price shown above in ProductDetailClient */}
         </p>
       )}

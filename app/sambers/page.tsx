@@ -61,7 +61,7 @@ export default function AdminDashboardPage() {
             { label: 'Pengguna', count: stats?.inventory.users ?? 0, href: '#' },
           ].map(item => (
             <Link key={item.label} href={item.href} className="border border-slate-200 rounded-xl p-4 hover:bg-slate-50 text-center block">
-              <p className="text-2xl font-bold text-[#534AB7]">
+              <p className="text-2xl font-bold text-[#7FB300]">
                 {loading ? '—' : item.count}
               </p>
               <p className="text-sm text-slate-500 mt-1">{item.label}</p>
