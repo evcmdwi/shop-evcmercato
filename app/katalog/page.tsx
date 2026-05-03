@@ -1,6 +1,5 @@
 import { Suspense } from 'react'
 import { createClient } from '@/lib/supabase-server'
-import Navbar from '@/components/Navbar'
 import SearchBar from '@/components/SearchBar'
 import CategoryFilter from '@/components/CategoryFilter'
 import ProductGrid, { ProductGridSkeleton } from '@/components/ProductGrid'
@@ -60,7 +59,6 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <main className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-8">
         {/* Header */}
         <div className="mb-6">

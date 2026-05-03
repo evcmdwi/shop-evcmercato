@@ -1,7 +1,6 @@
 import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase-server'
-import Navbar from '@/components/Navbar'
 import ProductDetailClient from './ProductDetailClient'
 import { slugify } from '@/lib/utils'
 import type { ProductWithCategory } from '@/types/product'
@@ -75,7 +74,6 @@ export default async function ProductDetailPage({ params }: Props) {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <Navbar />
       <ProductDetailClient product={product} />
     </div>
   )
