@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('categories')
     .select('*')
     .eq('id', id)
@@ -41,7 +41,7 @@ export async function PATCH(req: NextRequest, { params }: Params) {
   if (slug !== undefined) updates.slug = slug.trim()
   if (description !== undefined) updates.description = description?.trim() || null
 
-  const { data, error } = await supabaseAdmin
+  const { data, error } = await getSupabaseAdmin()
     .from('categories')
     .update(updates)
     .eq('id', id)
@@ -62,7 +62,7 @@ export async function DELETE(req: NextRequest, { params }: Params) {
   }
 
   const { id } = await params
-  const { error } = await supabaseAdmin.from('categories').delete().eq('id', id)
+  const { error } = await getSupabaseAdmin().from('categories').delete().eq('id', id)
 
   if (error) {
     return NextResponse.json({ data: null, error: error.message }, { status: 500 })

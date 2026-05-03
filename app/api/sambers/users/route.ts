@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { supabaseAdmin } from '@/lib/supabase-admin'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET(req: NextRequest) {
   // Auth check
@@ -13,7 +13,7 @@ export async function GET(req: NextRequest) {
   }
 
   // Query total users via service-role client
-  const { count, error } = await supabaseAdmin
+  const { count, error } = await getSupabaseAdmin()
     .from('users')
     .select('*', { count: 'exact', head: true })
 
