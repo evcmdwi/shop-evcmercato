@@ -44,6 +44,7 @@ interface OrderDetail {
   created_at: string
   xendit_invoice_url?: string
   tracking_number?: string
+  delivery_note?: string | null
   // flat shipping fields from API
   shipping_recipient_name: string
   shipping_phone: string
@@ -186,6 +187,14 @@ export default function OrderDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Pesan untuk Kurir */}
+          {order.delivery_note && (
+            <div className="bg-amber-50 border-l-4 border-amber-400 rounded-r-xl p-4">
+              <p className="text-xs font-semibold text-amber-700 uppercase tracking-wide mb-1">Pesan untuk Kurir</p>
+              <p className="text-sm text-gray-800">{order.delivery_note}</p>
+            </div>
+          )}
 
           {/* Alamat Pengiriman */}
           <div className="bg-white rounded-2xl p-5 shadow-sm">

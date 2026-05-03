@@ -29,6 +29,7 @@ export default function CheckoutPage() {
   const [loadingCart, setLoadingCart] = useState(true)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
+  const [deliveryNote, setDeliveryNote] = useState('')
 
   const fetchAddresses = useCallback(async () => {
     const res = await fetch('/api/addresses')
@@ -93,7 +94,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address_id: selectedAddressId }),
+        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: deliveryNote.trim() || null }),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -219,6 +220,20 @@ export default function CheckoutPage() {
                   </div>
                 </label>
               </div>
+            </div>
+
+            {/* Pesan untuk Kurir */}
+            <div className="bg-white rounded-2xl p-6 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900 mb-4">Pesan untuk Kurir</h2>
+              <input
+                type="text"
+                value={deliveryNote}
+                onChange={(e) => setDeliveryNote(e.target.value)}
+                placeholder="Contoh: Titipkan di reception. (Opsional)"
+                maxLength={150}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] text-gray-700 placeholder-gray-400"
+              />
+              <p className="text-xs text-gray-400 mt-2">Kosongkan jika tidak ada pesan khusus.</p>
             </div>
 
             {/* Item Pesanan */}
