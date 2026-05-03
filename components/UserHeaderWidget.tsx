@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { createBrowserClient } from '@supabase/ssr'
 import { useAuth } from '@/lib/auth/auth-context'
 
 interface UserProfile {
@@ -19,17 +18,16 @@ export default function UserHeaderWidget() {
       setProfile(null)
       return
     }
-    const supabase = createBrowserClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    supabase
-      .from('users')
-      .select('name, total_points, tier')
-      .eq('id', user.id)
-      .single()
-      .then(({ data }) => {
+    fetch('/api/user/profile')
+      .then((res) => {
+        if (res.ok) return res.json()
+        return null
+      })
+      .then((data) => {
         if (data) setProfile(data as UserProfile)
+      })
+      .catch(() => {
+        // silently fail — widget degrades gracefully
       })
   }, [user?.id]) // eslint-disable-line react-hooks/exhaustive-deps
 
