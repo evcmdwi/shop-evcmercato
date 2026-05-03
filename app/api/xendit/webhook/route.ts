@@ -102,6 +102,26 @@ async function processWebhook(
 
     console.log('[webhook] Status updated to paid:', orderId)
 
+    // Kredit EVC Points ke user saat PAID
+    const pointsToAdd = order.points_earned || Math.floor(order.subtotal / 1000)
+    if (pointsToAdd > 0 && order.user_id) {
+      const { data: currentUser } = await admin
+        .from('users')
+        .select('total_points')
+        .eq('id', order.user_id)
+        .single()
+
+      const newTotal = (currentUser?.total_points || 0) + pointsToAdd
+      const newTier = newTotal >= 20000 ? 'platinum' : newTotal >= 5000 ? 'gold' : 'silver'
+
+      await admin
+        .from('users')
+        .update({ total_points: newTotal, tier: newTier })
+        .eq('id', order.user_id)
+
+      console.log(`[webhook] EVC Points +${pointsToAdd} → user ${order.user_id} total: ${newTotal}`)
+    }
+
     // Get order items
     const { data: items } = await admin
       .from('order_items')
