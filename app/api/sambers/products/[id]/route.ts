@@ -15,7 +15,7 @@ export async function GET(req: NextRequest, { params }: Params) {
   const { id } = await params
   const { data, error } = await supabaseAdmin
     .from('products')
-    .select('*, initial_sold_count, categories(id, name), product_variants(*), product_sold_counts!inner(total_sold)')
+    .select('*, initial_sold_count, categories(id, name), product_variants(*), product_sold_counts(total_sold)')
     .eq('id', id)
     .single()
 
