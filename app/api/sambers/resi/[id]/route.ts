@@ -23,7 +23,8 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     .from('orders')
     .select(`id, status, courier_type, resi_barcode_url, delivery_note, resi_generated_at,
       shipping_recipient_name, shipping_phone, shipping_full_address,
-      shipping_city, shipping_province, shipping_postal_code, created_at`)
+      shipping_city, shipping_province, shipping_postal_code,
+      shipping_district_name, shipping_regency_name, shipping_province_name, created_at`)
     .eq('id', id)
     .single()
 
@@ -38,8 +39,12 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     day: '2-digit', month: 'short', year: 'numeric'
   })
 
-  const addressParts = [order.shipping_city, order.shipping_province, order.shipping_postal_code]
-    .filter(Boolean).join(', ')
+  const addressParts = [
+    order.shipping_district_name,
+    order.shipping_regency_name || order.shipping_city,
+    order.shipping_province_name || order.shipping_province,
+    order.shipping_postal_code,
+  ].filter(Boolean).join(', ')
 
   const html = `<!DOCTYPE html>
 <html lang="id">
