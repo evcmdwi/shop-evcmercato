@@ -74,7 +74,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     }
     .header-left { display: flex; flex-direction: row; align-items: center; gap: 0.15cm; }
     .header-left img { height: 1.2cm; width: auto; }
-    .header-left span { font-size: 0.38cm; color: #333; font-weight: bold; }
+    .header-left span { font-size: 0.55cm; color: #333; font-weight: bold; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; }
     .header-right img { height: 1.3cm; width: auto; }
     .courier-badge { font-size: 0.35cm; font-weight: bold; text-align: center; margin-bottom: 0.1cm; letter-spacing: 0.05cm; }
