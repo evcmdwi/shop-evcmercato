@@ -355,8 +355,8 @@ export default function CheckoutPage() {
                     )}
                     {evcPoints > 0 && (
                       <p className="text-xs text-gray-500 text-center mt-2">
-                        ℹ️ Kamu akan mendapat{' '}
-                        <span className="font-semibold text-[#7FB300]">{evcPoints} EVC Points</span>{' '}
+                        Kamu akan mendapat{' '}
+                        <span className="font-semibold text-[#7FB300]">💎 {evcPoints} EVC Points</span>{' '}
                         dari pembelian ini
                       </p>
                     )}
