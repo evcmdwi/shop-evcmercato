@@ -42,15 +42,13 @@ export default function ProductDetailClient({ product }: Props) {
 
   const variants: ProductVariant[] = (product.product_variants ?? []).filter((v) => v.is_active)
 
-  const displayPrice = product.has_variants && variants.length
-    ? (selectedVariant ? formatRupiah(selectedVariant.price) : formatPriceRange(variants))
-    : formatRupiah(product.price)
+  const displayPrice = selectedVariant?.price ?? product.price ?? 0
+  const displayStock = selectedVariant?.stock ?? product.stock ?? 0
 
   const totalStock = product.has_variants && variants.length
     ? getTotalStock(variants)
     : product.stock
 
-  const displayStock = selectedVariant ? selectedVariant.stock : totalStock
   const maxStock = selectedVariant?.stock ?? product.stock
 
   const isOutOfStock = product.has_variants
@@ -147,7 +145,7 @@ export default function ProductDetailClient({ product }: Props) {
 
           {/* Price */}
           <p className="text-3xl font-bold" style={{ color: '#534AB7' }}>
-            {displayPrice}
+            {formatRupiah(displayPrice)}
           </p>
 
           {product.description && (
@@ -181,6 +179,7 @@ export default function ProductDetailClient({ product }: Props) {
               <span className="font-medium text-red-500">Habis</span>
             )}
           </div>
+
 
           {/* Quantity stepper */}
           {showQuantityStepper && !isOutOfStock && (
@@ -256,7 +255,7 @@ export default function ProductDetailClient({ product }: Props) {
           <div className="mt-2 p-3 rounded-xl text-sm" style={{ backgroundColor: '#EEEDFE', color: '#534AB7' }}>
             💎 Kumpulkan{' '}
             <strong>
-              {Math.floor((selectedVariant ? selectedVariant.price : product.price) / 1000)} EVC Points
+              {Math.floor(displayPrice / 1000)} EVC Points
             </strong>{' '}
             dari pembelian ini
           </div>

@@ -1,11 +1,6 @@
 'use client'
-
 import { useEffect, useState } from 'react'
-import { useRouter, useParams } from 'next/navigation'
-import { FormField, Input, Textarea, Select, Toggle } from '@/components/admin/AdminForm'
-import { toast } from '@/components/admin/Toast'
-import ImageUploader from '@/components/admin/ImageUploader'
-import VariantImageUploader from '@/components/admin/VariantImageUploader'
+import { useParams, useRouter } from 'next/navigation'
 
 interface Category {
   id: string
@@ -19,270 +14,319 @@ interface VariantRow {
   image_url: string
 }
 
-interface FormErrors {
-  name?: string
-  price?: string
-  stock?: string
-  category_id?: string
-  variants?: string
-}
-
 export default function EditProdukPage() {
+  const params = useParams<{ id: string }>()
   const router = useRouter()
-  const params = useParams()
-  const id = params.id as string
+  const id = params.id
 
-  const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
-  const [submitting, setSubmitting] = useState(false)
-  const [errors, setErrors] = useState<FormErrors>({})
-
-  const [form, setForm] = useState({
-    name: '',
-    description: '',
-    price: '',
-    stock: '',
-    category_id: '',
-    is_active: true,
-  })
-
+  const [saving, setSaving] = useState(false)
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [categoryId, setCategoryId] = useState('')
   const [images, setImages] = useState<string[]>([])
   const [hasVariants, setHasVariants] = useState(false)
-  const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
+  const [variants, setVariants] = useState<VariantRow[]>([])
+  const [price, setPrice] = useState(0)
+  const [stock, setStock] = useState(0)
   const [initialSoldCount, setInitialSoldCount] = useState(0)
+  const [isActive, setIsActive] = useState(true)
+  const [categories, setCategories] = useState<Category[]>([])
 
   useEffect(() => {
-    Promise.all([
-      fetch(`/api/sambers/products/${id}`).then((r) => r.json()),
-      fetch('/api/sambers/categories?limit=100').then((r) => r.json()),
-    ])
-      .then(([product, cats]) => {
-        if (product.error) throw new Error(product.error)
-        setForm({
-          name: product.name ?? '',
-          description: product.description ?? '',
-          price: String(product.price ?? ''),
-          stock: String(product.stock ?? ''),
-          category_id: product.category_id ?? '',
-          is_active: product.is_active ?? true,
-        })
-        const imgs: string[] =
-          Array.isArray(product.images) && product.images.length > 0
-            ? product.images.filter(Boolean)
-            : product.image_url
-            ? [product.image_url]
-            : []
+    // Fetch product data — API returns flat JSON (no data wrapper)
+    fetch(`/api/sambers/products/${id}`)
+      .then(r => r.json())
+      .then((product) => {
+        if (product.error) return
+        setName(product.name ?? '')
+        setDescription(product.description ?? '')
+        setCategoryId(product.category_id ?? '')
+        const imgs: string[] = Array.isArray(product.images) && product.images.length > 0
+          ? product.images.filter(Boolean)
+          : product.image_url
+          ? [product.image_url]
+          : []
         setImages(imgs)
-        setInitialSoldCount(product.initial_sold_count ?? 0)
-        setHasVariants(product.has_variants ?? false)
-        if (product.product_variants && product.product_variants.length > 0) {
-          setVariants(
-            product.product_variants.map((v: { name: string; price: number; stock: number; image_url?: string | null }) => ({
-              name: v.name,
-              price: String(v.price),
-              stock: String(v.stock),
-              image_url: v.image_url ?? '',
-            }))
-          )
+        const vars = product.product_variants ?? []
+        setHasVariants(vars.length > 0 || !!product.has_variants)
+        if (vars.length > 0) {
+          setVariants(vars.map((v: { name: string; price: number; stock: number; image_url?: string | null }) => ({
+            name: v.name ?? '',
+            price: String(v.price ?? 0),
+            stock: String(v.stock ?? 0),
+            image_url: v.image_url ?? '',
+          })))
         }
-        setCategories(cats.data ?? [])
+        setPrice(product.price ?? 0)
+        setStock(product.stock ?? 0)
+        setInitialSoldCount(product.initial_sold_count ?? 0)
+        setIsActive(product.is_active ?? true)
       })
-      .catch(() => toast('Gagal memuat data produk', 'error'))
       .finally(() => setLoading(false))
+
+    // Fetch categories
+    fetch('/api/sambers/categories?limit=100')
+      .then(r => r.json())
+      .then(({ data }) => setCategories(data ?? []))
   }, [id])
 
-  function addVariant() {
-    setVariants([...variants, { name: '', price: '', stock: '', image_url: '' }])
-  }
-
-  function removeVariant(index: number) {
-    if (variants.length === 1) return
-    setVariants(variants.filter((_, i) => i !== index))
-  }
-
-  function updateVariant(index: number, field: keyof VariantRow, value: string) {
-    const next = [...variants]
-    next[index] = { ...next[index], [field]: value }
-    setVariants(next)
-  }
-
-  function validate(): boolean {
-    const errs: FormErrors = {}
-    if (!form.name.trim()) errs.name = 'Nama produk wajib diisi'
-    if (!form.category_id) errs.category_id = 'Kategori wajib dipilih'
-    if (!hasVariants) {
-      if (!form.price || isNaN(Number(form.price)) || Number(form.price) <= 0)
-        errs.price = 'Harga harus lebih dari 0'
-      if (!form.stock || isNaN(Number(form.stock)) || Number(form.stock) < 0)
-        errs.stock = 'Stok tidak boleh negatif'
-    } else {
-      const invalid = variants.some((v) => !v.name.trim() || !v.price || Number(v.price) <= 0)
-      if (invalid) errs.variants = 'Semua varian harus punya nama dan harga'
-    }
-    setErrors(errs)
-    return Object.keys(errs).length === 0
-  }
-
-  async function handleSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!validate()) return
-    setSubmitting(true)
+    setSaving(true)
     try {
+      const body = {
+        name,
+        description,
+        category_id: categoryId,
+        images,
+        image_url: images[0] || null,
+        has_variants: hasVariants,
+        price: hasVariants ? 0 : price,
+        stock: hasVariants ? 0 : stock,
+        initial_sold_count: initialSoldCount,
+        is_active: isActive,
+        variants: hasVariants
+          ? variants.map((v, i) => ({
+              name: v.name,
+              price: Number(v.price),
+              stock: Number(v.stock),
+              image_url: v.image_url || null,
+              sort_order: i,
+              is_active: true,
+            }))
+          : [],
+      }
       const res = await fetch(`/api/sambers/products/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          name: form.name,
-          description: form.description,
-          category_id: form.category_id,
-          is_active: form.is_active,
-          images: images.filter(Boolean),
-          has_variants: hasVariants,
-          price: hasVariants ? 0 : Number(form.price),
-          stock: hasVariants ? 0 : Number(form.stock),
-          initial_sold_count: initialSoldCount,
-          variants: hasVariants
-            ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
-            : [],
-        }),
+        body: JSON.stringify(body),
       })
-      if (!res.ok) {
-        const err = await res.json()
-        throw new Error(err.error ?? 'Gagal memperbarui produk')
-      }
-      toast('Produk berhasil diperbarui', 'success')
-      router.push('/sambers/produk')
-    } catch (e: unknown) {
-      toast(e instanceof Error ? e.message : 'Gagal memperbarui produk', 'error')
+      if (res.ok) router.push('/sambers/produk')
     } finally {
-      setSubmitting(false)
+      setSaving(false)
     }
   }
 
-  if (loading) {
+  if (loading)
     return (
-      <div className="max-w-2xl mx-auto">
-        <div className="h-8 w-48 bg-slate-200 rounded animate-pulse mb-6" />
-        <div className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-          {[1, 2, 3, 4].map((i) => (
-            <div key={i} className="h-10 bg-slate-100 rounded animate-pulse" />
-          ))}
+      <div className="p-6">
+        <div className="animate-pulse space-y-4">
+          <div className="h-8 bg-gray-200 rounded w-1/3"></div>
+          <div className="h-10 bg-gray-200 rounded"></div>
+          <div className="h-32 bg-gray-200 rounded"></div>
         </div>
       </div>
     )
-  }
 
   return (
-    <div className="max-w-2xl mx-auto">
-      <div className="mb-6">
-        <h1 className="text-2xl font-bold text-slate-800">Edit Produk</h1>
-        <p className="text-sm text-slate-500 mt-1">Perbarui detail produk</p>
+    <div className="p-6 max-w-2xl mx-auto">
+      <div className="flex items-center gap-3 mb-6">
+        <button onClick={() => router.back()} className="text-[#534AB7] hover:underline text-sm">
+          ← Kembali
+        </button>
+        <h1 className="text-xl font-bold text-gray-900">Edit Produk</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white rounded-xl border border-slate-200 p-6 space-y-5">
-        <FormField label="Nama Produk" required error={errors.name}>
-          <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Masukkan nama produk" error={!!errors.name} />
-        </FormField>
-
-        <FormField label="Deskripsi">
-          <Textarea value={form.description} onChange={(e) => setForm({ ...form, description: e.target.value })} placeholder="Deskripsi produk (opsional)" />
-        </FormField>
-
-        <FormField label="Kategori" required error={errors.category_id}>
-          <Select value={form.category_id} onChange={(e) => setForm({ ...form, category_id: e.target.value })} placeholder="Pilih kategori" options={categories.map((c) => ({ value: c.id, label: c.name }))} error={!!errors.category_id} />
-        </FormField>
-
-        {/* Images */}
-        <ImageUploader
-          value={images}
-          onChange={setImages}
-          maxImages={5}
-          label="Foto Produk"
-        />
-
-        {/* Has Variants */}
-        <FormField label="Produk Memiliki Varian?">
-          <Toggle checked={hasVariants} onChange={(v) => setHasVariants(v)} label={hasVariants ? 'Ya, produk ini punya varian' : 'Tidak, satu harga & stok'} />
-        </FormField>
-
-        {/* Price & Stock */}
-        {!hasVariants && (
-          <div className="grid grid-cols-2 gap-4">
-            <FormField label="Harga (Rp)" required error={errors.price}>
-              <Input type="number" min="0" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} placeholder="0" error={!!errors.price} />
-            </FormField>
-            <FormField label="Stok" required error={errors.stock}>
-              <Input type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} placeholder="0" error={!!errors.stock} />
-            </FormField>
-          </div>
-        )}
-
-        {/* Variants table */}
-        {hasVariants && (
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">Varian Produk</label>
-            {errors.variants && <p className="text-xs text-red-500 mb-2">{errors.variants}</p>}
-            <div className="border border-slate-200 rounded-lg overflow-hidden">
-              <table className="w-full text-sm">
-                <thead className="bg-slate-50">
-                  <tr>
-                    <th className="text-left px-3 py-2 font-medium text-slate-600">Nama Varian</th>
-                    <th className="text-left px-3 py-2 font-medium text-slate-600">Harga (Rp)</th>
-                    <th className="text-left px-3 py-2 font-medium text-slate-600">Stok</th>
-                    <th className="text-left px-3 py-2 font-medium text-slate-600">Foto</th>
-                    <th className="w-10 px-2 py-2"></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {variants.map((v, idx) => (
-                    <tr key={idx} className="border-t border-slate-100">
-                      <td className="px-3 py-2">
-                        <input value={v.name} onChange={(e) => updateVariant(idx, 'name', e.target.value)} placeholder="Contoh: 250ml" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input type="number" min="0" value={v.price} onChange={(e) => updateVariant(idx, 'price', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
-                      </td>
-                      <td className="px-3 py-2">
-                        <input type="number" min="0" value={v.stock} onChange={(e) => updateVariant(idx, 'stock', e.target.value)} placeholder="0" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#534AB7]" />
-                      </td>
-                      <td className="px-3 py-2">
-                        <VariantImageUploader
-                          value={v.image_url}
-                          onChange={(url) => updateVariant(idx, 'image_url', url)}
-                        />
-                      </td>
-                      <td className="px-2 py-2 text-center">
-                        <button type="button" onClick={() => removeVariant(idx)} disabled={variants.length === 1} className="w-6 h-6 flex items-center justify-center rounded text-red-400 hover:bg-red-50 disabled:opacity-30 text-lg leading-none">×</button>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <button type="button" onClick={addVariant} className="mt-2 text-sm text-[#534AB7] hover:underline">+ Tambah Varian</button>
-          </div>
-        )}
-
-        <FormField label="Sudah Terjual (awal)">
+      <form onSubmit={handleSubmit} className="space-y-5">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Nama Produk *</label>
           <input
-            type="number"
-            min="0"
-            value={initialSoldCount}
-            onChange={(e) => setInitialSoldCount(Number(e.target.value))}
-            placeholder="0"
-            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#534AB7]"
+            value={name}
+            onChange={e => setName(e.target.value)}
+            required
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-[#534AB7] focus:outline-none"
           />
-          <p className="text-xs text-gray-400 mt-1">Counter terjual sebelum penjualan via shop. Auto-bertambah saat ada order baru.</p>
-        </FormField>
+        </div>
 
-        <FormField label="Status">
-          <Toggle checked={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} label={form.is_active ? 'Aktif' : 'Nonaktif'} />
-        </FormField>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Kategori</label>
+          <select
+            value={categoryId}
+            onChange={e => setCategoryId(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-[#534AB7] focus:outline-none"
+          >
+            <option value="">-- Pilih Kategori --</option>
+            {categories.map(c => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Deskripsi</label>
+          <textarea
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            rows={4}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-[#534AB7] focus:outline-none"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Foto Produk</label>
+          {images.length > 0 && (
+            <div className="flex flex-wrap gap-2 mb-2">
+              {images.map((img, i) => (
+                <div key={i} className="relative group">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={img} alt="" className="w-16 h-16 object-cover rounded-lg border" />
+                  {i === 0 && (
+                    <span className="absolute -top-1 -left-1 text-[9px] bg-[#534AB7] text-white px-1 rounded">
+                      Utama
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setImages(images.filter((_, j) => j !== i))}
+                    className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-[10px] flex items-center justify-center"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+          <input
+            type="url"
+            placeholder="Tambah URL gambar baru (Enter)"
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+            onKeyDown={e => {
+              if (e.key === 'Enter') {
+                e.preventDefault()
+                const v = (e.target as HTMLInputElement).value.trim()
+                if (v && images.length < 5) {
+                  setImages([...images, v])
+                  ;(e.target as HTMLInputElement).value = ''
+                }
+              }
+            }}
+          />
+        </div>
+
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <input
+            type="checkbox"
+            id="hasVariants"
+            checked={hasVariants}
+            onChange={e => setHasVariants(e.target.checked)}
+            className="w-4 h-4 accent-[#534AB7]"
+          />
+          <label htmlFor="hasVariants" className="text-sm font-medium text-gray-700">
+            Produk Memiliki Varian (ukuran, rasa, dll)
+          </label>
+        </div>
+
+        {hasVariants ? (
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-2">Daftar Varian</label>
+            <div className="space-y-2">
+              {variants.map((v, i) => (
+                <div key={i} className="flex gap-2 items-center">
+                  <input
+                    value={v.name}
+                    onChange={e => {
+                      const n = [...variants]
+                      n[i] = { ...n[i], name: e.target.value }
+                      setVariants(n)
+                    }}
+                    placeholder="Nama varian"
+                    className="flex-1 border rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#534AB7]"
+                  />
+                  <input
+                    value={v.price}
+                    onChange={e => {
+                      const n = [...variants]
+                      n[i] = { ...n[i], price: e.target.value }
+                      setVariants(n)
+                    }}
+                    placeholder="Harga"
+                    type="number"
+                    className="w-28 border rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#534AB7]"
+                  />
+                  <input
+                    value={v.stock}
+                    onChange={e => {
+                      const n = [...variants]
+                      n[i] = { ...n[i], stock: e.target.value }
+                      setVariants(n)
+                    }}
+                    placeholder="Stok"
+                    type="number"
+                    className="w-20 border rounded-lg px-2.5 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-[#534AB7]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setVariants(variants.filter((_, j) => j !== i))}
+                    className="text-red-400 hover:text-red-600 px-2 text-lg"
+                  >
+                    ×
+                  </button>
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => setVariants([...variants, { name: '', price: '', stock: '', image_url: '' }])}
+              className="mt-2 text-sm text-[#534AB7] hover:underline"
+            >
+              + Tambah Varian
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Harga (Rp) *</label>
+              <input
+                value={price}
+                onChange={e => setPrice(Number(e.target.value))}
+                type="number"
+                min={0}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-[#534AB7] focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Stok</label>
+              <input
+                value={stock}
+                onChange={e => setStock(Number(e.target.value))}
+                type="number"
+                min={0}
+                className="w-full border border-gray-300 rounded-lg px-3 py-2.5 text-base focus:ring-2 focus:ring-[#534AB7] focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+          <input
+            type="checkbox"
+            id="isActive"
+            checked={isActive}
+            onChange={e => setIsActive(e.target.checked)}
+            className="w-4 h-4 accent-[#534AB7]"
+          />
+          <label htmlFor="isActive" className="text-sm font-medium text-gray-700">
+            Produk Aktif (tampil di katalog)
+          </label>
+        </div>
 
         <div className="flex gap-3 pt-2">
-          <button type="button" onClick={() => router.back()} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm hover:bg-slate-50">Batal</button>
-          <button type="submit" disabled={submitting} className="px-5 py-2 bg-[#534AB7] text-white text-sm font-medium rounded-lg hover:bg-[#4238a3] disabled:opacity-50">
-            {submitting ? 'Menyimpan...' : 'Simpan Perubahan'}
+          <button
+            type="button"
+            onClick={() => router.back()}
+            className="flex-1 border border-gray-300 text-gray-700 py-3 rounded-xl font-medium hover:bg-gray-50"
+          >
+            Batal
+          </button>
+          <button
+            type="submit"
+            disabled={saving}
+            className="flex-1 bg-[#534AB7] text-white py-3 rounded-xl font-semibold hover:bg-[#4238a0] disabled:opacity-50"
+          >
+            {saving ? 'Menyimpan...' : 'Simpan Perubahan'}
           </button>
         </div>
       </form>
