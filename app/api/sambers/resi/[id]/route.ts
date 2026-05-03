@@ -67,35 +67,34 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     }
     .header {
       display: flex; justify-content: space-between; align-items: center;
-      height: 1.2cm; margin-bottom: 0.15cm;
+      height: 1.6cm; margin-bottom: 0.15cm;
       border-bottom: 1px solid #ccc; padding-bottom: 0.1cm;
     }
-    .header-left { display: flex; flex-direction: column; }
-    .header-left img { height: 0.7cm; width: auto; }
-    .header-left span { font-size: 0.22cm; color: #666; margin-top: 0.05cm; }
+    .header-left { display: flex; flex-direction: row; align-items: center; gap: 0.15cm; }
+    .header-left img { height: 1.2cm; width: auto; }
+    .header-left span { font-size: 0.28cm; color: #666; }
     .header-right { display: flex; flex-direction: column; align-items: flex-end; }
-    .header-right img { height: 0.7cm; width: auto; }
-    .badge { font-size: 0.22cm; font-weight: bold; margin-top: 0.05cm; }
+    .header-right img { height: 1.0cm; width: auto; }
+    .courier-badge { font-size: 0.35cm; font-weight: bold; text-align: center; margin-bottom: 0.1cm; letter-spacing: 0.05cm; }
     .barcode-section {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
-      height: 2.8cm; border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
+      height: 3.2cm; border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
     }
-    .barcode-section img { max-height: 2.2cm; max-width: 8cm; object-fit: contain; }
-    .grab-logo { height: 1.2cm; width: auto; }
-    .grab-text { font-size: 0.55cm; font-weight: bold; color: #00B14F; margin-top: 0.1cm; }
+    .barcode-section img { max-height: 2.8cm; max-width: 9cm; object-fit: contain; }
+    .grab-logo { height: 1.4cm; width: auto; }
     .address-section { display: flex; flex: 1; gap: 0.15cm; margin-bottom: 0.15cm; }
     .penerima { flex: 6; border-right: 1px solid #ccc; padding-right: 0.15cm; }
     .pengirim { flex: 4; }
-    .addr-heading { font-size: 0.27cm; font-weight: bold; text-transform: uppercase; margin-bottom: 0.1cm; }
-    .addr-name { font-size: 0.36cm; font-weight: bold; line-height: 1.2; }
-    .addr-phone { font-size: 0.27cm; margin-bottom: 0.05cm; }
-    .addr-detail { font-size: 0.25cm; line-height: 1.3; color: #333; }
+    .addr-heading { font-size: 0.32cm; font-weight: bold; text-transform: uppercase; margin-bottom: 0.1cm; }
+    .addr-name { font-size: 0.46cm; font-weight: bold; line-height: 1.2; }
+    .addr-phone { font-size: 0.35cm; margin-bottom: 0.06cm; }
+    .addr-detail { font-size: 0.32cm; line-height: 1.4; color: #333; }
     .delivery-note {
       background: #FEF3C7; border-left: 4px solid #F59E0B;
-      padding: 0.15cm; margin-bottom: 0.15cm;
+      padding: 0.2cm; margin-bottom: 0.1cm;
     }
-    .delivery-note-heading { font-size: 0.27cm; font-weight: bold; margin-bottom: 0.05cm; }
-    .delivery-note-body { font-size: 0.3cm; font-weight: bold; color: #7f1d1d; }
+    .delivery-note-heading { font-size: 0.35cm; font-weight: bold; margin-bottom: 0.08cm; }
+    .delivery-note-body { font-size: 0.42cm; font-weight: bold; color: #7f1d1d; }
     .footer {
       display: flex; justify-content: space-between;
       border-top: 1px solid #ccc; padding-top: 0.1cm;
@@ -114,16 +113,14 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       ${isJnt ? `
       <div class="header-right">
         <img src="/logo-jnt.jpg" alt="JNT" />
-        <span class="badge">REGULER</span>
       </div>` : ''}
     </div>
 
     <div class="barcode-section">
+      ${isJnt ? '<div class="courier-badge">REGULER</div>' : ''}
+      ${isGrab ? '<div class="courier-badge" style="color:#00B14F">INSTAN / SAMEDAY</div>' : ''}
       ${isJnt && order.resi_barcode_url ? `<img src="${order.resi_barcode_url}" alt="Barcode JNT" />` : ''}
-      ${isGrab ? `
-        <img src="/logo-grab-express.jpg" alt="Grab Express" class="grab-logo" />
-        <div class="grab-text">INSTAN / SAMEDAY</div>
-      ` : ''}
+      ${isGrab ? `<img src="/logo-grab-express.jpg" alt="Grab Express" class="grab-logo" />` : ''}
     </div>
 
     <div class="address-section">
