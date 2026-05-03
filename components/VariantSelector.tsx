@@ -51,19 +51,7 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
         })}
       </div>
 
-      {selectedVariant && (
-        <div className="text-sm text-slate-500">
-          Stok:{' '}
-          {/* stock shown in ProductDetailClient above */}
-          {false ? (
-            <span className="font-medium text-green-600">{selectedVariant.stock} tersedia</span>
-          ) : false ? (
-            <span className="font-medium text-orange-500">Tersisa {selectedVariant.stock}</span>
-          ) : (
-            <span className="font-medium text-red-500">Habis</span>
-          )}
-        </div>
-      )}
+      {/* Stock shown in ProductDetailClient — removed from here to avoid duplicate */}
 
       {!selectedVariant && (
         <p className="text-sm text-slate-400 italic">Pilih varian untuk melihat harga</p>
