@@ -181,7 +181,7 @@ export default function AddressForm({ initialData, onSuccess, onCancel }: Addres
           onChange={handleChange}
           className={`${inputClass} resize-none`}
           rows={3}
-          placeholder="Tulis alamat lengkap, nama gedung, nomor unit, kelurahan, atau perkiraan lokasi di sini"
+          placeholder="Tulis alamat lengkap, nama gedung, nomor unit, kelurahan, atau perkiraan lokasi di sini (Tidak perlu menulis kecamatan/kota/provinsi)"
         />
       </div>
 
