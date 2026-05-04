@@ -14,6 +14,8 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Parse body
+    const body = await req.json()
+    console.log('[checkout] delivery_note:', JSON.stringify(body.delivery_note))
     const {
       address_id,
       delivery_note,
@@ -24,7 +26,7 @@ export async function POST(req: NextRequest) {
       shipping_province_id,
       shipping_province_name,
       terms_accepted,
-    } = await req.json()
+    } = body
     if (!terms_accepted) {
       return NextResponse.json(
         { error: 'Centang persetujuan Syarat & Ketentuan untuk melanjutkan pembayaran' },
