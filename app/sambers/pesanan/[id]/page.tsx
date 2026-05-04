@@ -84,6 +84,7 @@ interface Order {
   shipping_province_name?: string | null
   courier_type: string | null
   resi_barcode_url: string | null
+  resi_number: string | null
   delivery_note: string | null
   resi_generated_at: string | null
   order_type?: string | null
@@ -106,8 +107,7 @@ interface CetakResiModalProps {
 
 function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
   const [courierType, setCourierType] = useState<'jnt' | 'grab' | null>(null)
-  const [barcodeFile, setBarcodeFile] = useState<File | null>(null)
-  const [barcodePreview, setBarcodePreview] = useState<string | null>(null)
+  const [jntResiNumber, setJntResiNumber] = useState('')
   const [resiLoading, setResiLoading] = useState(false)
   const [resiUrl, setResiUrl] = useState<string | null>(null)
 
@@ -117,7 +117,9 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
     try {
       const formData = new FormData()
       formData.append('courier_type', courierType)
-      if (barcodeFile) formData.append('barcode', barcodeFile)
+      if (courierType === 'jnt' && jntResiNumber) {
+        formData.append('jnt_resi_number', jntResiNumber)
+      }
 
       const res = await fetch(`/api/sambers/orders/${orderId}/print-resi`, {
         method: 'POST',
@@ -197,39 +199,18 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
           </div>
         </div>
 
-        {/* Upload Barcode (JNT only) */}
+        {/* Input Nomor Resi (JNT only) */}
         {courierType === 'jnt' && (
           <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">Upload Barcode JNT *</label>
-            <p className="text-xs text-gray-500 mb-2">Screenshot dari JNT mobile app</p>
-            {barcodePreview ? (
-              <div className="relative">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={barcodePreview} alt="Barcode preview" className="w-full h-40 object-contain border rounded-xl" />
-                <button
-                  onClick={() => { setBarcodeFile(null); setBarcodePreview(null) }}
-                  className="absolute top-2 right-2 bg-red-500 text-white rounded-full w-6 h-6 text-xs flex items-center justify-center"
-                >✕</button>
-              </div>
-            ) : (
-              <label className="border-2 border-dashed border-gray-300 rounded-xl p-6 flex flex-col items-center cursor-pointer hover:border-[#7FB300] transition-colors">
-                <span className="text-3xl mb-2">📷</span>
-                <span className="text-sm text-gray-600">Drag &amp; drop atau klik upload</span>
-                <span className="text-xs text-gray-400 mt-1">JPEG/PNG, max 2MB</span>
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png"
-                  className="hidden"
-                  onChange={(e) => {
-                    const file = e.target.files?.[0]
-                    if (!file) return
-                    if (file.size > 2 * 1024 * 1024) { alert('File maksimal 2MB'); return }
-                    setBarcodeFile(file)
-                    setBarcodePreview(URL.createObjectURL(file))
-                  }}
-                />
-              </label>
-            )}
+            <label className="block text-sm font-semibold mb-2">Nomor Resi JNT *</label>
+            <p className="text-xs text-gray-500 mb-2">Masukkan nomor resi dari JNT mobile app (contoh: SP1234567890123)</p>
+            <input
+              type="text"
+              value={jntResiNumber}
+              onChange={(e) => setJntResiNumber(e.target.value.trim().toUpperCase())}
+              placeholder="SP1234567890123"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#7FB300] tracking-widest"
+            />
           </div>
         )}
 
@@ -243,7 +224,7 @@ function CetakResiModal({ orderId, onClose, onSuccess }: CetakResiModalProps) {
           </button>
           <button
             onClick={handleGenerateResi}
-            disabled={!courierType || (courierType === 'jnt' && !barcodeFile) || resiLoading}
+            disabled={!courierType || (courierType === 'jnt' && !jntResiNumber.trim()) || resiLoading}
             className="flex-1 bg-[#7FB300] text-white rounded-xl py-3 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {resiLoading ? 'Generating...' : 'Generate Resi →'}
@@ -263,7 +244,7 @@ interface KonfirmasiKirimModalProps {
 }
 
 function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModalProps) {
-  const [resiNumber, setResiNumber] = useState('')
+  const [resiNumber, setResiNumber] = useState(order.resi_number || order.tracking_number || '')
   const [shipLoading, setShipLoading] = useState(false)
 
   const handleConfirmShipment = async () => {

@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const admin = getSupabaseAdmin()
   const { data: order } = await admin
     .from('orders')
-    .select(`id, status, courier_type, resi_barcode_url, delivery_note, resi_generated_at,
+    .select(`id, status, courier_type, resi_barcode_url, resi_number, tracking_number, delivery_note, resi_generated_at,
       shipping_recipient_name, shipping_phone, shipping_full_address,
       shipping_city, shipping_province, shipping_postal_code,
       shipping_district_name, shipping_regency_name, shipping_province_name, created_at`)
@@ -34,6 +34,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 
   const isJnt = order.courier_type === 'jnt'
   const isGrab = order.courier_type === 'grab'
+  const resiNumber = (order.resi_number || order.tracking_number || '') as string
   const orderShortId = id.slice(0, 8).toUpperCase()
   const resiDate = new Date(order.resi_generated_at).toLocaleDateString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric'
@@ -91,6 +92,8 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       padding: 0.05cm 0;
     }
     .barcode-section img { max-height: 1.7cm; max-width: 8.5cm; object-fit: contain; width: auto; }
+    #barcode-svg { max-width: 8cm; max-height: 1.8cm; display: block; margin: 0 auto; }
+    .resi-number-text { font-size: 0.32cm; font-family: monospace; font-weight: bold; text-align: center; letter-spacing: 0.05cm; margin-top: 0.1cm; }
     .grab-logo { height: 1.6cm; width: auto; }
     .address-section { display: flex; flex: 1; min-height: 0; overflow: hidden; gap: 0.15cm; margin-bottom: 0.1cm; }
     .penerima { flex: 7; border-right: 1px solid #ccc; padding-right: 0.15cm; }
@@ -132,7 +135,24 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     <div class="barcode-section">
       ${isJnt ? '<div class="courier-badge">REGULER</div>' : ''}
       ${isGrab ? '<div class="courier-badge" style="color:#00B14F">INSTAN / SAMEDAY</div>' : ''}
-      ${isJnt && order.resi_barcode_url ? `<img src="${order.resi_barcode_url}" alt="Barcode JNT" />` : ''}
+      ${isJnt ? `
+        <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
+        <svg id="barcode-svg"></svg>
+        <div class="resi-number-text">${resiNumber || 'SP0000000000000'}</div>
+        <script>
+          try {
+            JsBarcode("#barcode-svg", "${resiNumber || 'SP0000000000000'}", {
+              format: "CODE128",
+              width: 2,
+              height: 40,
+              displayValue: false,
+              margin: 0,
+            });
+          } catch(e) {
+            document.getElementById("barcode-svg").style.display = "none";
+          }
+        </script>
+      ` : ''}
       ${isGrab ? `<img src="/logo-grab-express.jpg" alt="Grab Express" class="grab-logo" />` : ''}
     </div>
 
