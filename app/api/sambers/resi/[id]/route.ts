@@ -188,6 +188,6 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 
   return new NextResponse(html, {
     status: 200,
-    headers: { 'Content-Type': 'text/html; charset=utf-8' },
+    headers: { 'Cache-Control': 'no-store, no-cache, must-revalidate', 'Content-Type': 'text/html; charset=utf-8' },
   })
 }
