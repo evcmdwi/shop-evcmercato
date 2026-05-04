@@ -46,7 +46,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
     }
 
     return NextResponse.json({
-      data: { resi_url: `/sambers/pesanan/${id}/resi`, resi_generated_at: now }
+      data: { resi_url: `/sambers/pesanan/${id}/resi`, resi_generated_at: now, _v: "NO_DN_OVERWRITE_v3" }
     })
   } catch (err) {
     console.error('[print-resi] error:', err)
