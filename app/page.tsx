@@ -70,7 +70,7 @@ const faqs = [
 
 // Payment & shipping
 const paymentMethods = ['BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'Permata', 'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'Visa', 'Mastercard', 'JCB', 'Alfamart', 'Indomaret']
-const shippingMethods = ['JNT', 'Grab Express']
+// Shipping logos defined inline below
 
 export default function HomePage() {
   return (
@@ -203,10 +203,9 @@ export default function HomePage() {
 
           <div>
             <h3 className="font-bold text-gray-900 mb-4">🚚 PENGIRIMAN</h3>
-            <div className="flex flex-wrap gap-2 mb-4">
-              {shippingMethods.map(m => (
-                <span key={m} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{m}</span>
-              ))}
+            <div className="flex flex-wrap gap-3 mb-4 items-center">
+              <img src="/logo-jnt.jpg" alt="JNT Express" className="h-8 w-auto object-contain rounded" />
+              <img src="/logo-grab-express.jpg" alt="Grab Express" className="h-8 w-auto object-contain rounded" />
             </div>
             <h3 className="font-bold text-gray-900 mb-2">📱 IKUTI KAMI</h3>
             <a href="https://instagram.com/evcmercato" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#7FB300]">
