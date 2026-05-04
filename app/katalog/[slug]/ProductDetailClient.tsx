@@ -16,6 +16,37 @@ interface Props {
   product: ProductWithCategory
 }
 
+function DescriptionBlock({ description }: { description: string }) {
+  const [expanded, setExpanded] = useState(false)
+  const lines = description.split('\n')
+  const isLong = lines.length > 5 || description.length > 400
+
+  return (
+    <div>
+      <div
+        className={`text-gray-600 text-sm leading-relaxed overflow-hidden transition-all duration-300 ${
+          !expanded && isLong ? 'line-clamp-5' : ''
+        }`}
+        style={!expanded && isLong ? { WebkitLineClamp: 5, display: '-webkit-box', WebkitBoxOrient: 'vertical' } : {}}
+      >
+        {description}
+      </div>
+      {isLong && (
+        <button
+          onClick={() => setExpanded(prev => !prev)}
+          className="mt-2 flex items-center gap-1 text-[#7FB300] text-sm font-semibold hover:underline"
+        >
+          {expanded ? (
+            <><span>Sembunyikan</span><span className="text-xs">▲</span></>
+          ) : (
+            <><span>Baca selengkapnya</span><span className="text-xs">▼</span></>
+          )}
+        </button>
+      )}
+    </div>
+  )
+}
+
 export default function ProductDetailClient({ product }: Props) {
   const router = useRouter()
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
@@ -148,7 +179,7 @@ export default function ProductDetailClient({ product }: Props) {
           </p>
 
           {product.description && (
-            <p className="text-gray-600 text-sm leading-relaxed">{product.description}</p>
+            <DescriptionBlock description={product.description} />
           )}
 
           {/* Variant selector */}
