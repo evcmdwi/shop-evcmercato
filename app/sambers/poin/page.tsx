@@ -28,7 +28,12 @@ export default function AdminPointsPage() {
       fetch('/api/sambers/promos').then(r => r.json()),
       fetch('/api/sambers/products?limit=100').then(r => r.json()),
     ]).then(([statsData, redemptionsData, configData, promosData, productsData]) => {
-      setStats(statsData)
+      setStats({
+        earned: statsData.points_earned ?? statsData.earned ?? 0,
+        redeemed: statsData.points_redeemed ?? statsData.redeemed ?? 0,
+        orders: statsData.redeem_orders ?? statsData.orders ?? 0,
+        revenue: statsData.fee_revenue ?? statsData.revenue ?? 0,
+      })
       setRedemptions(redemptionsData.redemptions ?? [])
       setConfig(configData.config ?? { shipping_cost: 10000, admin_fee: 3000 })
       setAllPromos(promosData.promos ?? [])
