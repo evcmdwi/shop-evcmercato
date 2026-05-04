@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   })
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
 
   const fetchAddresses = useCallback(async () => {
     const res = await fetch('/api/addresses')
@@ -68,10 +69,20 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetchAddresses()
     fetchCart()
+    // Read selected item IDs from sessionStorage (set by keranjang page)
+    const stored = sessionStorage.getItem('checkout_selected_ids')
+    if (stored) {
+      try { setSelectedCartItemIds(JSON.parse(stored)) } catch {}
+    }
   }, [fetchAddresses, fetchCart])
 
-  const subtotal = cart?.subtotal ?? 0
-  const itemCount = cart?.item_count ?? 0
+  // Filter to only selected items (if selection was passed from cart page)
+  const checkoutItems = selectedCartItemIds.length > 0
+    ? cart?.items?.filter((item) => selectedCartItemIds.includes(item.id)) ?? []
+    : cart?.items ?? []
+
+  const subtotal = checkoutItems.reduce((sum, item) => sum + item.subtotal, 0)
+  const itemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0)
   const shippingCost = 10000
   const serviceFee = 3000
   const freeShipping = subtotal >= 50000
@@ -101,7 +112,12 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: domNote, terms_accepted: true }),
+        body: JSON.stringify({
+          address_id: selectedAddressId,
+          delivery_note: domNote,
+          terms_accepted: true,
+          selected_item_ids: selectedCartItemIds.length > 0 ? selectedCartItemIds : null,
+        }),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -267,7 +283,7 @@ export default function CheckoutPage() {
                 <p className="text-sm text-gray-500">Keranjang kamu kosong.</p>
               ) : (
                 <div className="space-y-3">
-                  {cart?.items?.map((item) => (
+                  {checkoutItems.map((item) => (
                     <div key={item.id} className="flex gap-3">
                       <div className="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 flex-shrink-0 relative">
                         {item.display_image ? (

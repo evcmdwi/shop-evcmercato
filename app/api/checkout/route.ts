@@ -19,6 +19,7 @@ export async function POST(req: NextRequest) {
     const {
       address_id,
       delivery_note,
+      selected_item_ids,
       shipping_district_id,
       shipping_district_name,
       shipping_regency_id,
@@ -62,7 +63,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Keranjang kosong' }, { status: 400 })
     }
 
-    const { data: cartItems } = await admin
+    let cartItemsQuery = admin
       .from('cart_items')
       .select(`
         id, product_id, variant_id, quantity,
@@ -70,6 +71,12 @@ export async function POST(req: NextRequest) {
         product_variants(id, name, price, stock)
       `)
       .eq('cart_id', cart.id)
+
+    if (selected_item_ids?.length) {
+      cartItemsQuery = cartItemsQuery.in('id', selected_item_ids)
+    }
+
+    const { data: cartItems } = await cartItemsQuery
 
     if (!cartItems || cartItems.length === 0) {
       return NextResponse.json({ error: 'Keranjang kosong' }, { status: 400 })
@@ -236,8 +243,12 @@ export async function POST(req: NextRequest) {
       .update({ xendit_invoice_id: xenditInvoiceId, xendit_invoice_url: xenditInvoiceUrl })
       .eq('id', order.id)
 
-    // 13. Clear cart
-    await admin.from('cart_items').delete().eq('cart_id', cart.id)
+    // 13. Clear cart (only selected items, or all if no filter)
+    if (selected_item_ids?.length) {
+      await admin.from('cart_items').delete().in('id', selected_item_ids).eq('cart_id', cart.id)
+    } else {
+      await admin.from('cart_items').delete().eq('cart_id', cart.id)
+    }
 
     return NextResponse.json({
       data: { order_id: order.id, xendit_invoice_url: xenditInvoiceUrl },
