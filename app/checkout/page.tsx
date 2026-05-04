@@ -96,11 +96,11 @@ export default function CheckoutPage() {
     }
     setPaying(true)
     try {
+      // Baca langsung dari DOM - paling reliable, tidak terpengaruh React state
+      const domNote = (document.getElementById('checkout-delivery-note') as HTMLInputElement)?.value?.trim() || null
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Baca langsung dari DOM - paling reliable, tidak terpengaruh React state
-        const domNote = (document.getElementById('checkout-delivery-note') as HTMLInputElement)?.value?.trim() || null
         body: JSON.stringify({ address_id: selectedAddressId, delivery_note: domNote, terms_accepted: true }),
       })
       const json = await res.json()
