@@ -159,7 +159,7 @@ export default function HomePage() {
             {categories.map(cat => (
               <Link
                 key={cat.name}
-                href={cat.slug ? `/katalog?kategori=${cat.slug}` : '/katalog'}
+                href={cat.slug ? `/katalog?category=${cat.slug}` : '/katalog'}
                 className="flex flex-col items-center group"
               >
                 <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center group-hover:scale-105 group-hover:shadow-lg transition-all">
