@@ -102,8 +102,34 @@ async function processWebhook(
 
     console.log('[webhook] Status updated to paid:', orderId)
 
+    // Check purchase_bonus promo for any product in order
+    const { data: orderItems } = await admin
+      .from('order_items')
+      .select('product_id, variant_id')
+      .eq('order_id', orderId)
+    let multiplier = 1.0
+
+    if (orderItems && orderItems.length > 0) {
+      const productIds = orderItems.map((i: { product_id: string; variant_id: string | null }) => i.product_id)
+      const { data: bonusPromo } = await admin
+        .from('point_promos')
+        .select('points_multiplier')
+        .eq('promo_type', 'purchase_bonus')
+        .eq('is_active', true)
+        .or(`active_until.is.null,active_until.gt.${new Date().toISOString()}`)
+        .in('product_id', productIds)
+        .order('points_multiplier', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      if (bonusPromo?.points_multiplier) {
+        multiplier = bonusPromo.points_multiplier
+      }
+    }
+
     // Kredit EVC Points ke user saat PAID
-    const pointsToAdd = order.points_earned || Math.floor(order.subtotal / 1000)
+    const basePoints = order.points_earned || Math.floor(order.subtotal / 1000)
+    const pointsToAdd = Math.floor(basePoints * multiplier)
     if (pointsToAdd > 0 && order.user_id) {
       const { data: currentUser } = await admin
         .from('users')
@@ -175,7 +201,7 @@ async function processWebhook(
         province: order.shipping_province || '',
         postal_code: order.shipping_postal_code || '',
       },
-      evc_points_earned: order.points_earned || Math.floor(order.subtotal / 1000),
+      evc_points_earned: pointsToAdd,
       paid_at: paidAt || new Date().toISOString(),
     })
 
