@@ -21,7 +21,10 @@ interface ProductCardProps {
 }
 
 function slugify(name: string): string {
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+  return name.toLowerCase().trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
 }
 
 export default function ProductCard({ product, variants }: ProductCardProps) {
