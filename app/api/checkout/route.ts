@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { createInvoice } from '@/lib/xendit'
+import { TERMS_VERSION } from '@/lib/constants/terms'
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,7 +23,14 @@ export async function POST(req: NextRequest) {
       shipping_regency_name,
       shipping_province_id,
       shipping_province_name,
+      terms_accepted,
     } = await req.json()
+    if (!terms_accepted) {
+      return NextResponse.json(
+        { error: 'Centang persetujuan Syarat & Ketentuan untuk melanjutkan pembayaran' },
+        { status: 400 }
+      )
+    }
     if (!address_id) {
       return NextResponse.json({ error: 'Alamat pengiriman wajib dipilih' }, { status: 400 })
     }
@@ -130,6 +138,8 @@ export async function POST(req: NextRequest) {
         shipping_postal_code: address.postal_code,
         shipping_method: 'reguler',
         points_earned: Math.floor(subtotal / 1000),
+        terms_accepted_at: new Date().toISOString(),
+        terms_version: TERMS_VERSION,
         delivery_note: delivery_note?.trim() || null,
         shipping_district_id: shipping_district_id || null,
         shipping_district_name: shipping_district_name || null,

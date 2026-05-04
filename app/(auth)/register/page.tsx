@@ -22,6 +22,7 @@ function RegisterForm() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -67,7 +68,7 @@ function RegisterForm() {
     const res = await fetch('/api/auth/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ id: data.user.id, email, name, phone }),
+      body: JSON.stringify({ id: data.user.id, email, name, phone, terms_accepted: true }),
     })
 
     if (!res.ok) {
@@ -186,12 +187,31 @@ function RegisterForm() {
           />
         </div>
 
+        {/* Layer 3: Terms consent */}
+        <div className="flex items-start gap-3 p-3 bg-gray-50 rounded-xl border border-gray-200">
+          <input
+            type="checkbox"
+            id="terms-accept"
+            checked={termsAccepted}
+            onChange={e => setTermsAccepted(e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer"
+          />
+          <label htmlFor="terms-accept" className="text-sm text-gray-600 cursor-pointer leading-relaxed">
+            Saya menyetujui{' '}
+            <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] font-semibold hover:underline">
+              Syarat &amp; Ketentuan
+            </a>{' '}
+            dan memahami bahwa Website ini dikelola oleh mitra usaha KKI Group secara independen, <strong>BUKAN</strong> official store KKI Group.
+          </label>
+        </div>
+
         <button
           type="submit"
-          disabled={loading}
-          className="w-full bg-teal-600 hover:bg-teal-700 disabled:bg-teal-400 text-white font-semibold py-2.5 rounded-lg transition mt-2"
+          disabled={loading || !termsAccepted}
+          className="w-full py-3 rounded-xl text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-opacity mt-2"
+          style={{ backgroundColor: '#7FB300' }}
         >
-          {loading ? 'Mendaftarkan...' : 'Daftar'}
+          {loading ? 'Mendaftar...' : 'Daftar Sekarang'}
         </button>
       </form>
     </>
