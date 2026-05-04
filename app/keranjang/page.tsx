@@ -163,7 +163,7 @@ export default function KeranjangPage() {
 
               {/* Info */}
               <div className="flex-1 min-w-0 flex flex-col gap-1">
-                <p className="text-sm font-semibold text-gray-900 truncate">{item.product.name}</p>
+                <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug">{item.product.name}</p>
                 {item.variant && (
                   <p className="text-xs text-gray-500">{item.variant.name}</p>
                 )}
@@ -226,7 +226,19 @@ export default function KeranjangPage() {
       )}
 
       {/* Sticky bottom bar */}
-      {cart && cart.items.length > 0 && (
+      {(!cart || cart.items.length === 0) ? (
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 py-4">
+          <div className="max-w-2xl mx-auto">
+            <Link
+              href="/katalog"
+              className="w-full flex items-center justify-center py-3.5 rounded-xl font-semibold text-white transition-all hover:opacity-90"
+              style={{ backgroundColor: '#7FB300' }}
+            >
+              Mulai Belanja
+            </Link>
+          </div>
+        </div>
+      ) : (
         <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 py-4">
           <div className="max-w-2xl mx-auto flex flex-col gap-3">
             <div className="flex items-center justify-between text-sm">
