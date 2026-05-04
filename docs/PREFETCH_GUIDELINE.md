@@ -64,3 +64,20 @@ Di Vercel Hobby plan, banyak link sekaligus → trigger burst protection → 503
 - Browser retry = tab busy state 3-4 detik
 
 **Solusi permanen:** `prefetch={false}` di semua list items = 0 burst risk.
+
+---
+
+## ESLint Rule (Active)
+
+Custom rule `evc-perf/no-link-in-map-without-prefetch` aktif di project ini.
+
+Warning muncul saat:
+- `<Link>` di dalam `.map()` callback
+- Tanpa `prefetch={false}`
+
+```
+// ESLint warning:
+// "Add prefetch={false} to <Link> inside .map() to prevent RSC prefetch storm"
+```
+
+Auto-fix tersedia: jalankan `npx eslint --fix` untuk tambah `prefetch={false}` otomatis ke Link props.
