@@ -41,6 +41,13 @@ const menuItems = [
       </svg>
     ),
   },
+  {
+    href: '/sambers/poin',
+    label: 'EVC Points',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">💎</span>
+    ),
+  },
 ]
 
 interface AdminSidebarProps {

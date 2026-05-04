@@ -54,13 +54,25 @@ export default function UserHeaderWidget() {
         <span className="text-xs font-medium text-gray-700 truncate max-w-[80px]">
           {displayName.split(' ').slice(0, 2).join(' ')}
         </span>
-        <span className="text-xs text-[#7FB300]">⭐ {points} pt</span>
+        <Link
+          href="/poin"
+          prefetch={false}
+          onClick={e => e.stopPropagation()}
+          className="text-xs text-[#7FB300] hover:underline"
+        >
+          💎 {points} pt
+        </Link>
       </div>
 
       {/* Points only on mobile (xs) */}
-      <span className="sm:hidden text-xs text-[#7FB300] font-medium">
+      <Link
+        href="/poin"
+        prefetch={false}
+        onClick={e => e.stopPropagation()}
+        className="sm:hidden text-xs text-[#7FB300] font-medium hover:underline"
+      >
         {points} pt
-      </span>
+      </Link>
     </Link>
   )
 }
