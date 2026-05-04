@@ -16,6 +16,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
   const [compressionResults, setCompressionResults] = useState<CompressionResult[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
+  const [dragReorderIdx, setDragReorderIdx] = useState<number | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFilesSelected = async (files: File[]) => {
@@ -149,15 +150,34 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
       {value.length > 0 && (
         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
           {value.map((url, index) => (
-            <div key={url} className="relative group aspect-square">
+            <div
+              key={url}
+              draggable
+              onDragStart={() => setDragReorderIdx(index)}
+              onDragOver={(e) => { e.preventDefault() }}
+              onDrop={() => {
+                if (dragReorderIdx === null || dragReorderIdx === index) return
+                const next = [...value]
+                const [moved] = next.splice(dragReorderIdx, 1)
+                next.splice(index, 0, moved)
+                onChange(next)
+                setDragReorderIdx(null)
+              }}
+              onDragEnd={() => setDragReorderIdx(null)}
+              className={`relative group aspect-square cursor-grab active:cursor-grabbing rounded-lg overflow-hidden border-2 transition-all ${
+                dragReorderIdx === index
+                  ? 'opacity-50 border-dashed border-[#7FB300]'
+                  : 'border-transparent hover:border-gray-300'
+              }`}
+            >
               <Image
                 src={url}
                 alt={`Gambar ${index + 1}`}
                 fill
-                className="object-cover rounded-lg border border-gray-200"
+                className="object-cover"
               />
               {index === 0 && (
-                <span className="absolute top-1 left-1 text-xs bg-[#7FB300] text-white px-1 rounded">
+                <span className="absolute top-1 left-1 text-xs bg-[#7FB300] text-white px-1 rounded font-bold">
                   Utama
                 </span>
               )}

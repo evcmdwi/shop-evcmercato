@@ -45,6 +45,7 @@ export default function TambahProdukPage() {
   const [images, setImages] = useState<string[]>([])
   const [hasVariants, setHasVariants] = useState(false)
   const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
+  const [dragVariantIdx, setDragVariantIdx] = useState<number | null>(null)
   const [initialSoldCount, setInitialSoldCount] = useState(0)
 
   useEffect(() => {
@@ -195,6 +196,7 @@ export default function TambahProdukPage() {
               <table className="w-full text-sm">
                 <thead className="bg-slate-50">
                   <tr>
+                    <th className="w-8 px-2 py-2"></th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Nama Varian</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Harga (Rp)</th>
                     <th className="text-left px-3 py-2 font-medium text-slate-600">Stok</th>
@@ -204,7 +206,23 @@ export default function TambahProdukPage() {
                 </thead>
                 <tbody>
                   {variants.map((v, idx) => (
-                    <tr key={idx} className="border-t border-slate-100">
+                    <tr
+                      key={idx}
+                      draggable
+                      onDragStart={() => setDragVariantIdx(idx)}
+                      onDragOver={(e) => { e.preventDefault() }}
+                      onDrop={() => {
+                        if (dragVariantIdx === null || dragVariantIdx === idx) return
+                        const next = [...variants]
+                        const [moved] = next.splice(dragVariantIdx, 1)
+                        next.splice(idx, 0, moved)
+                        setVariants(next)
+                        setDragVariantIdx(null)
+                      }}
+                      onDragEnd={() => setDragVariantIdx(null)}
+                      className={`border-t border-slate-100 transition-all ${dragVariantIdx === idx ? 'opacity-50 bg-slate-50' : ''}`}
+                    >
+                      <td className="cursor-grab px-2 text-gray-400 select-none text-lg text-center">⠿</td>
                       <td className="px-3 py-2">
                         <input value={v.name} onChange={(e) => updateVariant(idx, 'name', e.target.value)} placeholder="Contoh: 250ml" className="w-full px-2 py-1 border border-slate-200 rounded text-sm focus:outline-none focus:border-[#7FB300]" />
                       </td>
