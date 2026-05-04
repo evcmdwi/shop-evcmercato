@@ -112,7 +112,7 @@ export default function KeranjangPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 pb-32">
+    <div className="max-w-2xl mx-auto px-4 py-8 pb-52">
       <h1 className="text-xl font-bold text-gray-900 mb-6">
         Keranjang Saya
         {itemCount > 0 && (
