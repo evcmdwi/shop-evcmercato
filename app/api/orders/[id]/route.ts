@@ -39,6 +39,7 @@ export async function GET(
         shipping_postal_code,
         xendit_invoice_id,
         xendit_invoice_url,
+        delivery_note,
         created_at,
         order_items(
           id,
