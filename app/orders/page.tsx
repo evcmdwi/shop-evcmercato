@@ -107,6 +107,7 @@ export default function OrdersPage() {
                 <Link
                   key={order.id}
                   href={`/orders/${order.id}`}
+                  prefetch={false}
                   className="block bg-white rounded-2xl p-4 shadow-sm hover:shadow-md transition-shadow"
                 >
                   <div className="flex items-start justify-between mb-2">

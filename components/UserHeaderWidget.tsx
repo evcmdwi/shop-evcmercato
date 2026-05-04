@@ -41,6 +41,7 @@ export default function UserHeaderWidget() {
   return (
     <Link
       href="/dashboard"
+      prefetch={false}
       className="flex items-center gap-2 hover:bg-[#E8F4D1] rounded-lg px-2 py-1.5 transition-colors min-h-[44px]"
     >
       {/* Avatar circle */}

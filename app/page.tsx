@@ -217,9 +217,9 @@ export default function HomePage() {
           <div>
             <h3 className="font-bold text-gray-900 mb-4">⚖️ LEGAL</h3>
             <div className="space-y-2 text-sm">
-              <Link href="/privacy" className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
-              <Link href="/terms" className="block text-gray-600 hover:text-[#7FB300]">Syarat & Ketentuan</Link>
-              <Link href="/return-policy" className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Pengembalian</Link>
+              <Link href="/privacy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
+              <Link href="/terms" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Syarat & Ketentuan</Link>
+              <Link href="/return-policy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Pengembalian</Link>
             </div>
           </div>
         </div>
