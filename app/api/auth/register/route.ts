@@ -32,6 +32,31 @@ export async function POST(request: NextRequest) {
       terms_version: TERMS_VERSION,
     }).eq('id', id)
 
+    // Check active new_user promo and grant bonus points
+    const now = new Date().toISOString()
+    const { data: newUserPromo } = await admin
+      .from('point_promos')
+      .select('id, bonus_points, title')
+      .eq('promo_type', 'new_user')
+      .eq('is_active', true)
+      .or(`active_until.is.null,active_until.gt.${now}`)
+      .gte('active_from', '2000-01-01')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle()
+
+    if (newUserPromo?.bonus_points) {
+      const bonusPoints = newUserPromo.bonus_points
+      await admin.from('users').update({ total_points: bonusPoints }).eq('id', id)
+      await admin.from('point_transactions').insert({
+        user_id: id,
+        type: 'earned',
+        amount: bonusPoints,
+        balance_after: bonusPoints,
+        notes: `Bonus member baru: ${newUserPromo.title}`,
+      })
+    }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'
