@@ -1,6 +1,7 @@
 'use client'
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { compressProductImage, formatBytes, type CompressionResult } from '@/lib/utils/image-compression'
 
 interface ImageUploaderProps {
   value: string[]
@@ -11,6 +12,8 @@ interface ImageUploaderProps {
 
 export default function ImageUploader({ value, onChange, maxImages = 5, label }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
+  const [isCompressing, setIsCompressing] = useState(false)
+  const [compressionResults, setCompressionResults] = useState<CompressionResult[]>([])
   const [error, setError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -18,30 +21,52 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
   const handleFilesSelected = async (files: File[]) => {
     if (!files.length) return
 
-    // Validate file size and type
-    for (const file of files) {
-      if (file.size > 5 * 1024 * 1024) {
-        setError(`File "${file.name}" terlalu besar. Maks 5 MB per file.`)
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        return
-      }
-      if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-        setError(`File "${file.name}" format tidak didukung. Gunakan JPEG, PNG, atau WebP.`)
-        if (fileInputRef.current) fileInputRef.current.value = ''
-        return
-      }
+    // Validate file type
+    const validFiles = files.filter(f => ['image/jpeg', 'image/png', 'image/webp'].includes(f.type))
+    if (validFiles.length === 0) {
+      setError('Format tidak didukung. Gunakan JPEG, PNG, atau WebP.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
+    // Reject files over 20MB
+    const oversized = validFiles.filter(f => f.size > 20 * 1024 * 1024)
+    if (oversized.length > 0) {
+      setError('Ukuran file maksimal 20 MB per foto.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
     }
 
     const remaining = maxImages - value.length
-    const filesToUpload = files.slice(0, remaining)
+    const filesToProcess = validFiles.slice(0, remaining)
+
+    setError(null)
+    setCompressionResults([])
+    setIsCompressing(true)
+
+    let compressedFiles: File[] = []
+    try {
+      const results: CompressionResult[] = []
+
+      for (const file of filesToProcess) {
+        const result = await compressProductImage(file)
+        results.push(result)
+        compressedFiles.push(result.compressedFile)
+      }
+
+      setCompressionResults(results)
+    } catch {
+      // If compression pipeline itself fails, fall back to originals
+      compressedFiles = filesToProcess
+    } finally {
+      setIsCompressing(false)
+    }
 
     setUploading(true)
-    setError(null)
-
     try {
       const uploadedUrls: string[] = []
 
-      for (const file of filesToUpload) {
+      for (const file of compressedFiles) {
         const formData = new FormData()
         formData.append('file', file)
 
@@ -114,6 +139,8 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
     }
   }
 
+  const isBusy = isCompressing || uploading
+
   return (
     <div className="space-y-3">
       {label && <label className="block text-sm font-medium text-gray-700">{label}</label>}
@@ -155,23 +182,28 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
             accept="image/jpeg,image/png,image/webp"
             multiple
             onChange={handleFileChange}
-            disabled={uploading}
+            disabled={isBusy}
             className="hidden"
           />
           <div
-            onDragOver={uploading ? undefined : handleDragOver}
-            onDragLeave={uploading ? undefined : handleDragLeave}
-            onDrop={uploading ? undefined : handleDrop}
-            onClick={() => !uploading && fileInputRef.current?.click()}
+            onDragOver={isBusy ? undefined : handleDragOver}
+            onDragLeave={isBusy ? undefined : handleDragLeave}
+            onDrop={isBusy ? undefined : handleDrop}
+            onClick={() => !isBusy && fileInputRef.current?.click()}
             className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
-              uploading
+              isBusy
                 ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
                 : isDragging
                 ? 'border-[#7FB300] bg-[#E8F4D1] scale-[1.02] cursor-copy'
                 : 'border-gray-300 hover:border-[#7FB300] hover:bg-gray-50 cursor-pointer'
             }`}
           >
-            {uploading ? (
+            {isCompressing ? (
+              <>
+                <div className="text-4xl mb-2">🔄</div>
+                <p className="text-sm font-medium text-gray-500">Mengoptimalkan gambar...</p>
+              </>
+            ) : uploading ? (
               <>
                 <div className="text-4xl mb-2">⏳</div>
                 <p className="text-sm font-medium text-gray-500">Mengupload...</p>
@@ -186,11 +218,33 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
                   atau <span className="text-[#7FB300] font-medium">klik untuk pilih file</span>
                 </p>
                 <p className="text-xs text-gray-400 mt-2">
-                  JPEG, PNG, WebP • Maks 5 MB per file • ({value.length}/{maxImages})
+                  JPEG, PNG, WebP • Maks 20 MB per file • ({value.length}/{maxImages})
                 </p>
               </>
             )}
           </div>
+
+          {/* Compression loading state (below drop zone) */}
+          {isCompressing && (
+            <div className="flex items-center gap-2 mt-2 text-sm text-gray-600">
+              <div className="w-4 h-4 border-2 border-[#7FB300] border-t-transparent rounded-full animate-spin" />
+              <span>Mengoptimalkan gambar...</span>
+            </div>
+          )}
+
+          {/* Compression results */}
+          {compressionResults.length > 0 && !isCompressing && (
+            <div className="mt-2 space-y-1">
+              {compressionResults.map((r, i) => (
+                <div key={i} className="text-xs text-gray-500">
+                  {r.reductionPercent > 0
+                    ? `✓ Dioptimalkan: ${formatBytes(r.originalSize)} → ${formatBytes(r.compressedSize)} (hemat ${r.reductionPercent}%)`
+                    : `✓ Sudah optimal (${formatBytes(r.compressedSize)})`
+                  }
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       )}
 
