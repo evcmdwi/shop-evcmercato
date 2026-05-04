@@ -120,6 +120,16 @@ async function processWebhook(
         .eq('id', order.user_id)
 
       console.log(`[webhook] EVC Points +${pointsToAdd} → user ${order.user_id} total: ${newTotal}`)
+
+      // Insert point_transactions audit log
+      await admin.from('point_transactions').insert({
+        user_id: order.user_id,
+        type: 'earned',
+        amount: pointsToAdd,
+        balance_after: newTotal,
+        related_order_id: orderId,
+        notes: `Pembelian Order #${orderId.slice(0, 8).toUpperCase()}`,
+      })
     }
 
     // Get order items
