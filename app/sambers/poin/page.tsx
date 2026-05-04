@@ -241,7 +241,7 @@ function RedemptionModal({ item, onClose, onSave }: { item: any; onClose: () => 
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    fetch('/api/sambers/products?limit=100').then(r => r.json()).then(d => setProducts(d.products ?? []))
+    fetch('/api/sambers/products?limit=100').then(r => r.json()).then(d => setProducts(d.data ?? d.products ?? []))
   }, [])
 
   const selectedProduct = products.find(p => p.id === form.product_id)
