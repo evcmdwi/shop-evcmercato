@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react'
+import Image from 'next/image'
 
 export default function AuthLayout({ children }: { children: ReactNode }) {
   return (
@@ -6,8 +7,14 @@ export default function AuthLayout({ children }: { children: ReactNode }) {
       <div className="w-full max-w-md">
         {/* Logo / Brand */}
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-teal-500 shadow-lg mb-4">
-            <span className="text-white font-bold text-xl">EVC</span>
+          <div className="inline-flex items-center justify-center mb-4">
+            <Image
+              src="/logo-evcmercato.jpg"
+              alt="EVC Mercato"
+              width={64}
+              height={64}
+              className="rounded-full shadow-lg"
+            />
           </div>
           <h1 className="text-white text-2xl font-bold tracking-tight">
             EVC Mercato
