@@ -86,19 +86,19 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     .barcode-section {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       flex-shrink: 0;
-      max-height: 2.8cm; overflow: hidden;
+      max-height: 2.1cm; overflow: hidden;
       border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
       padding: 0.05cm 0;
     }
-    .barcode-section img { max-height: 2.2cm; max-width: 8.5cm; object-fit: contain; width: auto; }
-    .grab-logo { height: 2.1cm; width: auto; }
+    .barcode-section img { max-height: 1.7cm; max-width: 8.5cm; object-fit: contain; width: auto; }
+    .grab-logo { height: 1.6cm; width: auto; }
     .address-section { display: flex; flex: 1; min-height: 0; overflow: hidden; gap: 0.15cm; margin-bottom: 0.1cm; }
-    .penerima { flex: 6; border-right: 1px solid #ccc; padding-right: 0.15cm; }
-    .pengirim { flex: 4; }
+    .penerima { flex: 7; border-right: 1px solid #ccc; padding-right: 0.15cm; }
+    .pengirim { flex: 3; }
     .addr-heading { font-size: 0.32cm; font-weight: bold; text-transform: uppercase; margin-bottom: 0.1cm; }
     .addr-name { font-size: 0.46cm; font-weight: bold; line-height: 1.2; }
     .addr-phone { font-size: 0.35cm; margin-bottom: 0.06cm; }
-    .addr-detail { font-size: 0.32cm; line-height: 1.4; color: #333; }
+    .addr-detail { font-size: 0.28cm; line-height: 1.4; color: #333; }
     .delivery-note {
       flex-shrink: 0;
       background: #FEF3C7; border-left: 4px solid #F59E0B;
