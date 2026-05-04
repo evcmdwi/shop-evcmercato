@@ -41,10 +41,12 @@ test.describe('Regression Tests — Bug fixes', () => {
   })
 
   test('[BUG-IMG] Gambar produk dari Supabase Storage tampil (tidak 400)', async ({ page }) => {
-    await page.goto('/katalog')
-    // Cek tidak ada image dengan error
+    await page.goto('/katalog', { waitUntil: 'networkidle' })
+    // Tunggu semua image selesai load
+    await page.waitForTimeout(2000)
+    // Cek hanya product images dari Supabase Storage (bukan icon/SVG/placeholder)
     const failedImages = await page.evaluate(() => {
-      const imgs = Array.from(document.querySelectorAll('img'))
+      const imgs = Array.from(document.querySelectorAll('img[src*="supabase"]'))
       return imgs.filter(img => !img.complete || img.naturalWidth === 0).length
     })
     expect(failedImages).toBe(0)
