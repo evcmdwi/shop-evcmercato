@@ -196,7 +196,7 @@ function RegisterForm() {
             onChange={e => setTermsAccepted(e.target.checked)}
             className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer"
           />
-          <label htmlFor="terms-accept" className="text-sm text-gray-600 cursor-pointer leading-relaxed">
+          <label htmlFor="terms-accept" className="text-xs text-gray-600 cursor-pointer leading-relaxed">
             Saya menyetujui{' '}
             <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] font-semibold hover:underline">
               Syarat &amp; Ketentuan
