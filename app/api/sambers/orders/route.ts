@@ -15,12 +15,13 @@ export async function GET(req: NextRequest) {
     const limit = Math.min(100, Math.max(1, parseInt(searchParams.get('limit') || '20')))
     const offset = (page - 1) * limit
     const status = searchParams.get('status') || ''
+    const orderType = searchParams.get('order_type') || ''
     const search = searchParams.get('search') || ''
 
     let query = admin
       .from('orders')
       .select(`
-        id, status, total_amount, created_at, paid_at, shipped_at,
+        id, status, order_type, total_amount, created_at, paid_at, shipped_at,
         tracking_number, shipping_courier, user_id,
         shipping_recipient_name, shipping_phone,
         order_items (id)
@@ -29,6 +30,7 @@ export async function GET(req: NextRequest) {
       .range(offset, offset + limit - 1)
 
     if (status) query = query.eq('status', status)
+    if (orderType && orderType !== 'all') query = query.eq('order_type', orderType)
     if (search) query = query.ilike('shipping_recipient_name', `%${search}%`)
 
     const { data: orders, error, count } = await query

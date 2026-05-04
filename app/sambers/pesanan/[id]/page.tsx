@@ -86,6 +86,8 @@ interface Order {
   resi_barcode_url: string | null
   delivery_note: string | null
   resi_generated_at: string | null
+  order_type?: string | null
+  points_used?: number | null
   customer_name?: string
   customer_email?: string
   user?: { name: string | null; email: string | null; phone: string | null } | null
@@ -835,6 +837,14 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Redeem Info */}
+        {order.order_type === 'redeem' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <p className="text-sm font-semibold text-amber-700 mb-1">🎁 Order Redeem EVC Points</p>
+            <p className="text-sm text-gray-600">Points digunakan: <strong className="text-amber-600">💮 {order.points_used} pts</strong></p>
+          </div>
+        )}
 
         {/* Timeline */}
         <OrderTimeline order={order} />

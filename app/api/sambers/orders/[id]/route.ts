@@ -16,12 +16,14 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
     const { data: order, error } = await admin
       .from('orders')
       .select(`
-        id, status, total_amount, subtotal, shipping_cost, shipping_cost_discount,
+        id, status, order_type, total_amount, subtotal, shipping_cost, shipping_cost_discount,
         service_fee, service_fee_discount, created_at, paid_at, processed_at,
         shipped_at, delivered_at, delivered_note, tracking_number, shipping_courier,
-        xendit_invoice_url, user_id, points_earned,
+        xendit_invoice_url, user_id, points_earned, points_used,
         shipping_recipient_name, shipping_phone, shipping_full_address,
         shipping_city, shipping_province, shipping_postal_code,
+        shipping_district_name, shipping_regency_name, shipping_province_name,
+        delivery_note, resi_barcode_url, courier_type, resi_generated_at,
         order_items (
           id, quantity, price, product_name, variant_name
         )

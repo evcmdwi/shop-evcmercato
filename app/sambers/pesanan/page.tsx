@@ -39,6 +39,7 @@ interface Order {
   id: string
   short_id: string
   status: string
+  order_type: string
   total_amount: number
   created_at: string
   customer_name: string
@@ -70,6 +71,7 @@ function AdminPesananPageInner() {
   const [page, setPage] = useState(1)
   const [loading, setLoading] = useState(true)
   const [statusFilter, setStatusFilter] = useState(initialStatus)
+  const [filterType, setFilterType] = useState<'all' | 'purchase' | 'redeem'>('all')
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
   const limit = 20
@@ -81,6 +83,7 @@ function AdminPesananPageInner() {
         page: String(page),
         limit: String(limit),
         ...(statusFilter !== 'all' && { status: statusFilter }),
+        ...(filterType !== 'all' && { order_type: filterType }),
         ...(search && { search }),
       })
       const res = await fetch(`/api/sambers/orders?${params}`)
@@ -92,7 +95,7 @@ function AdminPesananPageInner() {
     } finally {
       setLoading(false)
     }
-  }, [page, statusFilter, search])
+  }, [page, statusFilter, filterType, search])
 
   useEffect(() => { fetchOrders() }, [fetchOrders])
 
@@ -102,8 +105,8 @@ function AdminPesananPageInner() {
     <div className="p-6">
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Manajemen Pesanan</h1>
 
-      {/* Filter Tabs */}
-      <div className="flex flex-wrap gap-2 mb-4">
+      {/* Filter Tabs - Status */}
+      <div className="flex flex-wrap gap-2 mb-3">
         {STATUS_TABS.map((tab) => (
           <button
             key={tab.value}
@@ -115,6 +118,23 @@ function AdminPesananPageInner() {
             }`}
           >
             {tab.label}
+          </button>
+        ))}
+      </div>
+
+      {/* Filter Tabs - Order Type */}
+      <div className="flex gap-2 mb-4">
+        {([['all', 'Semua Tipe'], ['purchase', '🛒 Pembelian'], ['redeem', '🎁 Redeem']] as const).map(([val, label]) => (
+          <button
+            key={val}
+            onClick={() => { setFilterType(val); setPage(1) }}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              filterType === val
+                ? 'bg-amber-500 text-white'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+            }`}
+          >
+            {label}
           </button>
         ))}
       </div>
@@ -194,6 +214,9 @@ function AdminPesananPageInner() {
                   >
                     <td className="px-4 py-3 font-mono font-medium text-[#7FB300]">
                       #{order.short_id}
+                      {order.order_type === 'redeem' && (
+                        <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full ml-2">🎁 Redeem</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                       {formatDate(order.created_at)}
