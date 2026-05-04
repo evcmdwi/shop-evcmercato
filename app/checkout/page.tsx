@@ -29,7 +29,10 @@ export default function CheckoutPage() {
   const [loadingCart, setLoadingCart] = useState(true)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
-  const [deliveryNote, setDeliveryNote] = useState('')
+  const [deliveryNote, setDeliveryNote] = useState(() => {
+    if (typeof window !== 'undefined') return sessionStorage.getItem('checkout_delivery_note') ?? ''
+    return ''
+  })
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
 
@@ -100,6 +103,7 @@ export default function CheckoutPage() {
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
+        sessionStorage.removeItem('checkout_delivery_note')
         window.location.href = json.data.xendit_invoice_url
       } else if (json.error?.includes('stok') || json.error?.includes('stock')) {
         toast.show({ message: 'Beberapa item stok habis. Silakan perbarui keranjang kamu.', type: 'error' })
@@ -230,8 +234,11 @@ export default function CheckoutPage() {
               <input
                 type="text"
                 ref={deliveryNoteRef}
-                defaultValue={deliveryNote}
-                onChange={(e) => setDeliveryNote(e.target.value)}
+                value={deliveryNote}
+                onChange={(e) => {
+                  setDeliveryNote(e.target.value)
+                  sessionStorage.setItem('checkout_delivery_note', e.target.value)
+                }}
                 placeholder="Contoh: Titipkan di reception. (Opsional)"
                 maxLength={150}
                 className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] text-gray-700 placeholder-gray-400"
