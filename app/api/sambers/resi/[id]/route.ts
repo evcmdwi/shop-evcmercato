@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const admin = getSupabaseAdmin()
   const { data: order } = await admin
     .from('orders')
-    .select(`id, status, courier_type, resi_barcode_url, resi_number, tracking_number, delivery_note, resi_generated_at,
+    .select(`id, status, courier_type, resi_barcode_url, tracking_number, delivery_note, resi_generated_at,
       shipping_recipient_name, shipping_phone, shipping_full_address,
       shipping_city, shipping_province, shipping_postal_code,
       shipping_district_name, shipping_regency_name, shipping_province_name, created_at`)
@@ -34,7 +34,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
 
   const isJnt = order.courier_type === 'jnt'
   const isGrab = order.courier_type === 'grab'
-  const resiNumber = (order.resi_number || order.tracking_number || '') as string
+  const resiNumber = (order.tracking_number || '') as string
   const orderShortId = id.slice(0, 8).toUpperCase()
   const resiDate = new Date(order.resi_generated_at).toLocaleDateString('id-ID', {
     day: '2-digit', month: 'short', year: 'numeric'

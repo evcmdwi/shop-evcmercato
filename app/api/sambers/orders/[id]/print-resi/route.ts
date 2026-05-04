@@ -32,7 +32,8 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
       .update({
         courier_type: courierType,
         resi_barcode_url: null,
-        resi_number: courierType === 'jnt' ? jntResiNumber!.trim() : null,
+        tracking_number: courierType === "jnt" ? jntResiNumber!.trim() : null,
+        shipping_courier: courierType === "jnt" ? "JNT" : "Grab Express",
         delivery_note: deliveryNote || null,
         resi_generated_at: now,
       })

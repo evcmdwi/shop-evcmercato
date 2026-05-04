@@ -84,7 +84,6 @@ interface Order {
   shipping_province_name?: string | null
   courier_type: string | null
   resi_barcode_url: string | null
-  resi_number: string | null
   delivery_note: string | null
   resi_generated_at: string | null
   order_type?: string | null
@@ -244,7 +243,7 @@ interface KonfirmasiKirimModalProps {
 }
 
 function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModalProps) {
-  const [resiNumber, setResiNumber] = useState(order.resi_number || order.tracking_number || '')
+  const [resiNumber, setResiNumber] = useState(order.tracking_number || '')
   const [shipLoading, setShipLoading] = useState(false)
 
   const handleConfirmShipment = async () => {
@@ -253,7 +252,7 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
       const res = await fetch(`/api/sambers/orders/${order.id}/confirm-shipment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resi_number: resiNumber.trim() }),
+        body: JSON.stringify({ resi_number: resiNumber.trim(), tracking_number: resiNumber.trim() }),
       })
       const json = await res.json()
       if (!res.ok) { alert(json.error || 'Gagal konfirmasi'); return }
