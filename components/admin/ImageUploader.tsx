@@ -12,10 +12,10 @@ interface ImageUploaderProps {
 export default function ImageUploader({ value, onChange, maxImages = 5, label }: ImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || [])
+  const handleFilesSelected = async (files: File[]) => {
     if (!files.length) return
 
     // Validate file size and type
@@ -71,6 +71,32 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
     }
   }
 
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || [])
+    await handleFilesSelected(files)
+  }
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(true)
+  }
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+
+  const handleDrop = async (e: React.DragEvent) => {
+    e.preventDefault()
+    setIsDragging(false)
+    const files = Array.from(e.dataTransfer.files).filter(f =>
+      ['image/jpeg', 'image/png', 'image/webp'].includes(f.type)
+    )
+    if (files.length > 0) {
+      await handleFilesSelected(files)
+    }
+  }
+
   const handleDelete = async (urlToDelete: string, index: number) => {
     const newUrls = value.filter((_, i) => i !== index)
     onChange(newUrls)
@@ -120,7 +146,7 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
         </div>
       )}
 
-      {/* Upload button */}
+      {/* Upload zone */}
       {value.length < maxImages && (
         <div>
           <input
@@ -131,29 +157,40 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
             onChange={handleFileChange}
             disabled={uploading}
             className="hidden"
-            id="image-upload"
           />
-          <label
-            htmlFor="image-upload"
-            className={`inline-flex items-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed cursor-pointer
-              ${uploading
-                ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                : 'border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1]'
-              }`}
+          <div
+            onDragOver={uploading ? undefined : handleDragOver}
+            onDragLeave={uploading ? undefined : handleDragLeave}
+            onDrop={uploading ? undefined : handleDrop}
+            onClick={() => !uploading && fileInputRef.current?.click()}
+            className={`border-2 border-dashed rounded-xl p-8 text-center transition-all ${
+              uploading
+                ? 'border-gray-300 bg-gray-50 cursor-not-allowed'
+                : isDragging
+                ? 'border-[#7FB300] bg-[#E8F4D1] scale-[1.02] cursor-copy'
+                : 'border-gray-300 hover:border-[#7FB300] hover:bg-gray-50 cursor-pointer'
+            }`}
           >
             {uploading ? (
               <>
-                <span className="animate-spin">⏳</span>
-                Mengupload...
+                <div className="text-4xl mb-2">⏳</div>
+                <p className="text-sm font-medium text-gray-500">Mengupload...</p>
               </>
             ) : (
               <>
-                📷 {value.length === 0 ? 'Upload Gambar' : '+ Tambah Gambar'}
-                <span className="text-xs text-gray-400">({value.length}/{maxImages})</span>
+                <div className="text-4xl mb-2">{isDragging ? '📂' : '📸'}</div>
+                <p className="text-sm font-medium text-gray-700">
+                  {isDragging ? 'Lepaskan untuk upload' : 'Drag & drop foto di sini'}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  atau <span className="text-[#7FB300] font-medium">klik untuk pilih file</span>
+                </p>
+                <p className="text-xs text-gray-400 mt-2">
+                  JPEG, PNG, WebP • Maks 5 MB per file • ({value.length}/{maxImages})
+                </p>
               </>
             )}
-          </label>
-          <p className="text-xs text-gray-400 mt-1">JPEG, PNG, WebP • Maks 5 MB per file</p>
+          </div>
         </div>
       )}
 
