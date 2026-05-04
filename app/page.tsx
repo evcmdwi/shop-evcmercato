@@ -70,7 +70,7 @@ const faqs = [
 
 // Payment & shipping
 const paymentMethods = ['BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'Permata', 'GoPay', 'OVO', 'DANA', 'ShopeePay', 'LinkAja', 'Visa', 'Mastercard', 'JCB', 'Alfamart', 'Indomaret']
-const shippingMethods = ['JNE', 'JNT', 'Grab Express', 'Gojek']
+const shippingMethods = ['JNT', 'Grab Express']
 
 export default function HomePage() {
   return (
