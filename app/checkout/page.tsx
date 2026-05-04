@@ -99,7 +99,9 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: (deliveryNoteRef.current?.value ?? deliveryNote).trim() || null, terms_accepted: true }),
+        // Baca langsung dari DOM - paling reliable, tidak terpengaruh React state
+        const domNote = (document.getElementById('checkout-delivery-note') as HTMLInputElement)?.value?.trim() || null
+        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: domNote, terms_accepted: true }),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -233,11 +235,11 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Pesan untuk Kurir</h2>
               <input
                 type="text"
+                id="checkout-delivery-note"
                 ref={deliveryNoteRef}
-                value={deliveryNote}
+                defaultValue=""
                 onChange={(e) => {
                   setDeliveryNote(e.target.value)
-                  sessionStorage.setItem('checkout_delivery_note', e.target.value)
                 }}
                 placeholder="Contoh: Titipkan di reception. (Opsional)"
                 maxLength={150}
