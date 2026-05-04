@@ -50,7 +50,7 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
   const imageSrc = product.images?.[0] || product.image_url || null
 
   return (
-    <Link href={detailUrl} className="block group">
+    <Link href={detailUrl} prefetch={false} className="block group">
       <div className="bg-white rounded-lg overflow-hidden shadow-sm border border-gray-100 hover:shadow-md transition-shadow active:scale-[0.98]">
 
         {/* Image 1:1 square */}
