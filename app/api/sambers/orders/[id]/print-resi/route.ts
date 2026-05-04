@@ -34,7 +34,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         resi_barcode_url: null,
         tracking_number: courierType === "jnt" ? jntResiNumber!.trim() : null,
         shipping_courier: courierType === "jnt" ? "JNT" : "Grab Express",
-        delivery_note: deliveryNote || null,
+        // delivery_note TIDAK diupdate di sini — sudah tersimpan dari checkout
         resi_generated_at: now,
       })
       .eq('id', id)
