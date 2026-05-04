@@ -247,6 +247,7 @@ export default function AdminProdukPage() {
                         <div className="flex gap-2">
                           <Link
                             href={`/sambers/produk/${product.id}/edit`}
+                            prefetch={false}
                             className="px-2 py-1 rounded text-xs bg-[#E8F4D1] text-[#7FB300] hover:bg-[#7FB300] hover:text-white transition-colors"
                           >
                             Edit
