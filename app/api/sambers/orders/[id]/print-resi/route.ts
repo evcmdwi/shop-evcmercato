@@ -27,6 +27,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
     // Update order — simpan nomor resi sebagai teks, tidak upload ke storage
     const now = new Date().toISOString()
+    console.log('[print-resi v2] delivery_note preserved, not overwriting')
     const { error: updateError } = await admin
       .from('orders')
       .update({
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
         resi_barcode_url: null,
         tracking_number: courierType === "jnt" ? jntResiNumber!.trim() : null,
         shipping_courier: courierType === "jnt" ? "JNT" : "Grab Express",
-        // delivery_note TIDAK diupdate di sini — sudah tersimpan dari checkout
+        // delivery_note TIDAK diupdate — v2 fix 20260504
         resi_generated_at: now,
       })
       .eq('id', id)
