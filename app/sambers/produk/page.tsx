@@ -63,7 +63,7 @@ interface ProductsResponse {
   meta?: { page: number; limit: number; total: number }
 }
 
-const PAGE_SIZE = 10
+const PAGE_SIZE = 30
 
 export default function AdminProdukPage() {
   const [products, setProducts] = useState<Product[]>([])
