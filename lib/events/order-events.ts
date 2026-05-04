@@ -22,6 +22,7 @@ export interface OrderPaidPayload {
     postal_code: string
   }
   evc_points_earned: number
+  total_points_after?: number
   paid_at: string
 }
 

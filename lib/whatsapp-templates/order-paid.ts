@@ -8,12 +8,12 @@ export function generateOrderPaidBuyerWA(payload: OrderPaidPayload): string {
 Pembayaran pesanan #${payload.orderShortId} sudah kami terima ✅
 
 💰 Total: ${formatRupiah(payload.totalAmount)}
-📦 Estimasi 3-5 hari kerja
-✨ +${payload.evc_points_earned} EVC Points
+📦 Estimasi 1-3 hari kerja
+✨ +${payload.evc_points_earned} EVC Points${payload.total_points_after ? ` (Total: ${payload.total_points_after} pts)` : ''}
 
 Cek status: shop.evcmercato.com/orders/${payload.orderId}
 
-Terima kasih sudah belanja di EVC Mercato 💚`
+Terima kasih sudah belanja di EVC Mercato 💚 Semoga Anda sehat selalu 🤗`
 }
 
 // Pesan untuk ADMIN (Dwi)

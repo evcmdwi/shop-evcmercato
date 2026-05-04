@@ -202,6 +202,7 @@ async function processWebhook(
         postal_code: order.shipping_postal_code || '',
       },
       evc_points_earned: pointsToAdd,
+      total_points_after: newTotal,
       paid_at: paidAt || new Date().toISOString(),
     })
 
