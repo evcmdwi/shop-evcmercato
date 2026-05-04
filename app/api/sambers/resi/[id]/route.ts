@@ -172,11 +172,11 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       </div>
     </div>
 
-    ${order.delivery_note ? `
+    ${(order as any).delivery_note ? `
     <div class="delivery-note">
       <div class="delivery-note-heading">⚠️ PESAN UNTUK KURIR:</div>
-      <div class="delivery-note-body">${order.delivery_note}</div>
-    </div>` : ''}
+      <div class="delivery-note-body">${(order as any).delivery_note}</div>
+    </div>` : '<!-- no delivery_note -->'}
 
     <div class="footer">
       <div class="footer-left">No. Pesanan: #${orderShortId}</div>
