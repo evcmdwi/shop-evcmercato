@@ -7,6 +7,7 @@ const STATUS_TABS = [
   { value: 'all', label: 'Semua' },
   { value: 'pending', label: 'Pending' },
   { value: 'paid', label: 'Dibayar' },
+  { value: 'processed', label: 'Diproses' },
   { value: 'shipped', label: 'Dikirim' },
   { value: 'delivered', label: 'Selesai' },
   { value: 'expired', label: 'Expired' },
