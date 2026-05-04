@@ -8,21 +8,31 @@ export default function AdminPointsPage() {
   const [activeTab, setActiveTab] = useState<'promo' | 'riwayat' | 'pengaturan'>('promo')
   const [stats, setStats] = useState({ earned: 0, redeemed: 0, orders: 0, revenue: 0 })
   const [redemptions, setRedemptions] = useState<any[]>([])
+  const [allPromos, setAllPromos] = useState<any[]>([])
   const [config, setConfig] = useState({ shipping_cost: 10000, admin_fee: 3000 })
   const [showModal, setShowModal] = useState(false)
   const [editItem, setEditItem] = useState<any>(null)
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [products, setProducts] = useState<any[]>([])
+
+  // Dropdown state for promo type selection
+  const [showPromoTypeMenu, setShowPromoTypeMenu] = useState(false)
+  const [modalType, setModalType] = useState<'redeem' | 'purchase_bonus' | 'new_user' | null>(null)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/sambers/redemptions/stats').then(r => r.json()),
       fetch('/api/sambers/redemptions').then(r => r.json()),
       fetch('/api/sambers/redemptions/config').then(r => r.json()),
-    ]).then(([statsData, redemptionsData, configData]) => {
+      fetch('/api/sambers/promos').then(r => r.json()),
+      fetch('/api/sambers/products?limit=100').then(r => r.json()),
+    ]).then(([statsData, redemptionsData, configData, promosData, productsData]) => {
       setStats(statsData)
       setRedemptions(redemptionsData.redemptions ?? [])
       setConfig(configData.config ?? { shipping_cost: 10000, admin_fee: 3000 })
+      setAllPromos(promosData.promos ?? [])
+      setProducts(productsData.data ?? productsData.products ?? [])
       setLoading(false)
     })
   }, [])
@@ -33,6 +43,15 @@ export default function AdminPointsPage() {
     }
   }, [activeTab])
 
+  const handleTogglePromo = async (promo: any) => {
+    await fetch(`/api/sambers/promos/${promo.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !promo.is_active }),
+    })
+    setAllPromos(prev => prev.map(p => p.id === promo.id ? { ...p, is_active: !p.is_active } : p))
+  }
+
   return (
     <div className="max-w-6xl mx-auto p-6">
       {/* Header */}
@@ -42,12 +61,36 @@ export default function AdminPointsPage() {
           <p className="text-slate-500 text-sm mt-1">Kelola promo penukaran dan konfigurasi program poin</p>
         </div>
         {activeTab === 'promo' && (
-          <button
-            onClick={() => { setEditItem(null); setShowModal(true) }}
-            className="bg-[#7FB300] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#6B9700] transition-colors"
-          >
-            + Tambah Promo
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowPromoTypeMenu(!showPromoTypeMenu)}
+              className="bg-[#7FB300] text-white px-4 py-2 rounded-xl text-sm font-semibold hover:bg-[#6B9700] transition-colors flex items-center gap-2"
+            >
+              + Tambah Promo ▾
+            </button>
+            {showPromoTypeMenu && (
+              <div className="absolute right-0 top-10 bg-white border border-gray-200 rounded-xl shadow-lg z-20 min-w-48 overflow-hidden">
+                <button
+                  onClick={() => { setModalType('new_user'); setShowPromoTypeMenu(false) }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-100"
+                >
+                  👤 Promo New User
+                </button>
+                <button
+                  onClick={() => { setModalType('purchase_bonus'); setShowPromoTypeMenu(false) }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50 border-b border-gray-100"
+                >
+                  🛒 Promo Paket Belanja
+                </button>
+                <button
+                  onClick={() => { setEditItem(null); setModalType('redeem'); setShowPromoTypeMenu(false) }}
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-50"
+                >
+                  💎 Promo Redeem Points
+                </button>
+              </div>
+            )}
+          </div>
         )}
       </div>
 
@@ -68,7 +111,7 @@ export default function AdminPointsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
-        {([['promo', 'Promo Redeem'], ['riwayat', 'Riwayat Redeem'], ['pengaturan', 'Pengaturan']] as const).map(([tab, label]) => (
+        {([['promo', 'Semua Promo'], ['riwayat', 'Riwayat Redeem'], ['pengaturan', 'Pengaturan']] as const).map(([tab, label]) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -79,21 +122,25 @@ export default function AdminPointsPage() {
         ))}
       </div>
 
-      {/* Tab: Promo Redeem */}
+      {/* Tab: Semua Promo */}
       {activeTab === 'promo' && (
         <div>
           {loading ? (
             <div className="text-center py-12 text-slate-400">Memuat...</div>
-          ) : redemptions.length === 0 ? (
+          ) : redemptions.length === 0 && allPromos.length === 0 ? (
             <div className="text-center py-12 text-slate-400">
               <p className="text-4xl mb-3">💎</p>
-              <p>Belum ada promo redeem. Klik &quot;+ Tambah Promo&quot; untuk mulai.</p>
+              <p>Belum ada promo. Klik &quot;+ Tambah Promo&quot; untuk mulai.</p>
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {/* Existing Redeem Promos */}
               {redemptions.map((r: any) => (
                 <div key={r.id} className={`bg-white rounded-2xl p-5 shadow-sm border-2 ${r.is_featured ? 'border-amber-400' : 'border-gray-100'}`}>
-                  {r.is_featured && <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full mb-2 inline-block">⭐ Featured</span>}
+                  <div className="flex items-center gap-2 mb-2">
+                    <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full inline-block">💎 Redeem</span>
+                    {r.is_featured && <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full inline-block">⭐ Featured</span>}
+                  </div>
                   <div className="flex gap-3 mb-3">
                     {r.products?.image_url && (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -111,7 +158,7 @@ export default function AdminPointsPage() {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => { setEditItem(r); setShowModal(true) }}
+                      onClick={() => { setEditItem(r); setModalType('redeem') }}
                       className="flex-1 text-xs border border-gray-200 rounded-lg py-1.5 hover:bg-gray-50 transition-colors"
                     >
                       Edit
@@ -128,6 +175,50 @@ export default function AdminPointsPage() {
                       className={`flex-1 text-xs rounded-lg py-1.5 transition-colors ${r.is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'}`}
                     >
                       {r.is_active ? 'Pause' : 'Aktifkan'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* New User Promos */}
+              {allPromos.filter((p: any) => p.promo_type === 'new_user').map((promo: any) => (
+                <div key={promo.id} className="bg-white rounded-2xl p-5 shadow-sm border border-blue-100">
+                  <span className="text-xs bg-blue-100 text-blue-700 font-bold px-2 py-0.5 rounded-full mb-2 inline-block">👤 New User</span>
+                  <p className="font-semibold">{promo.title}</p>
+                  <p className="text-blue-600 font-bold mt-1">+{promo.bonus_points} pts bonus</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {promo.active_until ? `Sampai ${new Date(promo.active_until).toLocaleDateString('id-ID')}` : 'Permanent'}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => handleTogglePromo(promo)}
+                      className={`flex-1 text-xs rounded-lg py-1.5 ${promo.is_active ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
+                    >
+                      {promo.is_active ? 'Pause' : 'Aktifkan'}
+                    </button>
+                  </div>
+                </div>
+              ))}
+
+              {/* Purchase Bonus Promos */}
+              {allPromos.filter((p: any) => p.promo_type === 'purchase_bonus').map((promo: any) => (
+                <div key={promo.id} className="bg-white rounded-2xl p-5 shadow-sm border border-orange-100">
+                  <span className="text-xs bg-orange-100 text-orange-700 font-bold px-2 py-0.5 rounded-full mb-2 inline-block">🛒 Paket Belanja</span>
+                  <p className="font-semibold">{promo.title}</p>
+                  {promo.products?.image_url && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={promo.products.image_url} className="w-12 h-12 rounded-lg object-cover mt-2" alt={promo.title} />
+                  )}
+                  <p className="text-orange-600 font-bold mt-1">{promo.points_multiplier}x Points</p>
+                  <p className="text-xs text-gray-400 mt-1">
+                    {promo.active_until ? `Sampai ${new Date(promo.active_until).toLocaleDateString('id-ID')}` : 'Permanent'}
+                  </p>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      onClick={() => handleTogglePromo(promo)}
+                      className={`flex-1 text-xs rounded-lg py-1.5 ${promo.is_active ? 'bg-red-50 text-red-600' : 'bg-green-50 text-green-600'}`}
+                    >
+                      {promo.is_active ? 'Pause' : 'Aktifkan'}
                     </button>
                   </div>
                 </div>
@@ -206,8 +297,43 @@ export default function AdminPointsPage() {
         </div>
       )}
 
-      {/* Modal Create/Edit Promo */}
-      {showModal && (
+      {/* Modal: Redeem Points (existing) */}
+      {modalType === 'redeem' && (
+        <RedemptionModal
+          item={editItem}
+          onClose={() => { setModalType(null); setEditItem(null) }}
+          onSave={(r) => {
+            if (editItem) {
+              setRedemptions(prev => prev.map((p: any) => p.id === r.id ? r : p))
+            } else {
+              setRedemptions(prev => [r, ...prev])
+            }
+            setModalType(null)
+            setEditItem(null)
+          }}
+        />
+      )}
+
+      {/* Modal: New User Promo */}
+      {modalType === 'new_user' && (
+        <NewUserPromoModal
+          onClose={() => setModalType(null)}
+          onSave={(promo) => { setAllPromos(prev => [promo, ...prev]); setModalType(null) }}
+          products={products}
+        />
+      )}
+
+      {/* Modal: Purchase Bonus Promo */}
+      {modalType === 'purchase_bonus' && (
+        <PurchaseBonusModal
+          onClose={() => setModalType(null)}
+          onSave={(promo) => { setAllPromos(prev => [promo, ...prev]); setModalType(null) }}
+          products={products}
+        />
+      )}
+
+      {/* Legacy showModal support (unused but kept for safety) */}
+      {showModal && !modalType && (
         <RedemptionModal
           item={editItem}
           onClose={() => setShowModal(false)}
@@ -224,6 +350,8 @@ export default function AdminPointsPage() {
     </div>
   )
 }
+
+// ─── Modal: Redeem Points (existing) ──────────────────────────────────────────
 
 function RedemptionModal({ item, onClose, onSave }: { item: any; onClose: () => void; onSave: (r: any) => void }) {
   const [form, setForm] = useState({
@@ -264,7 +392,7 @@ function RedemptionModal({ item, onClose, onSave }: { item: any; onClose: () => 
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-2xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-bold">{item ? 'Edit Promo' : 'Tambah Promo Baru'}</h2>
+          <h2 className="text-xl font-bold">{item ? 'Edit Promo Redeem' : '💎 Tambah Promo Redeem'}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600">✕</button>
         </div>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -363,6 +491,185 @@ function RedemptionModal({ item, onClose, onSave }: { item: any; onClose: () => 
             <button
               type="submit"
               disabled={loading}
+              className="flex-1 bg-[#7FB300] text-white rounded-xl py-2.5 text-sm font-bold disabled:opacity-50"
+            >
+              {loading ? 'Menyimpan...' : 'Simpan Promo'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── Modal: New User Promo ────────────────────────────────────────────────────
+
+function NewUserPromoModal({ onClose, onSave }: { onClose: () => void; onSave: (promo: any) => void; products: any[] }) {
+  const [form, setForm] = useState({ title: 'Bonus Member Baru Mei 2026', bonus_points: 100, active_until: '' })
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const res = await fetch('/api/sambers/promos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ promo_type: 'new_user', ...form, active_until: form.active_until || null }),
+    })
+    const d = await res.json()
+    setLoading(false)
+    if (res.ok) onSave(d.promo)
+    else alert(d.error)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+        <div className="flex justify-between mb-6">
+          <h2 className="text-xl font-bold">👤 Promo New User</h2>
+          <button onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Judul Promo *</label>
+            <input
+              value={form.title}
+              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">💎 Bonus Points untuk Member Baru *</label>
+            <input
+              type="number" min="1" value={form.bonus_points}
+              onChange={e => setForm(p => ({ ...p, bonus_points: parseInt(e.target.value) || 1 }))}
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Berlaku Sampai (opsional)</label>
+            <input
+              type="date" value={form.active_until}
+              onChange={e => setForm(p => ({ ...p, active_until: e.target.value }))}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            />
+            <p className="text-xs text-gray-400 mt-1">Kosongkan = berlaku selamanya</p>
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm">Batal</button>
+            <button
+              type="submit"
+              disabled={loading}
+              className="flex-1 bg-[#7FB300] text-white rounded-xl py-2.5 text-sm font-bold disabled:opacity-50"
+            >
+              {loading ? 'Menyimpan...' : 'Simpan Promo'}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  )
+}
+
+// ─── Modal: Purchase Bonus Promo ──────────────────────────────────────────────
+
+function PurchaseBonusModal({ onClose, onSave, products }: { onClose: () => void; onSave: (promo: any) => void; products: any[] }) {
+  const [form, setForm] = useState({ title: '', product_id: '', variant_id: '', points_multiplier: 2.0, active_until: '' })
+  const [loading, setLoading] = useState(false)
+  const selectedProduct = products.find((p: any) => p.id === form.product_id)
+  const variants = selectedProduct?.product_variants ?? []
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+    const body = {
+      promo_type: 'purchase_bonus',
+      title: form.title || `Double Points: ${selectedProduct?.name}`,
+      product_id: form.product_id,
+      variant_id: form.variant_id || null,
+      points_multiplier: form.points_multiplier,
+      active_until: form.active_until || null,
+    }
+    const res = await fetch('/api/sambers/promos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    })
+    const d = await res.json()
+    setLoading(false)
+    if (res.ok) onSave(d.promo)
+    else alert(d.error)
+  }
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+        <div className="flex justify-between mb-6">
+          <h2 className="text-xl font-bold">🛒 Promo Paket Belanja</h2>
+          <button onClick={onClose}>✕</button>
+        </div>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
+            <label className="block text-sm font-medium mb-1">Pilih Produk *</label>
+            <select
+              value={form.product_id}
+              onChange={e => setForm(p => ({ ...p, product_id: e.target.value, variant_id: '' }))}
+              required
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            >
+              <option value="">-- Pilih Produk --</option>
+              {products.map((p: any) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          {variants.length > 0 && (
+            <div>
+              <label className="block text-sm font-medium mb-1">Varian (opsional)</label>
+              <select
+                value={form.variant_id}
+                onChange={e => setForm(p => ({ ...p, variant_id: e.target.value }))}
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+              >
+                <option value="">-- Semua Varian --</option>
+                {variants.map((v: any) => <option key={v.id} value={v.id}>{v.name}</option>)}
+              </select>
+            </div>
+          )}
+          <div>
+            <label className="block text-sm font-medium mb-1">Multiplier Points *</label>
+            <select
+              value={form.points_multiplier}
+              onChange={e => setForm(p => ({ ...p, points_multiplier: parseFloat(e.target.value) }))}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            >
+              <option value="2">2x Double Points</option>
+              <option value="3">3x Triple Points</option>
+              <option value="1.5">1.5x Bonus Points</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Judul Promo</label>
+            <input
+              value={form.title}
+              onChange={e => setForm(p => ({ ...p, title: e.target.value }))}
+              placeholder={`Double Points: ${selectedProduct?.name || 'Produk'}`}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Berlaku Sampai (opsional)</label>
+            <input
+              type="date" value={form.active_until}
+              onChange={e => setForm(p => ({ ...p, active_until: e.target.value }))}
+              className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+            />
+          </div>
+          <div className="flex gap-3 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 border border-gray-200 rounded-xl py-2.5 text-sm">Batal</button>
+            <button
+              type="submit"
+              disabled={loading || !form.product_id}
               className="flex-1 bg-[#7FB300] text-white rounded-xl py-2.5 text-sm font-bold disabled:opacity-50"
             >
               {loading ? 'Menyimpan...' : 'Simpan Promo'}
