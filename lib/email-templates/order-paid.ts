@@ -33,9 +33,11 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
       <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; border-radius: 8px; overflow: hidden; max-width: 600px; width: 100%;">
         
         <!-- Header -->
-        <tr><td style="background-color: #7FB300; padding: 24px; text-align: center;">
-          <h1 style="color: #ffffff; margin: 0; font-size: 22px;">EVC Mercato</h1>
-          <p style="color: #c8c4f8; margin: 4px 0 0; font-size: 14px;">Produk Kesehatan Wanita</p>
+        <tr><td style="background-color: #7FB300; padding: 20px 24px;">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="https://shop.evcmercato.com/logo-evcmercato.jpg" alt="EVC Mercato" style="width: 44px; height: 44px; border-radius: 50%; display: inline-block; vertical-align: middle;" />
+            <span style="color: #ffffff; font-size: 22px; font-weight: bold; vertical-align: middle; margin-left: 10px;">EVC Mercato</span>
+          </div>
         </td></tr>
 
         <!-- Body -->
@@ -73,12 +75,13 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
             ${payload.shipping_address.address}<br>
             ${payload.shipping_address.city}, ${payload.shipping_address.province} ${payload.shipping_address.postal_code}
           </p>
-          <p style="color: #888; font-size: 13px; margin: 8px 0 0;">🚚 Estimasi tiba: 3-5 hari kerja</p>
+          <p style="color: #888; font-size: 13px; margin: 8px 0 0;">🚚 Estimasi tiba: 1-3 hari kerja</p>
 
           <!-- EVC Points -->
           <div style="background: #E8F4D1; border-radius: 8px; padding: 16px; margin: 24px 0;">
             <p style="margin: 0; color: #7FB300; font-weight: bold;">✨ Kamu mendapat <strong>${payload.evc_points_earned} EVC Points</strong> dari pembelian ini!</p>
-            <p style="margin: 4px 0 0; color: #666; font-size: 13px;">Points akan masuk setelah barang diterima.</p>
+            <p style="margin: 6px 0 0; color: #555; font-size: 13px;">Total EVC Points Anda adalah <strong>${payload.total_points_after ?? payload.evc_points_earned} pts</strong></p>
+            <p style="margin: 4px 0 0; color: #7FB300; font-size: 13px; font-weight: 600;">🎁 Kumpulkan EVC Points untuk produk GRATIS!</p>
           </div>
 
           <!-- CTA -->
@@ -90,7 +93,7 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
         <!-- Footer -->
         <tr><td style="background-color: #f9f9f9; padding: 16px 24px; text-align: center; border-top: 1px solid #eee;">
           <p style="color: #888; font-size: 12px; margin: 0;">EVC Mercato — Balikpapan, Kalimantan Timur<br>
-          Ada pertanyaan? Reply email ini atau WhatsApp kami.</p>
+          Fast Response CS: <strong>0858-2085-2908</strong> (WA Chat Only)</p>
         </td></tr>
 
       </table>
