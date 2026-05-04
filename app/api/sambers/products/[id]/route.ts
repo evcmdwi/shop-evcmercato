@@ -72,7 +72,34 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     }
 
     if (variants && Array.isArray(variants)) {
-      await admin.from('product_variants').delete().eq('product_id', id)
+      // Step 1: Get existing variant IDs
+      const { data: existingVariants } = await admin
+        .from('product_variants')
+        .select('id')
+        .eq('product_id', id)
+
+      const existingIds = (existingVariants ?? []).map((v: any) => v.id)
+
+      if (existingIds.length > 0) {
+        // Step 2: Delete cart_items referencing these variants (FK constraint)
+        await admin
+          .from('cart_items')
+          .delete()
+          .in('variant_id', existingIds)
+
+        // Step 3: Now safe to delete variants
+        const { error: delError } = await admin
+          .from('product_variants')
+          .delete()
+          .eq('product_id', id)
+
+        if (delError) {
+          console.error('[products PATCH] delete variants error:', delError.message)
+          return NextResponse.json({ error: delError.message }, { status: 500 })
+        }
+      }
+
+      // Step 4: Insert new variants
       if (variants.length > 0) {
         const variantData = variants.map((v: any, i: number) => ({
           product_id: id,
@@ -84,7 +111,15 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
           sort_order: i,
           is_active: true,
         }))
-        await admin.from('product_variants').insert(variantData)
+
+        const { error: insError } = await admin
+          .from('product_variants')
+          .insert(variantData)
+
+        if (insError) {
+          console.error('[products PATCH] insert variants error:', insError.message)
+          return NextResponse.json({ error: insError.message }, { status: 500 })
+        }
       }
     }
 
