@@ -177,6 +177,28 @@ export default function HomePage() {
 
       {/* FOOTER */}
       <footer className="bg-white border-t border-gray-200">
+        {/* Disclosure Banner */}
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 mx-4 mt-8">
+          <div className="flex gap-3">
+            <span className="text-amber-600 mt-0.5 flex-shrink-0">ℹ️</span>
+            <div className="text-sm text-amber-800">
+              <p className="font-semibold mb-1">INFORMASI PENTING</p>
+              <p>
+                shop.evcmercato.com dikelola secara independen oleh <strong>Mitra Usaha Resmi KKI Group (No. ID 12081020)</strong>.
+                Website ini <strong>BUKAN</strong> merupakan official store KKI Group.
+              </p>
+              <p className="mt-1">
+                Pembelian di sini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
+                Untuk menjadi member KKI, daftar langsung ke KKI Group resmi.
+              </p>
+              <p className="mt-2">
+                <Link href="/syarat-ketentuan" className="text-[#7FB300] font-semibold hover:underline">
+                  Baca selengkapnya di Syarat &amp; Ketentuan →
+                </Link>
+              </p>
+            </div>
+          </div>
+        </div>
         <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
           <div>
@@ -218,14 +240,14 @@ export default function HomePage() {
             <h3 className="font-bold text-gray-900 mb-4">⚖️ LEGAL</h3>
             <div className="space-y-2 text-sm">
               <Link href="/privacy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
-              <Link href="/terms" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Syarat & Ketentuan</Link>
+              <Link href="/syarat-ketentuan" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Syarat &amp; Ketentuan</Link>
               <Link href="/return-policy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Pengembalian</Link>
             </div>
           </div>
         </div>
 
         <div className="bg-[#F9FAFB] border-t border-gray-200 py-4 text-center">
-          <p className="text-sm text-gray-500">© 2026 EVC Mercato. Trusted since 2003 ✓</p>
+          <p className="text-sm text-gray-500">© 2026 EVC Mercato — Mitra Usaha Resmi KKI Group (No. ID 12081020). Website ini bukan merupakan official store KKI Group.</p>
         </div>
       </footer>
     </div>

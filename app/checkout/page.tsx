@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
   const [deliveryNote, setDeliveryNote] = useState('')
+  const [termsAccepted, setTermsAccepted] = useState(false)
 
   const fetchAddresses = useCallback(async () => {
     const res = await fetch('/api/addresses')
@@ -94,7 +95,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: deliveryNote.trim() || null }),
+        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: deliveryNote.trim() || null, terms_accepted: true }),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -383,9 +384,27 @@ export default function CheckoutPage() {
           <span className="text-sm text-gray-600">Total Bayar</span>
           <span className="font-bold text-[#7FB300]">{formatRupiah(totalAmount)}</span>
         </div>
+        {/* Layer 4: Terms consent */}
+        <div className="flex items-start gap-2 mb-3">
+          <input
+            type="checkbox"
+            id="checkout-terms"
+            checked={termsAccepted}
+            onChange={e => setTermsAccepted(e.target.checked)}
+            className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer flex-shrink-0"
+          />
+          <label htmlFor="checkout-terms" className="text-xs text-gray-500 cursor-pointer leading-relaxed">
+            Saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI.
+            Saya menyetujui{' '}
+            <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">
+              Syarat &amp; Ketentuan
+            </a>{' '}
+            dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
+          </label>
+        </div>
         <button
           onClick={handlePay}
-          disabled={paying || !selectedAddressId}
+          disabled={paying || !selectedAddressId || !termsAccepted}
           className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {paying ? (
