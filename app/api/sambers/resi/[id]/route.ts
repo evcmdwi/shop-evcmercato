@@ -91,8 +91,8 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       border-bottom: 1px solid #ccc; margin-bottom: 0.15cm;
       padding: 0.05cm 0;
     }
-    .barcode-section img { max-height: 1.7cm; max-width: 8.5cm; object-fit: contain; width: auto; }
-    #barcode-svg { max-width: 8cm; max-height: 1.8cm; display: block; margin: 0 auto; }
+    .barcode-section img { max-height: 2.0cm; max-width: 8.5cm; object-fit: contain; width: auto; }
+    #barcode-svg { max-width: 8cm; max-height: 2.0cm; display: block; margin: 0 auto; }
     .resi-number-text { font-size: 0.32cm; font-family: monospace; font-weight: bold; text-align: center; letter-spacing: 0.05cm; margin-top: 0.1cm; }
     .grab-logo { height: 1.6cm; width: auto; }
     .address-section { display: flex; flex: 1; min-height: 0; overflow: hidden; gap: 0.15cm; margin-bottom: 0.1cm; }
@@ -133,7 +133,6 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     </div>
 
     <div class="barcode-section">
-      ${isJnt ? '<div class="courier-badge">REGULER</div>' : ''}
       ${isGrab ? '<div class="courier-badge" style="color:#00B14F">INSTAN / SAMEDAY</div>' : ''}
       ${isJnt ? `
         <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
