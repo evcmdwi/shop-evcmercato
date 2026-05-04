@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -30,6 +30,7 @@ export default function CheckoutPage() {
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
   const [deliveryNote, setDeliveryNote] = useState('')
+  const deliveryNoteRef = useRef<HTMLInputElement>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
 
   const fetchAddresses = useCallback(async () => {
@@ -95,7 +96,7 @@ export default function CheckoutPage() {
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: deliveryNote.trim() || null, terms_accepted: true }),
+        body: JSON.stringify({ address_id: selectedAddressId, delivery_note: (deliveryNoteRef.current?.value ?? deliveryNote).trim() || null, terms_accepted: true }),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -228,7 +229,8 @@ export default function CheckoutPage() {
               <h2 className="text-lg font-semibold text-gray-900 mb-4">Pesan untuk Kurir</h2>
               <input
                 type="text"
-                value={deliveryNote}
+                ref={deliveryNoteRef}
+                defaultValue={deliveryNote}
                 onChange={(e) => setDeliveryNote(e.target.value)}
                 placeholder="Contoh: Titipkan di reception. (Opsional)"
                 maxLength={150}
