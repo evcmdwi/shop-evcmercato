@@ -41,20 +41,6 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-50">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-teal-500 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">EVC</span>
-            </div>
-            <span className="font-semibold text-slate-800">EVC Mercato</span>
-          </div>
-
-          <LogoutButton />
-        </div>
-      </header>
-
       {/* Main */}
       <main className="max-w-5xl mx-auto px-4 py-10">
         <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
