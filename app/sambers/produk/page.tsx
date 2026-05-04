@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
-import AdminTable from '@/components/admin/AdminTable'
 import ConfirmDialog from '@/components/admin/ConfirmDialog'
 import { toast } from '@/components/admin/Toast'
 
@@ -93,7 +92,7 @@ export default function AdminProdukPage() {
       const json: ProductsResponse = await res.json()
       setProducts(json.data ?? [])
       setTotal(json.total ?? json.meta?.total ?? 0)
-    } catch (e) {
+    } catch {
       toast('Gagal memuat produk', 'error')
     } finally {
       setLoading(false)
@@ -128,80 +127,6 @@ export default function AdminProdukPage() {
   }
 
   const totalPages = Math.ceil(total / PAGE_SIZE)
-
-  const columns = [
-    {
-      key: 'image_url',
-      header: 'Gambar',
-      className: 'w-16',
-      render: (row: Product) =>
-        row.image_url ? (
-          <Image
-            src={row.image_url}
-            alt={row.name}
-            width={40}
-            height={40}
-            className="w-10 h-10 rounded-lg object-cover"
-          />
-        ) : (
-          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
-            N/A
-          </div>
-        ),
-    },
-    { key: 'name', header: 'Nama Produk' },
-    {
-      key: 'category',
-      header: 'Kategori',
-      render: (row: Product) => (row.category ?? row.categories)?.name ?? '-',
-    },
-    {
-      key: 'price',
-      header: 'Harga',
-      render: (row: Product) => getDisplayPrice(row),
-    },
-    {
-      key: 'stock',
-      header: 'Stok',
-      render: (row: Product) => getDisplayStock(row),
-    },
-    {
-      key: 'is_active',
-      header: 'Status',
-      render: (row: Product) => (
-        <span
-          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
-            row.is_active
-              ? 'bg-emerald-50 text-[#1D9E75]'
-              : 'bg-slate-100 text-slate-500'
-          }`}
-        >
-          {row.is_active ? 'Aktif' : 'Nonaktif'}
-        </span>
-      ),
-    },
-    {
-      key: 'actions',
-      header: 'Aksi',
-      className: 'w-24',
-      render: (row: Product) => (
-        <div className="flex gap-2">
-          <Link
-            href={`/sambers/produk/${row.id}/edit`}
-            className="px-2 py-1 rounded text-xs bg-[#E8F4D1] text-[#7FB300] hover:bg-[#7FB300] hover:text-white transition-colors"
-          >
-            Edit
-          </Link>
-          <button
-            onClick={() => setDeleteId(row.id)}
-            className="px-2 py-1 rounded text-xs bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
-          >
-            Hapus
-          </button>
-        </div>
-      ),
-    },
-  ]
 
   return (
     <div>
@@ -251,13 +176,119 @@ export default function AdminProdukPage() {
         </select>
       </div>
 
-      <AdminTable
-        columns={columns}
-        data={products}
-        loading={loading}
-        keyExtractor={(r) => r.id}
-        emptyMessage="Tidak ada produk."
-      />
+      {/* Table */}
+      <div className="overflow-x-auto rounded-xl border border-slate-200">
+        {loading ? (
+          <div className="py-12 text-center text-slate-400 text-sm">Memuat data...</div>
+        ) : (
+          <table className="min-w-full divide-y divide-slate-200 text-sm">
+            <thead className="bg-slate-50">
+              <tr>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap w-16">Gambar</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap">Nama Produk</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap">Kategori</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap">Harga</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap">Stok</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap">Status</th>
+                <th className="px-4 py-3 text-left font-semibold text-slate-600 whitespace-nowrap w-24">Aksi</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 bg-white">
+              {products.length === 0 ? (
+                <tr>
+                  <td colSpan={7} className="py-10 text-center text-slate-400">
+                    Tidak ada produk.
+                  </td>
+                </tr>
+              ) : (
+                products.map((product) => (
+                  <>
+                    {/* Main product row */}
+                    <tr key={product.id} className="hover:bg-slate-50">
+                      <td className="px-4 py-3 align-middle w-16">
+                        {product.image_url ? (
+                          <Image
+                            src={product.image_url}
+                            alt={product.name}
+                            width={40}
+                            height={40}
+                            className="w-10 h-10 rounded-lg object-cover"
+                          />
+                        ) : (
+                          <div className="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center text-slate-400 text-xs">
+                            N/A
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <div className="font-medium text-slate-800">{product.name}</div>
+                      </td>
+                      <td className="px-4 py-3 align-middle text-slate-600">
+                        {(product.category ?? product.categories)?.name ?? '-'}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-slate-600">
+                        {getDisplayPrice(product)}
+                      </td>
+                      <td className="px-4 py-3 align-middle text-slate-600">
+                        {getDisplayStock(product)}
+                      </td>
+                      <td className="px-4 py-3 align-middle">
+                        <span
+                          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            product.is_active
+                              ? 'bg-emerald-50 text-[#1D9E75]'
+                              : 'bg-slate-100 text-slate-500'
+                          }`}
+                        >
+                          {product.is_active ? 'Aktif' : 'Nonaktif'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 align-middle w-24">
+                        <div className="flex gap-2">
+                          <Link
+                            href={`/sambers/produk/${product.id}/edit`}
+                            className="px-2 py-1 rounded text-xs bg-[#E8F4D1] text-[#7FB300] hover:bg-[#7FB300] hover:text-white transition-colors"
+                          >
+                            Edit
+                          </Link>
+                          <button
+                            onClick={() => setDeleteId(product.id)}
+                            className="px-2 py-1 rounded text-xs bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"
+                          >
+                            Hapus
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+
+                    {/* Variant sub-rows */}
+                    {(product.product_variants ?? []).map((variant) => (
+                      <tr key={`variant-${variant.id}`} className="bg-gray-50 border-t border-gray-100">
+                        <td className="px-4 py-2 align-middle"></td>
+                        <td className="px-4 py-2 align-middle pl-10">
+                          <div className="flex items-center gap-2">
+                            <span className="text-gray-400 text-xs">↳</span>
+                            <span className="text-sm text-gray-700">{variant.name}</span>
+                          </div>
+                        </td>
+                        <td className="px-4 py-2 align-middle"></td>
+                        <td className="px-4 py-2 align-middle text-sm text-gray-700">
+                          {formatRupiah(variant.price)}
+                        </td>
+                        <td className="px-4 py-2 align-middle text-sm text-gray-700">
+                          {variant.stock}
+                        </td>
+                        <td className="px-4 py-2 align-middle"></td>
+                        <td className="px-4 py-2 align-middle"></td>
+                      </tr>
+                    ))}
+                  </>
+                ))
+              )}
+            </tbody>
+          </table>
+        )}
+      </div>
 
       {/* Pagination */}
       {totalPages > 1 && (
