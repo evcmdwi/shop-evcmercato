@@ -30,6 +30,7 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
     .from('products')
     .select('*, categories(*), product_variants(price, stock, is_active)')
     .eq('is_active', true)
+    .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   if (q) {
