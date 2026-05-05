@@ -41,6 +41,7 @@ export default function CheckoutPage() {
   } | null>(null)
   const [loadingRates, setLoadingRates] = useState(false)
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
+  const [extraPointPromo, setExtraPointPromo] = useState<{ multiplier: number; ends_at: string } | null>(null)
 
   const fetchAddresses = useCallback(async () => {
     const res = await fetch('/api/addresses')
@@ -74,6 +75,10 @@ export default function CheckoutPage() {
   useEffect(() => {
     fetchAddresses()
     fetchCart()
+    fetch('/api/user/extra-point-promo')
+      .then(r => r.json())
+      .then(d => setExtraPointPromo(d.promo ?? null))
+      .catch(() => {})
     // Read selected item IDs from sessionStorage (set by keranjang page)
     const stored = sessionStorage.getItem('checkout_selected_ids')
     if (stored) {
@@ -437,11 +442,18 @@ export default function CheckoutPage() {
                       </div>
                     )}
                     {evcPoints > 0 && (
-                      <p className="text-xs text-gray-500 text-center mt-2">
-                        Kamu akan mendapat{' '}
-                        <span className="font-semibold text-[#7FB300]">💎 {evcPoints} EVC Points</span>{' '}
-                        dari pembelian ini
-                      </p>
+                      extraPointPromo ? (
+                        <div className="text-xs text-center mt-2 space-y-1">
+                          <p className="text-gray-500">💎 {evcPoints} EVC Points dari pembelian ini</p>
+                          <p className="text-[#7FB300] font-semibold">🎉 + {Math.floor(evcPoints * (extraPointPromo.multiplier - 1))} Extra Point Khusus!</p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500 text-center mt-2">
+                          Kamu akan mendapat{' '}
+                          <span className="font-semibold text-[#7FB300]">💎 {evcPoints} EVC Points</span>{' '}
+                          dari pembelian ini
+                        </p>
+                      )
                     )}
                   </div>
 

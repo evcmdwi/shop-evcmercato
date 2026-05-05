@@ -113,14 +113,17 @@ export default function PointsPage() {
   const [activeTab, setActiveTab] = useState<'tukar' | 'earning' | 'redeem'>('tukar')
   const [loading, setLoading] = useState(true)
   const [showBenefit, setShowBenefit] = useState(false)
+  const [activePromo, setActivePromo] = useState<{ multiplier: number; ends_at: string } | null>(null)
 
   useEffect(() => {
     Promise.all([
       fetch('/api/user/points').then(r => r.json()),
       fetch('/api/redemptions').then(r => r.json()),
-    ]).then(([pointsData, redemptionsData]) => {
+      fetch('/api/user/extra-point-promo').then(r => r.json()).catch(() => ({ promo: null })),
+    ]).then(([pointsData, redemptionsData, extraPromoData]) => {
       setData(pointsData)
       setRedemptions(redemptionsData.redemptions ?? [])
+      setActivePromo(extraPromoData.promo ?? null)
       setLoading(false)
     })
   }, [])
@@ -189,6 +192,20 @@ export default function PointsPage() {
           </div>
         )}
       </div>
+
+      {/* Banner Extra Point Khusus */}
+      {activePromo && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 flex items-start gap-2">
+          <span className="text-lg">🎉</span>
+          <div>
+            <p className="text-sm font-semibold text-amber-800">Kamu punya Promo Extra Point!</p>
+            <p className="text-xs text-amber-600">
+              Belanja sekarang dapat bonus {Math.round((activePromo.multiplier - 1) * 100)}% extra points.
+              Berlaku s/d {new Date(activePromo.ends_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}.
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* Info biaya redeem */}
       <div className="bg-white rounded-2xl p-4 mb-6 border border-gray-100 shadow-sm">
