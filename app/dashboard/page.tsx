@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from './LogoutButton'
 
@@ -24,26 +25,20 @@ export default async function DashboardPage() {
   const displayName = userData?.name ?? user.email ?? 'User'
 
   // Fetch count orders aktif (status: paid, processed, shipped)
-  const { data: activeOrders } = await supabase
+  const { count: activeOrderCount } = await supabase
     .from('orders')
-    .select('id', { count: 'exact' })
+    .select('*', { count: 'exact', head: true })
     .eq('user_id', user.id)
     .in('status', ['paid', 'processed', 'shipped'])
 
-  const activeOrderCount = activeOrders?.length ?? 0
-
-  const tierLabel = userData?.tier
-    ? userData.tier.charAt(0).toUpperCase() + userData.tier.slice(1).toLowerCase()
-    : 'Silver'
-
-  const tierIcon =
-    tierLabel === 'Gold' ? '🥇' : tierLabel === 'Platinum' ? '💎' : '🥈'
+  const tier = userData?.tier?.toLowerCase() ?? 'silver'
 
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Main */}
       <main className="max-w-5xl mx-auto px-4 py-10">
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
+          {/* User Info */}
           <div className="flex items-center gap-4 mb-6">
             <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center">
               <span className="text-teal-700 font-bold text-xl">
@@ -53,40 +48,57 @@ export default async function DashboardPage() {
             <div>
               <p className="text-sm text-slate-500">Selamat datang,</p>
               <h2 className="text-xl font-bold text-slate-800">{displayName}</h2>
-              <p className="text-sm text-slate-400">{userData?.email ?? user.email}</p>
+              <p className="text-sm text-gray-500">{userData?.email ?? user.email}</p>
+              <div className="mt-1 flex items-center gap-1">
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  tier === 'platinum' ? 'bg-violet-100 text-violet-700' :
+                  tier === 'gold' ? 'bg-amber-100 text-amber-700' :
+                  'bg-gray-100 text-gray-600'
+                }`}>
+                  {tier === 'platinum' ? '💎 Member Platinum' :
+                   tier === 'gold' ? '⭐ Member Gold' :
+                   '🥈 Member Silver'}
+                </span>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-              <div className="text-2xl mb-2">📦</div>
-              <p className="text-2xl font-bold text-slate-800">{activeOrderCount}</p>
-              <p className="text-sm text-slate-500 mt-0.5">Pesanan Aktif</p>
-            </div>
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-              <div className="text-2xl mb-2">⭐</div>
-              <p className="text-2xl font-bold text-slate-800">{userData?.total_points ?? 0} pt</p>
-              <p className="text-sm text-slate-500 mt-0.5">EVC Points</p>
-            </div>
-            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
-              <div className="text-2xl mb-2">{tierIcon}</div>
-              <p className="text-2xl font-bold text-slate-800">{tierLabel}</p>
-              <p className="text-sm text-slate-500 mt-0.5">Tier Member</p>
-            </div>
-          </div>
+          {/* Stats Boxes — 2 boxes, 1 row, clickable */}
+          <div className="flex gap-3 mb-4">
+            {/* Box 1: Pesanan Aktif — clickable ke /orders */}
+            <Link href="/orders" prefetch={false} className="flex-1 bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="text-2xl mb-1">📦</div>
+              <p className="text-2xl font-bold text-gray-900">{activeOrderCount ?? 0}</p>
+              <p className="text-sm text-gray-500 mt-1">Pesanan Aktif</p>
+            </Link>
 
-          <div className="mt-8 flex justify-center">
-            <Link
-              href="/katalog"
-              className="w-full sm:w-auto flex items-center justify-center gap-2 bg-[#7FB300] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#4338a0] transition-colors"
-            >
-              🛍️ Lanjut Belanja
+            {/* Box 2: EVC Points — clickable ke /poin */}
+            <Link href="/poin" prefetch={false} className="flex-1 bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow cursor-pointer">
+              <div className="text-2xl mb-1">💎</div>
+              <p className="text-2xl font-bold text-amber-600">{userData?.total_points ?? 0} pt</p>
+              <p className="text-sm text-gray-500 mt-1">EVC Points</p>
             </Link>
           </div>
 
-          <p className="text-center text-slate-400 text-sm mt-6">
-            🚧 Dashboard sedang dalam pengembangan
-          </p>
+          {/* Evie Health Poster */}
+          <a
+            href="https://t.me/evie_evc_bot?start=6285820852908"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="block rounded-2xl overflow-hidden hover:opacity-95 transition-opacity cursor-pointer"
+          >
+            <div className="relative w-full aspect-square">
+              <Image
+                src="/evie-health-reference.jpg"
+                alt="Evie Health — Konsultasi Kesehatan 24 Jam"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="bg-white py-2 px-3 text-center">
+              <p className="text-sm text-gray-500 italic">Klik untuk konsultasi dengan Evie</p>
+            </div>
+          </a>
         </div>
       </main>
     </div>
