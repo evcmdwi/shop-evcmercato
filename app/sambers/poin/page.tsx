@@ -5,7 +5,7 @@ import { formatRupiah } from '@/lib/utils'
 // Tab: promo | riwayat | pengaturan
 
 export default function AdminPointsPage() {
-  const [activeTab, setActiveTab] = useState<'promo' | 'riwayat' | 'pengaturan'>('promo')
+  const [activeTab, setActiveTab] = useState<'promo' | 'riwayat' | 'pengaturan' | 'extra_point'>('promo')
   const [stats, setStats] = useState({ earned: 0, redeemed: 0, orders: 0, revenue: 0 })
   const [redemptions, setRedemptions] = useState<any[]>([])
   const [allPromos, setAllPromos] = useState<any[]>([])
@@ -15,6 +15,11 @@ export default function AdminPointsPage() {
   const [orders, setOrders] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [products, setProducts] = useState<any[]>([])
+
+  // Extra Point Khusus state
+  const [extraPointPromos, setExtraPointPromos] = useState<any[]>([])
+  const [extraPointForm, setExtraPointForm] = useState({ email: '', multiplier: 1.5, starts_at: '', ends_at: '', note: '' })
+  const [extraPointLoading, setExtraPointLoading] = useState(false)
 
   // Dropdown state for promo type selection
   const [showPromoTypeMenu, setShowPromoTypeMenu] = useState(false)
@@ -27,7 +32,9 @@ export default function AdminPointsPage() {
       fetch('/api/sambers/redemptions/config').then(r => r.json()),
       fetch('/api/sambers/promos').then(r => r.json()),
       fetch('/api/sambers/products?limit=100').then(r => r.json()),
-    ]).then(([statsData, redemptionsData, configData, promosData, productsData]) => {
+      fetch('/api/sambers/extra-point-promos').then(r => r.json()),
+    ]).then(([statsData, redemptionsData, configData, promosData, productsData, extraPromos]) => {
+      setExtraPointPromos(extraPromos.promos ?? [])
       setStats({
         earned: statsData.points_earned ?? statsData.earned ?? 0,
         redeemed: statsData.points_redeemed ?? statsData.redeemed ?? 0,
@@ -41,6 +48,33 @@ export default function AdminPointsPage() {
       setLoading(false)
     })
   }, [])
+
+  const handleAddExtraPointPromo = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setExtraPointLoading(true)
+    const res = await fetch('/api/sambers/extra-point-promos', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(extraPointForm),
+    })
+    const d = await res.json()
+    setExtraPointLoading(false)
+    if (res.ok) {
+      setExtraPointPromos(prev => [d.promo, ...prev])
+      setExtraPointForm({ email: '', multiplier: 1.5, starts_at: '', ends_at: '', note: '' })
+    } else {
+      alert(d.error ?? 'Gagal menambah promo')
+    }
+  }
+
+  const handleToggleExtraPointPromo = async (promo: any) => {
+    await fetch(`/api/sambers/extra-point-promos/${promo.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !promo.is_active }),
+    })
+    setExtraPointPromos(prev => prev.map(p => p.id === promo.id ? { ...p, is_active: !p.is_active } : p))
+  }
 
   useEffect(() => {
     if (activeTab === 'riwayat') {
@@ -116,7 +150,7 @@ export default function AdminPointsPage() {
 
       {/* Tabs */}
       <div className="flex gap-1 bg-gray-100 p-1 rounded-xl mb-6 w-fit">
-        {([['promo', 'Semua Promo'], ['riwayat', 'Riwayat Redeem'], ['pengaturan', 'Pengaturan']] as const).map(([tab, label]) => (
+        {([['promo', 'Semua Promo'], ['extra_point', 'Extra Point Khusus'], ['riwayat', 'Riwayat Redeem'], ['pengaturan', 'Pengaturan']] as const).map(([tab, label]) => (
           <button
             key={tab}
             onClick={() => setActiveTab(tab)}
@@ -230,6 +264,133 @@ export default function AdminPointsPage() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tab: Extra Point Khusus */}
+      {activeTab === 'extra_point' && (
+        <div className="space-y-6">
+          {/* Form Tambah Promo */}
+          <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100">
+            <h3 className="font-semibold text-slate-800 mb-4">🎉 Tambah Promo Extra Point Khusus</h3>
+            <form onSubmit={handleAddExtraPointPromo} className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="md:col-span-2">
+                <label className="block text-sm font-medium mb-1">Email User *</label>
+                <input
+                  type="email"
+                  placeholder="cari email..."
+                  value={extraPointForm.email}
+                  onChange={e => setExtraPointForm(p => ({ ...p, email: e.target.value }))}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Multiplier *</label>
+                <input
+                  type="number"
+                  min="1.1"
+                  step="0.1"
+                  placeholder="1.5"
+                  value={extraPointForm.multiplier}
+                  onChange={e => setExtraPointForm(p => ({ ...p, multiplier: parseFloat(e.target.value) || 1.5 }))}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Catatan (opsional)</label>
+                <input
+                  type="text"
+                  placeholder="contoh: VIP member"
+                  value={extraPointForm.note}
+                  onChange={e => setExtraPointForm(p => ({ ...p, note: e.target.value }))}
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Mulai *</label>
+                <input
+                  type="date"
+                  value={extraPointForm.starts_at}
+                  onChange={e => setExtraPointForm(p => ({ ...p, starts_at: e.target.value }))}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Sampai *</label>
+                <input
+                  type="date"
+                  value={extraPointForm.ends_at}
+                  onChange={e => setExtraPointForm(p => ({ ...p, ends_at: e.target.value }))}
+                  required
+                  className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                />
+              </div>
+              <div className="md:col-span-2">
+                <button
+                  type="submit"
+                  disabled={extraPointLoading}
+                  className="bg-[#7FB300] text-white px-6 py-2.5 rounded-xl text-sm font-semibold hover:bg-[#6B9700] transition-colors disabled:opacity-50"
+                >
+                  {extraPointLoading ? 'Menyimpan...' : '+ Tambah Promo'}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          {/* List Promo */}
+          <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+            <div className="px-6 py-4 border-b border-gray-100">
+              <h3 className="font-semibold text-slate-800">Daftar Promo Extra Point Khusus</h3>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 text-xs text-slate-500 uppercase">
+                  <tr>
+                    <th className="px-4 py-3 text-left">Email</th>
+                    <th className="px-4 py-3 text-left">Multiplier</th>
+                    <th className="px-4 py-3 text-left">Periode</th>
+                    <th className="px-4 py-3 text-left">Catatan</th>
+                    <th className="px-4 py-3 text-left">Status</th>
+                    <th className="px-4 py-3 text-left">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {extraPointPromos.length === 0 ? (
+                    <tr><td colSpan={6} className="text-center py-8 text-slate-400">Belum ada promo extra point khusus</td></tr>
+                  ) : extraPointPromos.map((promo: any) => (
+                    <tr key={promo.id} className="hover:bg-gray-50">
+                      <td className="px-4 py-3 text-sm">{promo.email}</td>
+                      <td className="px-4 py-3 text-sm font-semibold text-amber-600">{promo.multiplier}x</td>
+                      <td className="px-4 py-3 text-xs text-slate-500">
+                        {new Date(promo.starts_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })} –{' '}
+                        {new Date(promo.ends_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })}
+                      </td>
+                      <td className="px-4 py-3 text-xs text-slate-500">{promo.note ?? '-'}</td>
+                      <td className="px-4 py-3">
+                        {promo.is_active
+                          ? <span className="text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full">✅ Aktif</span>
+                          : <span className="text-xs bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full">Nonaktif</span>
+                        }
+                      </td>
+                      <td className="px-4 py-3">
+                        <button
+                          onClick={() => handleToggleExtraPointPromo(promo)}
+                          className={`text-xs px-3 py-1 rounded-lg transition-colors ${
+                            promo.is_active ? 'bg-red-50 text-red-600 hover:bg-red-100' : 'bg-green-50 text-green-600 hover:bg-green-100'
+                          }`}
+                        >
+                          {promo.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
       )}
 
