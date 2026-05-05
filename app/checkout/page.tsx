@@ -35,6 +35,11 @@ export default function CheckoutPage() {
   })
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [shippingMethod, setShippingMethod] = useState<'reguler' | 'instan' | 'sameday'>('reguler')
+  const [shippingRates, setShippingRates] = useState<{
+    available_methods: { method: string; label: string; base_rate: number; available: boolean; reason?: string }[]
+  } | null>(null)
+  const [loadingRates, setLoadingRates] = useState(false)
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
 
   const fetchAddresses = useCallback(async () => {
@@ -76,6 +81,22 @@ export default function CheckoutPage() {
     }
   }, [fetchAddresses, fetchCart])
 
+  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null
+
+  useEffect(() => {
+    if (!selectedAddress?.district_id) {
+      setShippingRates(null)
+      setShippingMethod('reguler')
+      return
+    }
+    setLoadingRates(true)
+    fetch(`/api/shipping-rates/${selectedAddress.district_id}`)
+      .then(r => r.json())
+      .then(d => { setShippingRates(d); setShippingMethod('reguler') })
+      .catch(() => setShippingRates(null))
+      .finally(() => setLoadingRates(false))
+  }, [selectedAddress?.district_id]) // eslint-disable-line react-hooks/exhaustive-deps
+
   // Filter to only selected items (if selection was passed from cart page)
   const checkoutItems = selectedCartItemIds.length > 0
     ? cart?.items?.filter((item) => selectedCartItemIds.includes(item.id)) ?? []
@@ -83,22 +104,22 @@ export default function CheckoutPage() {
 
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.subtotal, 0)
   const itemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0)
-  const shippingCost = 10000
   const serviceFee = 3000
-  const freeShipping = subtotal >= 50000
-  const qualifiesForFreeShipping = freeShipping
+  const shippingDiscount = subtotal >= 50000 ? 10000 : 0
+  const selectedMethodData = shippingRates?.available_methods?.find((m) => m.method === shippingMethod)
+  const baseRate = selectedMethodData?.base_rate ?? 10000
+  const shippingCost = Math.max(0, baseRate - shippingDiscount)
+  const freeShipping = shippingCost === 0
+  const qualifiesForFreeShipping = subtotal >= 50000
   const remaining = Math.max(0, 50000 - subtotal)
-  const shippingCostDiscount = freeShipping ? shippingCost : 0
   // Service fee always free (Phase 1)
-  const totalSaved = shippingCostDiscount + serviceFee
-  const totalAmount = subtotal + (freeShipping ? 0 : shippingCost)
+  const totalSaved = (qualifiesForFreeShipping ? baseRate : 0) + serviceFee
+  const totalAmount = subtotal + shippingCost
   const evcPoints = Math.floor(subtotal / 1000)
   // Keep backward compat vars
-  const ongkir = shippingCost
-  const promo = freeShipping ? -(ongkir + serviceFee) : -serviceFee
+  const ongkir = baseRate
+  const promo = qualifiesForFreeShipping ? -(ongkir + serviceFee) : -serviceFee
   const totalBayar = totalAmount
-
-  const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null
 
   const handlePay = async () => {
     if (!selectedAddressId) {
@@ -117,6 +138,8 @@ export default function CheckoutPage() {
           delivery_note: domNote,
           terms_accepted: true,
           selected_item_ids: selectedCartItemIds.length > 0 ? selectedCartItemIds : null,
+          shipping_method: shippingMethod,
+          shipping_base_rate: selectedMethodData?.base_rate ?? 10000,
         }),
       })
       const json = await res.json()
@@ -213,37 +236,58 @@ export default function CheckoutPage() {
             {/* Metode Pengiriman */}
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <h2 className="font-semibold text-gray-900 mb-4">Metode Pengiriman</h2>
-              <div className="space-y-3">
-                <label className="flex items-center justify-between p-3 border border-[#7FB300] bg-[#E8F4D1] rounded-xl cursor-pointer">
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" defaultChecked className="accent-[#7FB300]" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">Reguler</p>
-                      <p className="text-xs text-gray-500">Estimasi 1-3 hari kerja</p>
-                    </div>
-                  </div>
-                  <div className="text-sm font-medium text-right">
-                    {freeShipping ? (
-                      <span>
-                        <span className="line-through text-gray-400 mr-1">{formatRupiah(10000)}</span>
-                        <span className="text-[#1D9E75] font-bold">GRATIS</span>
-                      </span>
-                    ) : (
-                      <span className="text-gray-900">{formatRupiah(10000)}</span>
-                    )}
-                  </div>
-                </label>
-
-                <label className="flex items-center justify-between p-3 border border-gray-200 rounded-xl opacity-50 cursor-not-allowed">
-                  <div className="flex items-center gap-3">
-                    <input type="radio" name="shipping" disabled className="accent-[#7FB300]" />
-                    <div>
-                      <p className="text-sm font-medium text-gray-600">Instan</p>
-                      <p className="text-xs text-gray-400">Belum tersedia</p>
-                    </div>
-                  </div>
-                </label>
-              </div>
+              {loadingRates ? (
+                <div className="text-sm text-gray-400">Memuat opsi pengiriman...</div>
+              ) : (
+                <div className="space-y-2">
+                  {(shippingRates?.available_methods ?? [
+                    { method: 'reguler', label: 'Reguler (JNT) — 1-3 hari', base_rate: 10000, available: true },
+                  ]).map((m) => {
+                    const rate = m.base_rate ?? 10000
+                    const cost = Math.max(0, rate - shippingDiscount)
+                    const isFree = cost === 0
+                    return (
+                      <label key={m.method}
+                        className={`flex items-center justify-between p-3 border rounded-xl cursor-pointer transition-all ${
+                          !m.available ? 'opacity-50 cursor-not-allowed bg-gray-50 border-gray-200' :
+                          shippingMethod === m.method ? 'border-[#7FB300] bg-[#E8F4D1]' : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <div className="flex items-center gap-3">
+                          <input type="radio" name="shipping_method" value={m.method}
+                            checked={shippingMethod === m.method}
+                            disabled={!m.available}
+                            onChange={() => m.available && setShippingMethod(m.method as 'reguler' | 'instan' | 'sameday')}
+                            className="accent-[#7FB300]"
+                          />
+                          <div>
+                            <p className={`text-sm font-medium ${!m.available ? 'text-gray-400' : 'text-gray-900'}`}>
+                              {m.label}
+                            </p>
+                            {!m.available && m.reason && (
+                              <p className="text-xs text-gray-400">🔒 {m.reason}</p>
+                            )}
+                          </div>
+                        </div>
+                        {m.available && (
+                          <div className="text-sm font-medium text-right">
+                            {isFree ? (
+                              <span className="text-[#1D9E75] font-bold">GRATIS 💚</span>
+                            ) : (
+                              <>
+                                {subtotal >= 50000 && (
+                                  <span className="line-through text-gray-400 text-xs mr-1">{formatRupiah(rate)}</span>
+                                )}
+                                <span>{formatRupiah(cost)}</span>
+                              </>
+                            )}
+                          </div>
+                        )}
+                      </label>
+                    )
+                  })}
+                </div>
+              )}
             </div>
 
             {/* Pesan untuk Kurir */}
