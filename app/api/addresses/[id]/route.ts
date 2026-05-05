@@ -35,6 +35,10 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (body.district !== undefined) updates.district = body.district
   if (body.postal_code !== undefined) updates.postal_code = body.postal_code
   if (body.full_address !== undefined) updates.full_address = body.full_address
+  if (body.district_id !== undefined) updates.district_id = body.district_id || null
+  if (body.regency_id !== undefined) updates.regency_id = body.regency_id || null
+  if (body.province_id !== undefined) updates.province_id = body.province_id || null
+  if (body.district_name !== undefined) updates.district = body.district_name || null
 
   // Handle set default: unset other addresses first
   if (body.is_default === true && !existing.is_default) {
