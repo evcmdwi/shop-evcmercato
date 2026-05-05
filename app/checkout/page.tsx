@@ -34,8 +34,7 @@ export default function CheckoutPage() {
     return ''
   })
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
-  const [termsAccepted, setTermsAccepted] = useState(false)
-  const [termsExpanded, setTermsExpanded] = useState(false)
+
   const [shippingMethod, setShippingMethod] = useState<'reguler' | 'instan' | 'sameday'>('reguler')
   const [shippingRates, setShippingRates] = useState<{
     available_methods: { method: string; label: string; base_rate: number; available: boolean; reason?: string }[]
@@ -426,7 +425,15 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     )}
-                    {evcPoints > 0 && (
+        
+            {/* Consent statement — paling bawah form */}
+            <div className="bg-gray-50 rounded-xl p-4 text-[11px] text-gray-400 leading-relaxed">
+              Dengan menekan tombol Bayar Sekarang, saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI. Saya menyetujui{' '}
+              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">Syarat &amp; Ketentuan</a>
+              {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
+            </div>
+
+            {evcPoints > 0 && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         Kamu akan mendapat{' '}
                         <span className="font-semibold text-[#7FB300]">💎 {evcPoints} EVC Points</span>{' '}
@@ -456,32 +463,9 @@ export default function CheckoutPage() {
           <span className="text-sm text-gray-600">Total Bayar</span>
           <span className="font-bold text-[#7FB300]">{formatRupiah(totalAmount)}</span>
         </div>
-        {/* Layer 4: Terms consent */}
-        <div className="flex items-start gap-2 mb-3">
-          <input
-            type="checkbox"
-            id="checkout-terms"
-            checked={termsAccepted}
-            onChange={e => setTermsAccepted(e.target.checked)}
-            className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer flex-shrink-0"
-          />
-          <div className="flex-1">
-            <label htmlFor="checkout-terms" className={`text-[11px] text-gray-400 cursor-pointer leading-relaxed block ${!termsExpanded ? 'line-clamp-2' : ''}`}>
-              Saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI.
-              Saya menyetujui{' '}
-              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline" onClick={e => e.stopPropagation()}>
-                Syarat &amp; Ketentuan
-              </a>{' '}
-              dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
-            </label>
-            <button type="button" onClick={() => setTermsExpanded(p => !p)} className="text-[10px] text-gray-400 hover:text-gray-600 mt-0.5">
-              {termsExpanded ? 'Sembunyikan ▲' : 'Selengkapnya ▼'}
-            </button>
-          </div>
-        </div>
         <button
           onClick={handlePay}
-          disabled={paying || !selectedAddressId || !termsAccepted}
+          disabled={paying || !selectedAddressId}
           className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
         >
           {paying ? (
