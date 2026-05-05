@@ -208,8 +208,9 @@ export default function HomePage() {
               <img src="/logo-grab-express.jpg" alt="Grab Express" className="h-8 w-auto object-contain rounded" />
             </div>
             <h3 className="font-bold text-gray-900 mb-2">📱 IKUTI KAMI</h3>
-            <a href="https://instagram.com/evcmercato" target="_blank" rel="noopener noreferrer" className="text-sm text-gray-600 hover:text-[#7FB300]">
-              📸 @evcmercato
+            <a href="https://instagram.com/evcmercato" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#7FB300]">
+              <img src="/logo-instagram.jpg" alt="Instagram" className="w-6 h-6 rounded-md object-cover" />
+              @evcmercato
             </a>
           </div>
 
