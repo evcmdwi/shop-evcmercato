@@ -23,14 +23,14 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
     },
     {
       method: 'instan',
-      label: 'Instan ⚡ (2-3 jam)',
+      label: 'Instan ⚡ (30 menit - 2 jam)',
       base_rate: rate && rate.instan_rate > 0 ? rate.instan_rate : null,
       available: !!(rate && rate.instan_rate > 0),
       reason: !rate || rate.instan_rate === 0 ? 'Belum tersedia di kota Anda' : undefined,
     },
     {
       method: 'sameday',
-      label: 'Sameday 🚚 (8-12 jam)',
+      label: 'Sameday 🚚 (2-8 jam)',
       base_rate: rate && rate.sameday_rate > 0 ? rate.sameday_rate : null,
       available: !!(rate && rate.sameday_rate > 0),
       reason: !rate

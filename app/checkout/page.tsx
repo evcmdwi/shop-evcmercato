@@ -464,7 +464,7 @@ export default function CheckoutPage() {
             onChange={e => setTermsAccepted(e.target.checked)}
             className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer flex-shrink-0"
           />
-          <label htmlFor="checkout-terms" className="text-xs text-gray-500 cursor-pointer leading-relaxed">
+          <label htmlFor="checkout-terms" className="text-[11px] text-gray-400 cursor-pointer leading-relaxed">
             Saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI.
             Saya menyetujui{' '}
             <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">
