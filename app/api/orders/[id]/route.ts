@@ -37,6 +37,8 @@ export async function GET(
         shipping_city,
         shipping_province,
         shipping_postal_code,
+        shipping_district_name,
+        shipping_regency_name,
         xendit_invoice_id,
         xendit_invoice_url,
         delivery_note,

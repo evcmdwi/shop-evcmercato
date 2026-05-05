@@ -203,8 +203,11 @@ export default function OrderDetailPage() {
               <p className="font-semibold text-gray-900">{order.shipping_recipient_name || '-'}</p>
               <p>{order.shipping_phone || '-'}</p>
               <p>{order.shipping_full_address || '-'}</p>
+              {(order as any).shipping_district_name && (
+                <p className="font-medium">{(order as any).shipping_district_name}</p>
+              )}
               <p>
-                {[order.shipping_city, order.shipping_province, order.shipping_postal_code]
+                {[(order as any).shipping_regency_name || order.shipping_city, order.shipping_province, order.shipping_postal_code]
                   .filter(Boolean)
                   .join(', ') || '-'}
               </p>
