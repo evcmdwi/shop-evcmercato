@@ -78,7 +78,7 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="bg-gradient-to-b from-[#E8F4D1] to-[#F0FDF4] py-16 px-4 text-center">
-        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl leading-[1.15] tracking-tight text-gray-900 mb-4">
+        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.15] tracking-tight text-gray-900 mb-4">
           Belanja Nyaman<br/>
           <span className="text-[#7FB300]">
             Terpercaya Sejak 2003
