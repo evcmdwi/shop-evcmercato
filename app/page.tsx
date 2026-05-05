@@ -78,12 +78,16 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="bg-gradient-to-b from-[#E8F4D1] to-[#F0FDF4] py-16 px-4 text-center">
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight mb-4">
-          Belanja Nyaman Terpercaya,<br />Sejak 2003
+        <h1 className="font-display text-4xl md:text-5xl lg:text-6xl leading-[1.15] tracking-tight text-gray-900 mb-4">
+          Belanja Nyaman<br/>
+          <span className="text-[#7FB300]">
+            Terpercaya Sejak 2003
+          </span>
+          <br/>
+          <span className="font-sans font-medium text-2xl md:text-3xl tracking-[0.04em] text-gray-500 uppercase">
+            Kiriman Lebih Cepat Untuk Anda
+          </span>
         </h1>
-        <p className="text-lg sm:text-xl text-gray-500 font-medium mb-10">
-          Kiriman LEBIH Cepat untuk Anda ⚡
-        </p>
 
         {/* Stats */}
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
