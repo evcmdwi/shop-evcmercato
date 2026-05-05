@@ -35,6 +35,7 @@ export default function CheckoutPage() {
   })
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
   const [termsAccepted, setTermsAccepted] = useState(false)
+  const [termsExpanded, setTermsExpanded] = useState(false)
   const [shippingMethod, setShippingMethod] = useState<'reguler' | 'instan' | 'sameday'>('reguler')
   const [shippingRates, setShippingRates] = useState<{
     available_methods: { method: string; label: string; base_rate: number; available: boolean; reason?: string }[]
@@ -464,14 +465,19 @@ export default function CheckoutPage() {
             onChange={e => setTermsAccepted(e.target.checked)}
             className="mt-0.5 w-4 h-4 rounded accent-[#7FB300] cursor-pointer flex-shrink-0"
           />
-          <label htmlFor="checkout-terms" className="text-[11px] text-gray-400 cursor-pointer leading-relaxed">
-            Saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI.
-            Saya menyetujui{' '}
-            <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">
-              Syarat &amp; Ketentuan
-            </a>{' '}
-            dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
-          </label>
+          <div className="flex-1">
+            <label htmlFor="checkout-terms" className={`text-[11px] text-gray-400 cursor-pointer leading-relaxed block ${!termsExpanded ? 'line-clamp-2' : ''}`}>
+              Saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI.
+              Saya menyetujui{' '}
+              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline" onClick={e => e.stopPropagation()}>
+                Syarat &amp; Ketentuan
+              </a>{' '}
+              dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
+            </label>
+            <button type="button" onClick={() => setTermsExpanded(p => !p)} className="text-[10px] text-gray-400 hover:text-gray-600 mt-0.5">
+              {termsExpanded ? 'Sembunyikan ▲' : 'Selengkapnya ▼'}
+            </button>
+          </div>
         </div>
         <button
           onClick={handlePay}
