@@ -58,16 +58,30 @@ export async function POST(req: NextRequest) {
   if (instan_rate === 0 && sameday_rate === 0)
     return NextResponse.json({ error: 'Setidaknya satu jenis tarif harus tersedia (> 0)' }, { status: 400 })
 
+  // Cek apakah sudah ada (aktif maupun soft-deleted)
   const { data: existing } = await admin
     .from('shipping_rates')
-    .select('id')
+    .select('id, is_active')
     .eq('district_id', district_id)
     .maybeSingle()
-  if (existing)
-    return NextResponse.json(
-      { error: 'Tarif untuk kecamatan ini sudah ada. Silakan edit row yang sudah ada.' },
-      { status: 409 }
-    )
+
+  if (existing) {
+    if (existing.is_active) {
+      return NextResponse.json(
+        { error: 'Tarif untuk kecamatan ini sudah ada. Silakan edit row yang sudah ada.' },
+        { status: 409 }
+      )
+    }
+    // Soft-deleted — reactivate dengan tarif baru
+    const { data, error } = await admin
+      .from('shipping_rates')
+      .update({ instan_rate, sameday_rate, notes: notes || null, is_active: true })
+      .eq('id', existing.id)
+      .select()
+      .single()
+    if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+    return NextResponse.json({ rate: data }, { status: 200 })
+  }
 
   const { data, error } = await admin
     .from('shipping_rates')
