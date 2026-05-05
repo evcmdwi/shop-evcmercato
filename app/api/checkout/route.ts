@@ -114,7 +114,7 @@ export async function POST(req: NextRequest) {
       return sum + (price * item.quantity)
     }, 0)
 
-    const shippingDiscount = subtotal >= 50000 ? 10000 : 0
+    const shippingDiscount = subtotal >= 80000 ? 10000 : 0
     const shippingCostFinal = Math.max(0, (shipping_base_rate as number) - shippingDiscount)
     const shipping_cost = shippingCostFinal
     const service_fee = 3000

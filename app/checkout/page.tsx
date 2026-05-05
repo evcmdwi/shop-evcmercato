@@ -105,13 +105,13 @@ export default function CheckoutPage() {
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.subtotal, 0)
   const itemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0)
   const serviceFee = 3000
-  const shippingDiscount = subtotal >= 50000 ? 10000 : 0
+  const shippingDiscount = subtotal >= 80000 ? 10000 : 0
   const selectedMethodData = shippingRates?.available_methods?.find((m) => m.method === shippingMethod)
   const baseRate = selectedMethodData?.base_rate ?? 10000
   const shippingCost = Math.max(0, baseRate - shippingDiscount)
   const freeShipping = shippingCost === 0
-  const qualifiesForFreeShipping = subtotal >= 50000
-  const remaining = Math.max(0, 50000 - subtotal)
+  const qualifiesForFreeShipping = subtotal >= 80000
+  const remaining = Math.max(0, 80000 - subtotal)
   // Service fee always free (Phase 1)
   const totalSaved = (qualifiesForFreeShipping ? baseRate : 0) + serviceFee
   const totalAmount = subtotal + shippingCost
@@ -284,7 +284,7 @@ export default function CheckoutPage() {
                               <span className="text-[#1D9E75] font-bold">GRATIS 💚</span>
                             ) : (
                               <>
-                                {subtotal >= 50000 && (
+                                {subtotal >= 80000 && (
                                   <span className="line-through text-gray-400 text-xs mr-1">{formatRupiah(rate)}</span>
                                 )}
                                 <span>{formatRupiah(cost)}</span>
