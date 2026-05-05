@@ -38,21 +38,42 @@ const TIER_BENEFITS: Record<string, { title: string; benefits: string[] }> = {
   },
 }
 
-function BenefitModal({ tier, onClose }: { tier: string; onClose: () => void }) {
-  const info = TIER_BENEFITS[tier] ?? TIER_BENEFITS.silver
+function BenefitModal({ currentTier, onClose }: { currentTier: string; onClose: () => void }) {
+  const tiers = ['silver', 'gold', 'platinum'] as const
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
-      <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
-        <h2 className="text-lg font-bold text-gray-900 mb-4">{info.title}</h2>
-        <ul className="space-y-2 mb-6">
-          {info.benefits.map((b, i) => (
-            <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
-              <span className="text-[#7FB300] mt-0.5 flex-shrink-0">✓</span>
-              <span>{b}</span>
-            </li>
-          ))}
-        </ul>
-        <button onClick={onClose} className="w-full bg-[#7FB300] text-white rounded-xl py-3 font-semibold hover:bg-[#6B9700] transition-colors">Tutup</button>
+      <div className="bg-white rounded-2xl w-full max-w-sm max-h-[85vh] flex flex-col" onClick={e => e.stopPropagation()}>
+        <div className="p-5 pb-0">
+          <h2 className="text-base font-bold text-gray-900">Benefit Membership EVC</h2>
+          <p className="text-xs text-gray-400 mt-0.5 mb-4">Belanja lebih banyak, naik tier, dapat lebih banyak benefit!</p>
+        </div>
+        <div className="overflow-y-auto px-5 pb-5 space-y-4">
+          {tiers.map((t) => {
+            const info = TIER_BENEFITS[t]
+            const isActive = t === currentTier
+            return (
+              <div key={t} className={`rounded-xl border p-4 ${
+                isActive ? 'border-[#7FB300] bg-[#f8fce8]' : 'border-gray-100 bg-gray-50'
+              }`}>
+                <div className="flex items-center gap-2 mb-2">
+                  <p className="text-sm font-bold text-gray-800">{info.title}</p>
+                  {isActive && <span className="text-[10px] bg-[#7FB300] text-white px-2 py-0.5 rounded-full font-semibold">Tier Kamu</span>}
+                </div>
+                <ul className="space-y-1">
+                  {info.benefits.map((b, i) => (
+                    <li key={i} className="flex items-start gap-2 text-xs text-gray-600">
+                      <span className="text-[#7FB300] mt-0.5 flex-shrink-0">✓</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )
+          })}
+        </div>
+        <div className="p-5 pt-3">
+          <button onClick={onClose} className="w-full bg-[#7FB300] text-white rounded-xl py-3 font-semibold hover:bg-[#6B9700] transition-colors">Tutup</button>
+        </div>
       </div>
     </div>
   )
@@ -129,7 +150,7 @@ export default function PointsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 pb-24">
-      {showBenefit && <BenefitModal tier={tier.toLowerCase()} onClose={() => setShowBenefit(false)} />}
+      {showBenefit && <BenefitModal currentTier={tier.toLowerCase()} onClose={() => setShowBenefit(false)} />}
       {/* Saldo Hero Card */}
       <div className={`rounded-2xl p-6 mb-6 border ${tierBg[tier] ?? 'bg-amber-50 border-amber-200'}`}>
         <div className="flex items-start justify-between">
