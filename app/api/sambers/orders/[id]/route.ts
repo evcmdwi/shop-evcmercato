@@ -23,7 +23,7 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
         shipping_recipient_name, shipping_phone, shipping_full_address,
         shipping_city, shipping_province, shipping_postal_code,
         shipping_district_name, shipping_regency_name, shipping_province_name,
-        delivery_note, resi_barcode_url, courier_type, resi_generated_at,
+        delivery_note, resi_barcode_url, courier_type, shipping_method, resi_generated_at,
         order_items (
           id, quantity, price, product_name, variant_name
         )

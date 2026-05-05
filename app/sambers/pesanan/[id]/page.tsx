@@ -88,6 +88,7 @@ interface Order {
   resi_generated_at: string | null
   order_type?: string | null
   points_used?: number | null
+  shipping_method?: string | null
   customer_name?: string
   customer_email?: string
   user?: { name: string | null; email: string | null; phone: string | null } | null
@@ -813,6 +814,13 @@ export default function AdminOrderDetailPage() {
               <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
                 {cfg.label}
               </span>
+              {order.shipping_method && order.shipping_method !== 'reguler' && (
+                <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                  order.shipping_method === 'instan' ? 'bg-yellow-100 text-yellow-700' : 'bg-blue-100 text-blue-700'
+                }`}>
+                  {order.shipping_method === 'instan' ? '⚡ Instan' : '🚚 Sameday'}
+                </span>
+              )}
               <span className="text-sm text-slate-400">{formatDate(order.created_at)}</span>
             </div>
           </div>

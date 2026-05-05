@@ -24,6 +24,7 @@ export interface OrderPaidPayload {
   evc_points_earned: number
   total_points_after?: number
   paid_at: string
+  shipping_method?: 'reguler' | 'instan' | 'sameday'
 }
 
 type Listener<T> = (payload: T) => Promise<void>

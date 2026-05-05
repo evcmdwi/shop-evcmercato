@@ -23,6 +23,10 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
       ? '<span style="color: #1a7f37; font-weight: bold;">GRATIS 💚</span>'
       : formatRupiah(payload.shipping_fee)
 
+  const shippingText = payload.shipping_method === 'instan' ? '⚡ Instan (estimasi 2-3 jam)' :
+                       payload.shipping_method === 'sameday' ? '🚚 Sameday (estimasi 8-12 jam)' :
+                       '📦 Reguler JNT (1-3 hari kerja)'
+
   const html = `
 <!DOCTYPE html>
 <html>
@@ -75,7 +79,7 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
             ${payload.shipping_address.address}<br>
             ${payload.shipping_address.city}, ${payload.shipping_address.province} ${payload.shipping_address.postal_code}
           </p>
-          <p style="color: #888; font-size: 13px; margin: 8px 0 0;">🚚 Estimasi tiba: 1-3 hari kerja</p>
+          <p style="color: #888; font-size: 13px; margin: 8px 0 0;">${shippingText}</p>
 
           <!-- EVC Points -->
           <div style="background: #E8F4D1; border-radius: 8px; padding: 16px; margin: 24px 0;">

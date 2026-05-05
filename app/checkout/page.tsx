@@ -386,7 +386,7 @@ export default function CheckoutPage() {
                       <span>
                         {qualifiesForFreeShipping ? (
                           <span>
-                            <s className="text-gray-400 mr-1">{formatRupiah(shippingCost)}</s>
+                            <s className="text-gray-400 mr-1">{formatRupiah(selectedMethodData?.base_rate ?? 10000)}</s>
                             <span className="text-[#1D9E75] font-bold">GRATIS</span>
                           </span>
                         ) : (

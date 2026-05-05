@@ -22,7 +22,7 @@ export async function GET(req: NextRequest) {
       .from('orders')
       .select(`
         id, status, order_type, total_amount, created_at, paid_at, shipped_at,
-        tracking_number, shipping_courier, user_id,
+        tracking_number, shipping_courier, user_id, shipping_method,
         shipping_recipient_name, shipping_phone,
         order_items (id)
       `, { count: 'exact' })

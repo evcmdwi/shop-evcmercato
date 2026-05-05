@@ -21,7 +21,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   const admin = getSupabaseAdmin()
   const { data: order } = await admin
     .from('orders')
-    .select(`id, status, courier_type, resi_barcode_url, tracking_number, delivery_note, resi_generated_at,
+    .select(`id, status, courier_type, shipping_method, resi_barcode_url, tracking_number, delivery_note, resi_generated_at,
       shipping_recipient_name, shipping_phone, shipping_full_address,
       shipping_city, shipping_province, shipping_postal_code,
       shipping_district_name, shipping_regency_name, shipping_province_name, created_at`)
@@ -32,8 +32,13 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     return new NextResponse('Resi belum digenerate', { status: 404 })
   }
 
-  const isJnt = order.courier_type === 'jnt'
-  const isGrab = order.courier_type === 'grab'
+  // Derive courier from shipping_method if courier_type not explicitly set
+  const effectiveCourier = order.courier_type ||
+    ((order as any).shipping_method === 'instan' || (order as any).shipping_method === 'sameday' ? 'grab' : 'jnt')
+  const isJnt = effectiveCourier === 'jnt'
+  const isGrab = effectiveCourier === 'grab' || effectiveCourier === 'grab_instan' || effectiveCourier === 'grab_sameday'
+  const grabLabel = (order as any).shipping_method === 'instan' ? 'INSTAN / 2-3 JAM' :
+                    (order as any).shipping_method === 'sameday' ? 'SAMEDAY / 8-12 JAM' : 'INSTAN / SAMEDAY'
   const resiNumber = (order.tracking_number || '') as string
   const orderShortId = id.slice(0, 8).toUpperCase()
   const resiDate = new Date(order.resi_generated_at).toLocaleDateString('id-ID', {
@@ -133,7 +138,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     </div>
 
     <div class="barcode-section">
-      ${isGrab ? '<div class="courier-badge" style="color:#00B14F">INSTAN / SAMEDAY</div>' : ''}
+      ${isGrab ? `<div class="courier-badge" style="color:#00B14F">${grabLabel}</div>` : ''}
       ${isJnt ? `
         <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
         <svg id="barcode-svg"></svg>

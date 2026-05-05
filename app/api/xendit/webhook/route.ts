@@ -64,7 +64,7 @@ async function processWebhook(
       shipping_cost, shipping_cost_discount, service_fee, service_fee_discount,
       shipping_recipient_name, shipping_phone, shipping_full_address,
       shipping_city, shipping_province, shipping_postal_code,
-      points_earned
+      points_earned, shipping_method
     `)
     .eq('id', orderId)
     .single()
@@ -205,6 +205,7 @@ async function processWebhook(
       evc_points_earned: pointsToAdd,
       total_points_after: newTotal,
       paid_at: paidAt || new Date().toISOString(),
+      shipping_method: (order.shipping_method as 'reguler' | 'instan' | 'sameday') || 'reguler',
     })
 
   } else if (status === 'EXPIRED') {

@@ -3,12 +3,15 @@ import { formatRupiah } from '@/lib/format'
 
 // Pesan untuk BUYER
 export function generateOrderPaidBuyerWA(payload: OrderPaidPayload): string {
+  const shippingLabel = payload.shipping_method === 'instan' ? '⚡ Instan (2-3 jam)' :
+                        payload.shipping_method === 'sameday' ? '🚚 Sameday (8-12 jam)' :
+                        '📦 Reguler JNT (1-3 hari)'
   return `Halo ${payload.customerName}! 👋
 
 Pembayaran pesanan #${payload.orderShortId} sudah kami terima ✅
 
 💰 Total: ${formatRupiah(payload.totalAmount)}
-📦 Estimasi 1-3 hari kerja
+📦 Pengiriman: ${shippingLabel}
 ✨ +${payload.evc_points_earned} EVC Points${payload.total_points_after ? ` (Total: ${payload.total_points_after} pts)` : ''}
 
 Cek status: shop.evcmercato.com/orders/${payload.orderId}

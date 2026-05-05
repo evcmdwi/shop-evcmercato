@@ -46,6 +46,7 @@ interface Order {
   customer_name: string
   customer_email: string
   items_count: number
+  shipping_method?: string | null
 }
 
 function formatRp(amount: number) {
@@ -217,6 +218,11 @@ function AdminPesananPageInner() {
                       #{order.short_id}
                       {order.order_type === 'redeem' && (
                         <span className="text-xs bg-amber-100 text-amber-700 font-bold px-2 py-0.5 rounded-full ml-2">🎁 Redeem</span>
+                      )}
+                      {order.shipping_method && order.shipping_method !== 'reguler' && (
+                        <span className="text-xs font-bold bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded ml-2">
+                          {order.shipping_method === 'instan' ? '⚡' : '🚚'}
+                        </span>
                       )}
                     </td>
                     <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
