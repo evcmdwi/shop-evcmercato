@@ -22,7 +22,7 @@ function AddressSkeleton() {
   )
 }
 
-export default function AlamatClient() {
+export default function AlamatClient({ backUrl }: { backUrl?: string }) {
   const [addresses, setAddresses] = useState<Address[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

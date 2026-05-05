@@ -173,13 +173,22 @@ export default function CheckoutPage() {
             <div className="bg-white rounded-2xl p-5 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h2 className="font-semibold text-gray-900">Alamat Pengiriman</h2>
-                <button
-                  onClick={() => setShowAddressModal(true)}
-                  className="flex items-center gap-1 text-sm text-[#7FB300] font-medium hover:opacity-80"
-                >
-                  <Plus className="w-4 h-4" />
-                  Tambah Alamat Baru
-                </button>
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={() => setShowAddressModal(true)}
+                    className="flex items-center gap-1 text-sm text-[#7FB300] font-medium hover:opacity-80"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Tambah
+                  </button>
+                  <Link
+                    href="/profile/alamat?kembali=/checkout"
+                    prefetch={false}
+                    className="text-sm text-gray-500 hover:text-gray-700 underline"
+                  >
+                    Kelola Alamat
+                  </Link>
+                </div>
               </div>
 
               {loadingAddresses ? (
