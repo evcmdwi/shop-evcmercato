@@ -145,6 +145,7 @@ function RateModal({ item, onClose, onSaved }: { item?: ShippingRate | null; onC
   )
   const [instanRate, setInstanRate] = useState(item?.instan_rate ?? 0)
   const [samedayRate, setSamedayRate] = useState(item?.sameday_rate ?? 0)
+  const parseRate = (v: string) => Math.max(0, parseInt(v.replace(/[^0-9]/g, '')) || 0)
   const [notes, setNotes] = useState(item?.notes ?? '')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
@@ -217,13 +218,13 @@ function RateModal({ item, onClose, onSaved }: { item?: ShippingRate | null; onC
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="block text-sm font-medium mb-1">Tarif Instan (Rp)</label>
-              <input type="number" min="0" value={instanRate} onChange={e => setInstanRate(parseInt(e.target.value) || 0)}
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={instanRate || ''} onChange={e => setInstanRate(parseRate(e.target.value))}
                 placeholder="0 = tidak tersedia"
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
             </div>
             <div>
               <label className="block text-sm font-medium mb-1">Tarif Sameday (Rp)</label>
-              <input type="number" min="0" value={samedayRate} onChange={e => setSamedayRate(parseInt(e.target.value) || 0)}
+              <input type="text" inputMode="numeric" pattern="[0-9]*" value={samedayRate || ''} onChange={e => setSamedayRate(parseRate(e.target.value))}
                 placeholder="0 = tidak tersedia"
                 className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
             </div>
@@ -327,12 +328,12 @@ function BulkModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <label className="block text-sm font-medium mb-1">Tarif Instan (Rp)</label>
-                  <input type="number" min="0" value={instanRate} onChange={e => setInstanRate(parseInt(e.target.value) || 0)}
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={instanRate || ''} onChange={e => setInstanRate(parseRate(e.target.value))}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">Tarif Sameday (Rp)</label>
-                  <input type="number" min="0" value={samedayRate} onChange={e => setSamedayRate(parseInt(e.target.value) || 0)}
+                  <input type="text" inputMode="numeric" pattern="[0-9]*" value={samedayRate || ''} onChange={e => setSamedayRate(parseRate(e.target.value))}
                     className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
                 </div>
               </div>
