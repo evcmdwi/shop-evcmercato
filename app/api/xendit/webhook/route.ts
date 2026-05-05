@@ -130,6 +130,7 @@ async function processWebhook(
     // Kredit EVC Points ke user saat PAID
     const basePoints = order.points_earned || Math.floor(order.subtotal / 1000)
     const pointsToAdd = Math.floor(basePoints * multiplier)
+    let newTotal = 0
     if (pointsToAdd > 0 && order.user_id) {
       const { data: currentUser } = await admin
         .from('users')
@@ -137,7 +138,7 @@ async function processWebhook(
         .eq('id', order.user_id)
         .single()
 
-      const newTotal = (currentUser?.total_points || 0) + pointsToAdd
+      newTotal = (currentUser?.total_points || 0) + pointsToAdd
       const newTier = newTotal >= 20000 ? 'platinum' : newTotal >= 5000 ? 'gold' : 'silver'
 
       await admin

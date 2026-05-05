@@ -27,6 +27,8 @@ export async function POST(req: NextRequest) {
       shipping_province_id,
       shipping_province_name,
       terms_accepted,
+      shipping_method = 'reguler',
+      shipping_base_rate = 10000,
     } = body
     if (!terms_accepted) {
       return NextResponse.json(
@@ -112,11 +114,13 @@ export async function POST(req: NextRequest) {
       return sum + (price * item.quantity)
     }, 0)
 
-    const shipping_cost = 10000
+    const shippingDiscount = subtotal >= 50000 ? 10000 : 0
+    const shippingCostFinal = Math.max(0, (shipping_base_rate as number) - shippingDiscount)
+    const shipping_cost = shippingCostFinal
     const service_fee = 3000
-    const shipping_cost_discount = subtotal >= 50000 ? 10000 : 0
+    const shipping_cost_discount = shippingDiscount
     const service_fee_discount = 3000 // always-on Phase 1
-    const total_amount = subtotal + (shipping_cost - shipping_cost_discount) + (service_fee - service_fee_discount)
+    const total_amount = subtotal + shippingCostFinal + (service_fee - service_fee_discount)
 
     // 7. Get user data for snapshot
     const { data: userData } = await admin
@@ -145,7 +149,9 @@ export async function POST(req: NextRequest) {
         shipping_city: address.city,
         shipping_province: address.province,
         shipping_postal_code: address.postal_code,
-        shipping_method: 'reguler',
+        shipping_method: (shipping_method as string) || 'reguler',
+        shipping_base_rate: shipping_base_rate as number,
+        shipping_discount: shippingDiscount,
         points_earned: Math.floor(subtotal / 1000),
         terms_accepted_at: new Date().toISOString(),
         terms_version: TERMS_VERSION,
