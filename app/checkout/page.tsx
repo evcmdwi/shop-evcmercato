@@ -161,7 +161,7 @@ export default function CheckoutPage() {
   const loading = loadingAddresses || loadingCart
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-32 sm:pb-0">
+    <div className="min-h-screen bg-gray-50 pb-8">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Checkout</h1>
 
@@ -359,12 +359,7 @@ export default function CheckoutPage() {
               )}
             </div>
 
-            {/* Consent statement */}
-            <div className="bg-gray-50 rounded-xl p-4 text-[11px] text-gray-400 leading-relaxed">
-              Dengan menekan tombol Bayar Sekarang, saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI. Saya menyetujui{' '}
-              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">Syarat &amp; Ketentuan</a>
-              {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
-            </div>
+
           </div>
 
           {/* RIGHT COLUMN — Ringkasan Pembayaran */}
@@ -449,6 +444,34 @@ export default function CheckoutPage() {
                       ← Kembali ke Keranjang
                     </Link>
                   )}
+
+                  {/* Consent + Bayar */}
+                  <div className="mt-6 space-y-4">
+                    {/* Consent text */}
+                    <p className="text-[11px] text-gray-400 leading-relaxed">
+                      Dengan menekan tombol Bayar Sekarang, saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI. Saya menyetujui{' '}
+                      <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">
+                        Syarat &amp; Ketentuan
+                      </a>
+                      {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
+                    </p>
+
+                    {/* Bayar Sekarang button */}
+                    <button
+                      onClick={handlePay}
+                      disabled={paying || !selectedAddressId}
+                      className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50 hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
+                    >
+                      {paying ? (
+                        <>
+                          <Loader2 className="w-5 h-5 animate-spin" />
+                          Memproses...
+                        </>
+                      ) : (
+                        `Bayar Sekarang ${formatRupiah(totalAmount)}`
+                      )}
+                    </button>
+                  </div>
                 </>
               )}
             </div>
@@ -456,27 +479,6 @@ export default function CheckoutPage() {
         </div>
       </div>
 
-      {/* Sticky bottom bar */}
-      <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 z-40">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-gray-600">Total Bayar</span>
-          <span className="font-bold text-[#7FB300]">{formatRupiah(totalAmount)}</span>
-        </div>
-        <button
-          onClick={handlePay}
-          disabled={paying || !selectedAddressId}
-          className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold disabled:opacity-50 flex items-center justify-center gap-2"
-        >
-          {paying ? (
-            <>
-              <Loader2 className="w-4 h-4 animate-spin" />
-              Memproses...
-            </>
-          ) : (
-            'Bayar Sekarang'
-          )}
-        </button>
-      </div>
 
       {/* Modal AddressForm */}
       <Modal isOpen={showAddressModal} onClose={() => setShowAddressModal(false)} title="Tambah Alamat Baru">

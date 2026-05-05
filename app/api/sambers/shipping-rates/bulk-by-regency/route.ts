@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   const toCreate = districts.filter(d => !activeIds.has(d.id) && !softDeletedMap.has(d.id))
   const toReactivate = districts.filter(d => softDeletedMap.has(d.id))
 
-  if (!skip_existing && existingIds.size > 0) {
+  if (!skip_existing && activeIds.size > 0) {
     return NextResponse.json(
       { error: 'Beberapa kecamatan sudah punya tarif. Pilih skip_existing=true.' },
       { status: 400 }

@@ -257,6 +257,7 @@ function BulkModal({ onClose, onSaved }: { onClose: () => void; onSaved: () => v
   const [notes, setNotes] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const parseRate = (v: string) => Math.max(0, parseInt(v.replace(/[^0-9]/g, '')) || 0)
 
   useEffect(() => {
     if (regencyQuery.length < 2 || selectedRegency) return
