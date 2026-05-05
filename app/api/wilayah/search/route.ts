@@ -10,28 +10,45 @@ export async function GET(req: NextRequest) {
 
   const admin = getSupabaseAdmin()
 
-  // Search districts joined with regencies and provinces
-  const { data, error } = await admin
-    .from('districts')
-    .select(`
+  const selectQuery = `
+    id,
+    name,
+    regencies!inner (
       id,
       name,
-      regencies!inner (
+      provinces!inner (
         id,
-        name,
-        provinces!inner (
-          id,
-          name
-        )
+        name
       )
-    `)
+    )
+  `
+
+  // Search by district name
+  const { data: byDistrict, error: e1 } = await admin
+    .from('districts')
+    .select(selectQuery)
     .ilike('name', `%${q}%`)
     .limit(10)
 
-  if (error) {
-    console.error('[wilayah search]', error)
+  // Search by regency/city name (e.g. "jakarta barat")
+  const { data: byRegency, error: e2 } = await admin
+    .from('districts')
+    .select(selectQuery)
+    .ilike('regencies.name', `%${q}%`)
+    .limit(10)
+
+  if (e1 || e2) {
+    console.error('[wilayah search]', e1 || e2)
     return NextResponse.json({ results: [] })
   }
+
+  // Merge and deduplicate
+  const seen = new Set<string>()
+  const data = [...(byDistrict ?? []), ...(byRegency ?? [])].filter(d => {
+    if (seen.has(d.id)) return false
+    seen.add(d.id)
+    return true
+  }).slice(0, 15)
 
   const results = (data ?? []).map((d: any) => ({
     district_id: d.id,
