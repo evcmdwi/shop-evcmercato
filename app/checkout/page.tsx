@@ -358,6 +358,13 @@ export default function CheckoutPage() {
                 </div>
               )}
             </div>
+
+            {/* Consent statement */}
+            <div className="bg-gray-50 rounded-xl p-4 text-[11px] text-gray-400 leading-relaxed">
+              Dengan menekan tombol Bayar Sekarang, saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI. Saya menyetujui{' '}
+              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">Syarat &amp; Ketentuan</a>
+              {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
+            </div>
           </div>
 
           {/* RIGHT COLUMN — Ringkasan Pembayaran */}
@@ -425,15 +432,7 @@ export default function CheckoutPage() {
                         </p>
                       </div>
                     )}
-        
-            {/* Consent statement — paling bawah form */}
-            <div className="bg-gray-50 rounded-xl p-4 text-[11px] text-gray-400 leading-relaxed">
-              Dengan menekan tombol Bayar Sekarang, saya memahami bahwa shop.evcmercato.com dikelola oleh mitra usaha KKI Group secara independen, BUKAN official store KKI. Saya menyetujui{' '}
-              <a href="/syarat-ketentuan" target="_blank" rel="noopener noreferrer" className="text-[#7FB300] hover:underline">Syarat &amp; Ketentuan</a>
-              {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
-            </div>
-
-            {evcPoints > 0 && (
+                    {evcPoints > 0 && (
                       <p className="text-xs text-gray-500 text-center mt-2">
                         Kamu akan mendapat{' '}
                         <span className="font-semibold text-[#7FB300]">💎 {evcPoints} EVC Points</span>{' '}
