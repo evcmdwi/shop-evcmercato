@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
   }
 
   const body = await request.json()
-  const { recipient_name, phone, province, city, district, postal_code, full_address, is_default } = body
+  const { recipient_name, phone, province, city, district, postal_code, full_address, is_default, district_id, regency_id, province_id } = body
 
   if (!recipient_name || !phone || !province || !city || !full_address) {
     return NextResponse.json(
@@ -79,6 +79,9 @@ export async function POST(request: NextRequest) {
       postal_code: postal_code ?? null,
       full_address,
       is_default: setDefault,
+      district_id: district_id ?? null,
+      regency_id: regency_id ?? null,
+      province_id: province_id ?? null,
     })
     .select()
     .single()
