@@ -128,35 +128,78 @@ async function processWebhook(
     }
 
     // Kredit EVC Points ke user saat PAID
+    // base_points: dari order, digunakan untuk tier calculation
     const basePoints = order.points_earned || Math.floor(order.subtotal / 1000)
-    const pointsToAdd = Math.floor(basePoints * multiplier)
+    // Apply purchase_bonus promo multiplier (existing logic) to base points
+    const pointsWithBonus = Math.floor(basePoints * multiplier)
+
     let newTotal = 0
-    if (pointsToAdd > 0 && order.user_id) {
+    if (order.user_id) {
       const { data: currentUser } = await admin
         .from('users')
         .select('total_points')
         .eq('id', order.user_id)
         .single()
 
-      newTotal = (currentUser?.total_points || 0) + pointsToAdd
-      const newTier = newTotal >= 3001 ? "platinum" : newTotal >= 1001 ? "gold" : "silver"
+      const currentPoints = currentUser?.total_points ?? 0
 
+      // Check active Extra Point Khusus promo for this user
+      const now = new Date().toISOString()
+      const { data: extraPromo } = await admin
+        .from('user_extra_point_promos')
+        .select('multiplier')
+        .eq('user_id', order.user_id)
+        .eq('is_active', true)
+        .lte('starts_at', now)
+        .gte('ends_at', now)
+        .order('multiplier', { ascending: false })
+        .limit(1)
+        .maybeSingle()
+
+      // extra_points = floor(basePoints * (extraMultiplier - 1)), does NOT count toward tier
+      const extraPoints = extraPromo
+        ? Math.floor(basePoints * (Number(extraPromo.multiplier) - 1))
+        : 0
+
+      const totalNewPoints = pointsWithBonus + extraPoints
+
+      // tier hanya dari base+bonus points (bukan extra)
+      const tierPoints = currentPoints + pointsWithBonus
+      const newTier = tierPoints >= 3001 ? 'platinum' : tierPoints >= 1001 ? 'gold' : 'silver'
+
+      newTotal = currentPoints + totalNewPoints
+
+      // Update user: total_points includes all, tier from base+bonus only
       await admin
         .from('users')
         .update({ total_points: newTotal, tier: newTier })
         .eq('id', order.user_id)
 
-      console.log(`[webhook] EVC Points +${pointsToAdd} → user ${order.user_id} total: ${newTotal}`)
+      console.log(`[webhook] EVC Points base+bonus: +${pointsWithBonus} extra: +${extraPoints} → user ${order.user_id} total: ${newTotal}`)
 
-      // Insert point_transactions audit log
-      await admin.from('point_transactions').insert({
-        user_id: order.user_id,
-        type: 'earned',
-        amount: pointsToAdd,
-        balance_after: newTotal,
-        related_order_id: orderId,
-        notes: `Pembelian Order #${orderId.slice(0, 8).toUpperCase()}`,
-      })
+      // Record 1: base+bonus points (type='earned')
+      if (pointsWithBonus > 0) {
+        await admin.from('point_transactions').insert({
+          user_id: order.user_id,
+          type: 'earned',
+          amount: pointsWithBonus,
+          balance_after: currentPoints + pointsWithBonus,
+          related_order_id: orderId,
+          notes: `Pembelian Order #${orderId.slice(0, 8).toUpperCase()}`,
+        })
+      }
+
+      // Record 2: extra points (type='bonus') — only if Extra Point Khusus active
+      if (extraPoints > 0 && extraPromo) {
+        await admin.from('point_transactions').insert({
+          user_id: order.user_id,
+          type: 'bonus',
+          amount: extraPoints,
+          balance_after: currentPoints + pointsWithBonus + extraPoints,
+          related_order_id: orderId,
+          notes: `Extra Point Khusus (${extraPromo.multiplier}x)`,
+        })
+      }
     }
 
     // Get order items
@@ -202,7 +245,7 @@ async function processWebhook(
         province: order.shipping_province || '',
         postal_code: order.shipping_postal_code || '',
       },
-      evc_points_earned: pointsToAdd,
+      evc_points_earned: pointsWithBonus,
       total_points_after: newTotal,
       paid_at: paidAt || new Date().toISOString(),
       shipping_method: (order.shipping_method as 'reguler' | 'instan' | 'sameday') || 'reguler',
