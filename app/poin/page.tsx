@@ -2,6 +2,62 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
+const TIER_BENEFITS: Record<string, { title: string; benefits: string[] }> = {
+  silver: {
+    title: '🥈 Member Silver (0 – 1.000 pts)',
+    benefits: [
+      'Subsidi Ongkir Rp 10.000/order',
+      'Subsidi Biaya Admin Rp 3.000/order',
+      'Rewards penukaran EVC Points',
+    ],
+  },
+  gold: {
+    title: '⭐ Member Gold (1.001 – 3.000 pts)',
+    benefits: [
+      'Subsidi Ongkir Rp 10.000/order',
+      'Subsidi Biaya Admin Rp 3.000/order',
+      'Rewards penukaran EVC Points',
+      '3x Voucher Ongkir Instan Rp 30.000/bulan',
+      'Penukaran Produk Khusus',
+      'Undangan Menjadi Member KKI Group → Disc Khusus',
+    ],
+  },
+  platinum: {
+    title: '💎 Member Platinum (> 3.000 pts)',
+    benefits: [
+      'Subsidi Ongkir Rp 10.000/order',
+      'Subsidi Biaya Admin Rp 3.000/order',
+      'Rewards penukaran EVC Points',
+      '3x Voucher Ongkir Instan Rp 30.000/bulan',
+      'Penukaran Produk Khusus',
+      'Undangan Menjadi Member KKI Group → Disc Khusus',
+      'Diskon lebih besar dari Gold',
+      'Layanan Priority dari EVC Group',
+      'Diundang untuk Promo Khusus JASTIP KKI',
+    ],
+  },
+}
+
+function BenefitModal({ tier, onClose }: { tier: string; onClose: () => void }) {
+  const info = TIER_BENEFITS[tier] ?? TIER_BENEFITS.silver
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4" onClick={onClose}>
+      <div className="bg-white rounded-2xl p-6 w-full max-w-sm" onClick={e => e.stopPropagation()}>
+        <h2 className="text-lg font-bold text-gray-900 mb-4">{info.title}</h2>
+        <ul className="space-y-2 mb-6">
+          {info.benefits.map((b, i) => (
+            <li key={i} className="flex items-start gap-2 text-sm text-gray-700">
+              <span className="text-[#7FB300] mt-0.5 flex-shrink-0">✓</span>
+              <span>{b}</span>
+            </li>
+          ))}
+        </ul>
+        <button onClick={onClose} className="w-full bg-[#7FB300] text-white rounded-xl py-3 font-semibold hover:bg-[#6B9700] transition-colors">Tutup</button>
+      </div>
+    </div>
+  )
+}
+
 interface PointTransaction {
   id: string
   type: string
@@ -35,6 +91,7 @@ export default function PointsPage() {
   const [redemptions, setRedemptions] = useState<Redemption[]>([])
   const [activeTab, setActiveTab] = useState<'tukar' | 'earning' | 'redeem'>('tukar')
   const [loading, setLoading] = useState(true)
+  const [showBenefit, setShowBenefit] = useState(false)
 
   useEffect(() => {
     Promise.all([
@@ -72,6 +129,7 @@ export default function PointsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 pb-24">
+      {showBenefit && <BenefitModal tier={tier.toLowerCase()} onClose={() => setShowBenefit(false)} />}
       {/* Saldo Hero Card */}
       <div className={`rounded-2xl p-6 mb-6 border ${tierBg[tier] ?? 'bg-amber-50 border-amber-200'}`}>
         <div className="flex items-start justify-between">
@@ -89,6 +147,12 @@ export default function PointsPage() {
             {data?.points_to_next_tier && (
               <p className="text-xs text-gray-400 mt-2">{data.points_to_next_tier} pts lagi ke tier berikutnya</p>
             )}
+            <button
+              onClick={() => setShowBenefit(true)}
+              className="text-xs text-[#7FB300] underline hover:opacity-80 mt-2"
+            >
+              Lihat Benefit Membership
+            </button>
           </div>
         </div>
         {data?.points_to_next_tier && (

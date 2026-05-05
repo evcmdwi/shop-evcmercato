@@ -13,7 +13,7 @@ export async function GET() {
   const tier = (userData as any)?.tier ?? 'silver'
 
   // Tier progression
-  const nextTierPoints = tier === 'silver' ? 5000 : tier === 'gold' ? 20000 : null
+  const nextTierPoints = tier === "silver" ? 1001 : tier === "gold" ? 3001 : null
   const pointsToNext = nextTierPoints ? nextTierPoints - totalPoints : null
 
   const { data: transactions } = await admin

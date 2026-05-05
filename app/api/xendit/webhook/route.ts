@@ -139,7 +139,7 @@ async function processWebhook(
         .single()
 
       newTotal = (currentUser?.total_points || 0) + pointsToAdd
-      const newTier = newTotal >= 20000 ? 'platinum' : newTotal >= 5000 ? 'gold' : 'silver'
+      const newTier = newTotal >= 3001 ? "platinum" : newTotal >= 1001 ? "gold" : "silver"
 
       await admin
         .from('users')
