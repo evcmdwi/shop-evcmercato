@@ -24,7 +24,9 @@ export default function AddressCard({ address, onEdit, onDelete, onSetDefault }:
       <p className="text-sm text-gray-500">{address.phone}</p>
 
       <p className="text-sm text-gray-700">
-        {address.full_address}, {address.city}, {address.province} {address.postal_code}
+        {address.full_address}
+        {address.district_name && <>, <span className="font-medium">{address.district_name}</span></>}
+        {', '}{address.city}, {address.province} {address.postal_code}
       </p>
 
       <div className="flex gap-2 pt-1 flex-wrap">
