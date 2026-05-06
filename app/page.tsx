@@ -78,7 +78,7 @@ export default function HomePage() {
 
       {/* HERO */}
       <section className="bg-gradient-to-b from-[#E8F4D1] to-[#F0FDF4] py-16 px-4 text-center">
-        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.15] tracking-tight text-gray-900 mb-4">
+        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-gray-900 mb-4">
           Belanja Nyaman<br/>
           <span className="text-[#7FB300]">
             Terpercaya Sejak 2003
@@ -93,8 +93,8 @@ export default function HomePage() {
         <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-xl shadow-sm p-4 sm:p-5">
-              <p className="text-2xl sm:text-3xl font-extrabold text-[#7FB300]">{s.number}</p>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              <p className="font-display text-3xl sm:text-4xl text-[#7FB300]">{s.number}</p>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">
                 {'starStat' in s && s.starStat ? (
                   <>5 ⭐️ Review di Marketplace</>
                 ) : s.label}
@@ -111,7 +111,10 @@ export default function HomePage() {
       {/* KENAPA EVC - 4 CARDS */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
-          <h2 className="text-3xl sm:text-4xl font-bold text-gray-900 text-center mb-12">KENAPA BELANJA DI EVC?</h2>
+          <h2 className="font-display text-3xl sm:text-4xl text-gray-900 text-center mb-3">
+            Kenapa Belanja di EVC?
+          </h2>
+          <p className="text-sm text-gray-400 text-center mb-12 tracking-widest uppercase">Terpercaya · Cepat · Bergaransi</p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {/* Cards 1-3 */}
             {trustCards.map(card => (
@@ -158,7 +161,10 @@ export default function HomePage() {
       {/* JELAJAHI PRODUK */}
       <section className="py-16 px-4 bg-[#F9FAFB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-gray-900 mb-10">JELAJAHI PRODUK</h2>
+          <h2 className="font-display text-3xl text-gray-900 mb-2">
+            Jelajahi Produk
+          </h2>
+          <p className="text-sm text-gray-400 mb-10 tracking-widest uppercase">Pilih Kategori</p>
           <div className="flex flex-wrap justify-center gap-8">
             {categories.map(cat => (
               <Link
@@ -184,7 +190,7 @@ export default function HomePage() {
         <div className="max-w-6xl mx-auto px-4 py-12 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-4">💬 CHAT CS</h3>
+            <h3 className="font-display text-lg text-gray-900 mb-4">Chat CS</h3>
             <div className="space-y-2 text-sm">
               <a href="https://wa.me/6285820852908" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-600 hover:text-[#7FB300]">
                 📱 +62 858-2085-2908
@@ -196,7 +202,7 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-4">💳 PEMBAYARAN</h3>
+            <h3 className="font-display text-lg text-gray-900 mb-4">Pembayaran</h3>
             <div className="flex flex-wrap gap-2">
               {paymentMethods.map(m => (
                 <span key={m} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-md">{m}</span>
@@ -206,12 +212,12 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-4">🚚 PENGIRIMAN</h3>
+            <h3 className="font-display text-lg text-gray-900 mb-4">Pengiriman</h3>
             <div className="flex flex-wrap gap-3 mb-4 items-center">
               <img src="/logo-jnt.jpg" alt="JNT Express" className="h-8 w-auto object-contain rounded" />
               <img src="/logo-grab-express.jpg" alt="Grab Express" className="h-8 w-auto object-contain rounded" />
             </div>
-            <h3 className="font-bold text-gray-900 mb-2">📱 IKUTI KAMI</h3>
+            <h3 className="font-display text-lg text-gray-900 mb-2">Ikuti Kami</h3>
             <a href="https://instagram.com/evcmercato" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-sm text-gray-600 hover:text-[#7FB300]">
               <img src="/logo-instagram.jpg" alt="Instagram" className="w-6 h-6 rounded-md object-cover" />
               @evcmercato
@@ -219,7 +225,7 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="font-bold text-gray-900 mb-4">⚖️ LEGAL</h3>
+            <h3 className="font-display text-lg text-gray-900 mb-4">Legal</h3>
             <div className="space-y-2 text-sm">
               <Link href="/privacy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
               <Link href="/syarat-ketentuan" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Syarat &amp; Ketentuan</Link>
