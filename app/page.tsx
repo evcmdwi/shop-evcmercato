@@ -94,7 +94,7 @@ export default function HomePage() {
           {stats.map(s => (
             <div key={s.label} className="bg-white rounded-xl shadow-sm p-4 sm:p-5">
               <p className="font-display text-3xl sm:text-4xl text-[#7FB300]">{s.number}</p>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1 font-medium">
+              <p className="font-display text-xs sm:text-sm text-gray-500 mt-1">
                 {'starStat' in s && s.starStat ? (
                   <>5 ⭐️ Review di Marketplace</>
                 ) : s.label}
@@ -103,7 +103,7 @@ export default function HomePage() {
           ))}
         </div>
 
-        <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+        <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-display text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
           Mulai Belanja Sekarang
         </Link>
       </section>
@@ -121,7 +121,7 @@ export default function HomePage() {
               <div key={card.title} className={`bg-white border ${card.border} rounded-2xl p-6 hover:shadow-md transition-shadow`}>
                 <div className="flex flex-col items-center text-center">
                   <div className={`text-5xl mb-4 ${card.iconColor}`}>{card.icon}</div>
-                  <h3 className="font-bold text-lg text-gray-900 mb-3">{card.title}</h3>
+                  <h3 className="font-display text-lg text-gray-900 mb-3">{card.title}</h3>
                   <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
                 </div>
               </div>
@@ -151,7 +151,7 @@ export default function HomePage() {
 
           {/* CTA bawah */}
           <div className="text-center mt-12">
-            <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-bold text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
+            <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-display text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
               MULAI BELANJA SEKARANG
             </Link>
           </div>
