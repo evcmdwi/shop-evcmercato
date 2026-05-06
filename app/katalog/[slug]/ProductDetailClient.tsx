@@ -25,11 +25,19 @@ function DescriptionBlock({ description }: { description: string }) {
     <div>
       <div
         className={`text-gray-600 text-sm leading-relaxed overflow-hidden transition-all duration-300 ${
-          !expanded && isLong ? 'line-clamp-5' : ''
+          !expanded && isLong ? 'max-h-32' : ''
         }`}
-        style={!expanded && isLong ? { WebkitLineClamp: 5, display: '-webkit-box', WebkitBoxOrient: 'vertical' } : {}}
       >
-        {description}
+        {description.split('\n\n').map((para, i) => (
+          <p key={i} className="mb-3 last:mb-0">
+            {para.split('\n').map((line, j) => (
+              <span key={j}>
+                {line}
+                {j < para.split('\n').length - 1 && <br />}
+              </span>
+            ))}
+          </p>
+        ))}
       </div>
       {isLong && (
         <button
