@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import { useTransition } from 'react'
 import { ShoppingBag } from 'lucide-react'
 
 function formatRupiah(amount: number) {
@@ -36,6 +37,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   shipped: { label: 'Dikirim', className: 'bg-indigo-100 text-indigo-800' },
   delivered: { label: 'Diterima', className: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Dibatalkan', className: 'bg-red-100 text-red-800' },
+  expired: { label: 'Pesanan Kadaluarsa', className: 'bg-gray-100 text-gray-600' },
 }
 
 function OrderSkeleton() {
@@ -55,6 +57,31 @@ export default function OrdersPage() {
   const router = useRouter()
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(true)
+  const [reorderingId, setReorderingId] = useState<string | null>(null)
+  const [, startTransition] = useTransition()
+
+  const handleReorder = async (e: React.MouseEvent, orderId: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setReorderingId(orderId)
+    try {
+      const res = await fetch('/api/cart/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: orderId }),
+      })
+      if (res.ok) {
+        startTransition(() => router.push('/keranjang'))
+      } else {
+        const json = await res.json()
+        alert(json.error ?? 'Gagal menambahkan ke keranjang')
+      }
+    } catch {
+      alert('Terjadi kesalahan. Coba lagi.')
+    } finally {
+      setReorderingId(null)
+    }
+  }
 
   const fetchOrders = useCallback(async () => {
     const res = await fetch('/api/orders')
@@ -122,6 +149,20 @@ export default function OrdersPage() {
                   <p className="text-base font-bold" style={{ color: '#7FB300' }}>
                     {formatRupiah(order.total_amount)}
                   </p>
+                  {order.status === 'expired' && (
+                    <div className="mt-2">
+                      <p className="text-xs text-gray-500">
+                        Pesanan ini kadaluarsa karena belum dibayar dalam 24 jam
+                      </p>
+                      <button
+                        onClick={(e) => handleReorder(e, order.id)}
+                        disabled={reorderingId === order.id}
+                        className="mt-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-[#E8F4D1] text-[#7FB300] hover:bg-[#d4ecaa] disabled:opacity-50 transition-colors"
+                      >
+                        {reorderingId === order.id ? 'Memproses...' : '🔄 Pesan Lagi'}
+                      </button>
+                    </div>
+                  )}
                 </Link>
               )
             })}
