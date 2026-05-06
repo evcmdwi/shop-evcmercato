@@ -20,7 +20,7 @@ const STATUS_BADGE: Record<string, string> = {
   processed: 'bg-orange-100 text-orange-800',
   shipped:   'bg-purple-100 text-purple-800',
   delivered: 'bg-green-100 text-green-800',
-  expired:   'bg-gray-100 text-gray-600',
+  expired:   'bg-amber-100 text-amber-700',
   cancelled: 'bg-red-100 text-red-800',
   failed:    'bg-red-100 text-red-800',
 }
@@ -31,7 +31,7 @@ const STATUS_LABEL: Record<string, string> = {
   processed: 'Diproses',
   shipped:   'Dikirim',
   delivered: 'Selesai',
-  expired:   'Kedaluwarsa',
+  expired:   'Kadaluarsa',
   cancelled: 'Dibatalkan',
   failed:    'Gagal',
 }

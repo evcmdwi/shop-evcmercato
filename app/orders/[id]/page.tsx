@@ -62,6 +62,7 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   shipped: { label: 'Dikirim', className: 'bg-indigo-100 text-indigo-800' },
   delivered: { label: 'Diterima', className: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Dibatalkan', className: 'bg-red-100 text-red-800' },
+  expired: { label: 'Pesanan Kadaluarsa', className: 'bg-gray-100 text-gray-600' },
 }
 
 const timelineSteps = [
@@ -79,6 +80,7 @@ const statusOrder: Record<string, number> = {
   shipped: 3,
   delivered: 4,
   cancelled: -1,
+  expired: -1,
 }
 
 export default function OrderDetailPage() {
@@ -89,6 +91,29 @@ export default function OrderDetailPage() {
   const [order, setOrder] = useState<OrderDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [copied, setCopied] = useState(false)
+  const [reordering, setReordering] = useState(false)
+
+  const handleReorder = async () => {
+    if (!order) return
+    setReordering(true)
+    try {
+      const res = await fetch('/api/cart/reorder', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ order_id: order.id }),
+      })
+      if (res.ok) {
+        router.push('/keranjang')
+      } else {
+        const json = await res.json()
+        alert(json.error ?? 'Gagal menambahkan ke keranjang')
+      }
+    } catch {
+      alert('Terjadi kesalahan. Coba lagi.')
+    } finally {
+      setReordering(false)
+    }
+  }
 
   const fetchOrder = useCallback(async () => {
     const res = await fetch(`/api/orders/${id}`)
@@ -187,6 +212,22 @@ export default function OrderDetailPage() {
               </div>
             )}
           </div>
+
+          {/* Expired Banner */}
+          {order.status === 'expired' && (
+            <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 mb-4">
+              <p className="text-sm text-gray-600">
+                ⏰ Pesanan ini kadaluarsa karena belum dibayar dalam 24 jam.
+              </p>
+              <button
+                onClick={handleReorder}
+                disabled={reordering}
+                className="mt-2 text-sm text-[#7FB300] font-medium hover:underline disabled:opacity-50"
+              >
+                {reordering ? 'Memproses...' : 'Pesan Lagi →'}
+              </button>
+            </div>
+          )}
 
           {/* Pesan untuk Kurir */}
           {order.delivery_note && (

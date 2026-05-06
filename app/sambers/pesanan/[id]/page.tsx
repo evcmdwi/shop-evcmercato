@@ -11,7 +11,7 @@ const statusConfig: Record<string, { label: string; color: string }> = {
   processed: { label: 'Diproses',           color: 'bg-orange-100 text-orange-800' },
   shipped:   { label: 'Dikirim',            color: 'bg-purple-100 text-purple-800' },
   delivered: { label: 'Selesai',            color: 'bg-green-100 text-green-800' },
-  expired:   { label: 'Kedaluwarsa',        color: 'bg-gray-100 text-gray-600' },
+  expired:   { label: 'Kadaluarsa',          color: 'bg-amber-100 text-amber-700' },
   cancelled: { label: 'Dibatalkan',         color: 'bg-red-100 text-red-800' },
 }
 
@@ -825,6 +825,15 @@ export default function AdminOrderDetailPage() {
             </div>
           </div>
         </div>
+
+        {/* Expired Info */}
+        {order.status === 'expired' && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4">
+            <p className="text-sm text-amber-800">
+              ℹ️ Pesanan ini di-mark <strong>kadaluarsa</strong> oleh sistem karena customer tidak menyelesaikan pembayaran dalam 24 jam. Stock sudah dilepas otomatis.
+            </p>
+          </div>
+        )}
 
         {/* Redeem Info */}
         {order.order_type === 'redeem' && (
