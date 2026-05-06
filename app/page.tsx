@@ -122,7 +122,7 @@ export default function HomePage() {
                 <div className="flex flex-col items-center text-center">
                   <div className={`text-5xl mb-4 ${card.iconColor}`}>{card.icon}</div>
                   <h3 className="font-display text-lg text-gray-900 mb-3">{card.title}</h3>
-                  <p className="text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
+                  <p className="font-display text-gray-600 text-sm leading-relaxed whitespace-pre-line">{card.body}</p>
                 </div>
               </div>
             ))}
