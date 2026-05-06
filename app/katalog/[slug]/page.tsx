@@ -72,9 +72,93 @@ export default async function ProductDetailPage({ params }: Props) {
       .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
   }
 
+  // --- JSON-LD structured data for Google Merchant Center ---
+  function getBrandFromCategory(categoryName: string): string {
+    const brands: Record<string, string> = {
+      natesh: 'Natesh',
+      fitsol: 'FITSOL',
+      suplemen: 'Suplemen KKI',
+      kecantikan: 'EVC Mercato',
+      others: 'KKI Group',
+    }
+    return brands[categoryName?.toLowerCase()] ?? 'EVC Mercato'
+  }
+
+  const baseUrl = 'https://shop.evcmercato.com'
+  const productUrl = `${baseUrl}/katalog/${slugify(product.name)}`
+  const productImages = Array.isArray(product.images)
+    ? (product.images as string[])
+        .filter(Boolean)
+        .map((img) => (img.startsWith('http') ? img : `${baseUrl}${img}`))
+    : product.image_url
+    ? [product.image_url]
+    : []
+
+  const jsonLd = {
+    '@context': 'https://schema.org/',
+    '@type': 'Product',
+    name: product.name,
+    description: product.description || product.name,
+    image: productImages,
+    sku: product.sku || `EVC-${product.id.slice(0, 8).toUpperCase()}`,
+    brand: {
+      '@type': 'Brand',
+      name: getBrandFromCategory(product.categories?.name ?? ''),
+    },
+    offers: {
+      '@type': 'Offer',
+      url: productUrl,
+      itemCondition: 'https://schema.org/NewCondition',
+      availability:
+        product.stock > 0
+          ? 'https://schema.org/InStock'
+          : 'https://schema.org/OutOfStock',
+      price: product.price,
+      priceCurrency: 'IDR',
+      seller: {
+        '@type': 'Organization',
+        name: 'EVC Mercato',
+      },
+      shippingDetails: {
+        '@type': 'OfferShippingDetails',
+        shippingRate: {
+          '@type': 'MonetaryAmount',
+          value: 10000,
+          currency: 'IDR',
+        },
+        shippingDestination: {
+          '@type': 'DefinedRegion',
+          addressCountry: 'ID',
+        },
+        deliveryTime: {
+          '@type': 'ShippingDeliveryTime',
+          handlingTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 0,
+            maxValue: 1,
+            unitCode: 'DAY',
+          },
+          transitTime: {
+            '@type': 'QuantitativeValue',
+            minValue: 1,
+            maxValue: 3,
+            unitCode: 'DAY',
+          },
+        },
+      },
+    },
+  }
+  // --- end JSON-LD ---
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <ProductDetailClient product={product} />
-    </div>
+    <>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
+      <div className="min-h-screen bg-gray-50">
+        <ProductDetailClient product={product} />
+      </div>
+    </>
   )
 }
