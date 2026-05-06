@@ -218,6 +218,14 @@ export default function PointsPage() {
           <span>📋 Admin: <strong>Rp 3.000</strong></span>
           <span className="font-bold text-[#7FB300]">Total: Rp 13.000</span>
         </div>
+        {/* Opsi gabung order */}
+        <div className="mt-3 bg-green-50 border border-green-200 rounded-lg p-3">
+          <p className="text-xs text-green-700 font-semibold mb-1">✨ Gratis Ongkir & Admin!</p>
+          <p className="text-xs text-green-600">
+            Pilih opsi <strong>&ldquo;Gabung dengan Order&rdquo;</strong> saat redeem — produk dikirim bersamaan dengan pesanan aktif kamu.
+            Ongkir <strong>Rp 0</strong> + Admin <strong>Rp 0</strong>.
+          </p>
+        </div>
       </div>
 
       {/* Tabs */}
