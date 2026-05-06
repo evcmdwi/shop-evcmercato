@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { revalidatePath } from 'next/cache'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { slugify } from '@/lib/utils'
 
 interface Params {
   params: Promise<{ id: string }>
@@ -122,6 +124,11 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
         }
       }
     }
+
+    // Invalidate product page and catalog cache
+    const productSlug = slugify(product.name)
+    revalidatePath(`/katalog/${productSlug}`)
+    revalidatePath('/katalog')
 
     return NextResponse.json({ ...product, message: 'Produk berhasil diperbarui' })
   } catch (err) {
