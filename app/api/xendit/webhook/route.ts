@@ -102,6 +102,20 @@ async function processWebhook(
 
     console.log('[webhook] Status updated to paid:', orderId)
 
+    // Notif admin via WhatsApp
+    try {
+      const { sendWhatsApp } = await import('@/lib/whatsapp')
+      const orderCode = orderId.slice(-8).toUpperCase()
+      const buyerName = order.shipping_recipient_name || 'Customer'
+      const totalFormatted = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.total_amount || 0)
+      await sendWhatsApp({
+        to: '081386295426',
+        message: `🔔 *Order Baru Masuk!*\n\nOrder: #${orderCode}\nPembeli: ${buyerName}\nTotal: ${totalFormatted}\nMetode: ${paymentMethod || '-'}\n\nCek admin: https://shop.evcmercato.com/sambers/pesanan`
+      })
+    } catch (e) {
+      console.warn('[webhook] Admin WA notif failed (non-critical):', e)
+    }
+
     // Check purchase_bonus promo for any product in order
     const { data: orderItems } = await admin
       .from('order_items')
