@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
     const admin = getSupabaseAdmin()
     const body = await req.json()
-    const { shipping_address, delivery_note } = body
+    const { shipping_address, delivery_note, combined_order_id } = body
 
     // Validate address
     if (!shipping_address?.recipient_name || !shipping_address?.shipping_full_address) {
@@ -37,8 +37,27 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
       .eq('id', 1)
       .single()
 
-    const shippingCost = config?.shipping_cost ?? 10000
-    const adminFee = config?.admin_fee ?? 3000
+    // Validate combined_order_id if provided (user wants to ship together with existing order)
+    let validatedCombinedOrderId: string | null = null
+    if (combined_order_id) {
+      const { data: combinedOrder } = await admin
+        .from('orders')
+        .select('id, status, user_id')
+        .eq('id', combined_order_id)
+        .single()
+
+      if (
+        combinedOrder &&
+        combinedOrder.user_id === user.id &&
+        ['paid', 'processed'].includes(combinedOrder.status)
+      ) {
+        validatedCombinedOrderId = combinedOrder.id
+      }
+    }
+
+    // If valid combined order → free shipping and admin fee
+    const shippingCost = validatedCombinedOrderId ? 0 : (config?.shipping_cost ?? 10000)
+    const adminFee = validatedCombinedOrderId ? 0 : (config?.admin_fee ?? 3000)
     const totalAmount = shippingCost + adminFee
 
     // Check user points
@@ -121,6 +140,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
       shipping_regency_name: shipping_address.shipping_regency_name,
       shipping_province_name: shipping_address.shipping_province_name,
       delivery_note: delivery_note || null,
+      combined_with_order_id: validatedCombinedOrderId,
     })
 
     if (orderError) {
