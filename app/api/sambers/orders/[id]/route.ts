@@ -107,6 +107,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       status: status as string,
       courier: shipping_courier,
       trackingNumber: tracking_number,
+      deliveredNote: delivered_note || undefined,
     }
 
     if (status === 'processed') emitOrderProcessed(payload).catch(console.error)

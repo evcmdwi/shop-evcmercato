@@ -1,10 +1,19 @@
-export function generateOrderDeliveredBuyerWA(orderShortId: string, customerName: string): string {
-  return `Halo ${customerName}! 🎉
+export function generateOrderDeliveredBuyerWA(orderShortId: string, customerName: string, deliveredNote?: string): string {
+  let message = `Halo ${customerName}! 🎉
 
-Pesanan #${orderShortId} sudah selesai dan diterima.
+Pesanan #${orderShortId} sudah selesai dan diterima.`
 
-Semoga puas dengan produk EVC Mercato! 🙏
+  if (deliveredNote?.trim()) {
+    message += `
 
-Ada pertanyaan? Hubungi kami via:
-wa.me/6285820852908`
+Catatan: ${deliveredNote.trim()}`
+  }
+
+  message += `
+
+Semoga puas dan salam Sehat selalu 🙏🏽
+
+Ada pertanyaan lain? Hub Kami di Official WA ini.`
+
+  return message
 }

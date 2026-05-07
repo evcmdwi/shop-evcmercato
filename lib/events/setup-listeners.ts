@@ -87,7 +87,7 @@ export function setupEventListeners() {
   // WA ke buyer saat order DELIVERED
   subscribeToOrderDelivered(async (payload) => {
     if (!payload.payerPhone) return
-    const message = generateOrderDeliveredBuyerWA(payload.orderShortId, payload.customerName)
+    const message = generateOrderDeliveredBuyerWA(payload.orderShortId, payload.customerName, payload.deliveredNote)
     await sendWhatsApp({ to: payload.payerPhone, message })
   })
 
