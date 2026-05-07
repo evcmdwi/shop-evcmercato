@@ -42,6 +42,17 @@ export async function POST(request: NextRequest) {
 
   const admin = getSupabaseAdmin()
 
+  // Lookup district name if district_id provided but district name not
+  let resolvedDistrict = district ?? null
+  if (!resolvedDistrict && district_id) {
+    const { data: districtData } = await admin
+      .from('districts')
+      .select('name')
+      .eq('id', district_id)
+      .single()
+    resolvedDistrict = districtData?.name ?? null
+  }
+
   // Check max 4 addresses
   const { count } = await admin
     .from('addresses')
@@ -75,7 +86,7 @@ export async function POST(request: NextRequest) {
       phone,
       province,
       city,
-      district: district ?? null,
+      district: resolvedDistrict,
       postal_code: postal_code ?? null,
       full_address,
       is_default: setDefault,

@@ -129,6 +129,14 @@ export async function POST(req: NextRequest) {
       .eq('id', user.id)
       .single()
 
+    // 7b. Resolve district name if not provided
+    let resolvedDistrictName = shipping_district_name || address.district || null
+    if (!resolvedDistrictName && (shipping_district_id || address.district_id)) {
+      const dId = shipping_district_id || address.district_id
+      const { data: dData } = await admin.from('districts').select('name').eq('id', dId).single()
+      resolvedDistrictName = dData?.name ?? null
+    }
+
     // 8. INSERT order
     const { data: order, error: orderError } = await admin
       .from('orders')
@@ -156,8 +164,8 @@ export async function POST(req: NextRequest) {
         terms_accepted_at: new Date().toISOString(),
         terms_version: TERMS_VERSION,
         delivery_note: delivery_note?.trim() || null,
-        shipping_district_id: shipping_district_id || null,
-        shipping_district_name: shipping_district_name || null,
+        shipping_district_id: shipping_district_id || address.district_id || null,
+        shipping_district_name: resolvedDistrictName,
         shipping_regency_id: shipping_regency_id || null,
         shipping_regency_name: shipping_regency_name || null,
         shipping_province_id: shipping_province_id || null,

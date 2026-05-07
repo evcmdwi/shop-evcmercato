@@ -34,6 +34,19 @@ export async function PATCH(request: NextRequest, { params }: Params) {
   if (body.city !== undefined) updates.city = body.city
   if (body.district !== undefined) updates.district = body.district
   if (body.postal_code !== undefined) updates.postal_code = body.postal_code
+
+  // If district_id provided but district name missing, lookup from districts table
+  if ((body.district_id !== undefined) && !updates.district) {
+    const dId = body.district_id || null
+    if (dId) {
+      const { data: districtData } = await admin
+        .from('districts')
+        .select('name')
+        .eq('id', dId)
+        .single()
+      if (districtData?.name) updates.district = districtData.name
+    }
+  }
   if (body.full_address !== undefined) updates.full_address = body.full_address
   if (body.district_id !== undefined) updates.district_id = body.district_id || null
   if (body.regency_id !== undefined) updates.regency_id = body.regency_id || null
