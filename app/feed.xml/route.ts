@@ -42,25 +42,34 @@ export async function GET() {
   const { data: products, error } = await admin
     .from('products')
     .select(`
-      id, name, description, price, stock, is_active,
+      id, name, description, price, stock, is_active, has_variants,
       images, image_url, sku,
-      categories!inner ( name )
+      categories!inner ( name ),
+      product_variants ( price, stock )
     `)
     .eq('is_active', true)
-    .gt('stock', 0)
     .order('sort_order', { ascending: true })
 
   if (error) {
     return new NextResponse('Feed generation error', { status: 500 })
   }
 
-  const items = (products ?? []).map((p: any) => {
+  const items = (products ?? []).filter((p: any) => {
+    // Include product if it has stock (own or via variants)
+    const variantStock = (p.product_variants || []).reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+    return p.stock > 0 || variantStock > 0
+  }).map((p: any) => {
     const slug = slugify(p.name)
     const categoryName = (p.categories?.name || 'others').toLowerCase()
     const brand = BRAND_MAP[categoryName] || 'EVC Mercato'
     const googleCategory = CATEGORY_MAP[categoryName] || 'Health & Beauty'
     const sku = p.sku || `EVC-${p.id.slice(0, 8).toUpperCase()}`
     const productUrl = `${BASE_URL}/katalog/${slug}`
+    // Use lowest variant price if product has variants with price=0
+    const variantPrices = (p.product_variants || []).map((v: any) => v.price).filter((price: number) => price > 0)
+    const effectivePrice = (p.has_variants && p.price === 0 && variantPrices.length > 0)
+      ? Math.min(...variantPrices)
+      : p.price
 
     // Get images
     const imageList: string[] = []
@@ -83,7 +92,7 @@ export async function GET() {
       <g:image_link>${escapeXml(mainImage)}</g:image_link>
       ${additionalImages.map((img: string) => `<g:additional_image_link>${escapeXml(img)}</g:additional_image_link>`).join('\n      ')}
       <g:availability>in_stock</g:availability>
-      <g:price>${p.price} IDR</g:price>
+      <g:price>${effectivePrice} IDR</g:price>
       <g:condition>new</g:condition>
       <g:brand><![CDATA[${brand}]]></g:brand>
       <g:google_product_category>${escapeXml(googleCategory)}</g:google_product_category>
