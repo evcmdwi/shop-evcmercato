@@ -65,6 +65,7 @@ export interface OrderStatusChangePayload {
   status: string
   courier?: string
   trackingNumber?: string
+  trackingUrl?: string
   deliveredNote?: string
 }
 

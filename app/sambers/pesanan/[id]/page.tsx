@@ -70,6 +70,7 @@ interface Order {
   shipped_at: string | null
   delivered_at: string | null
   tracking_number: string | null
+  tracking_url: string | null
   shipping_courier: string | null
   delivered_note: string | null
   xendit_invoice_url: string | null
@@ -245,15 +246,18 @@ interface KonfirmasiKirimModalProps {
 
 function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModalProps) {
   const [resiNumber, setResiNumber] = useState(order.tracking_number || '')
+  const [grabTrackingUrl, setGrabTrackingUrl] = useState('')
   const [shipLoading, setShipLoading] = useState(false)
 
   const handleConfirmShipment = async () => {
     setShipLoading(true)
     try {
+      const body: Record<string, string> = { resi_number: resiNumber.trim(), tracking_number: resiNumber.trim() }
+      if (grabTrackingUrl.trim()) body.tracking_url = grabTrackingUrl.trim()
       const res = await fetch(`/api/sambers/orders/${order.id}/confirm-shipment`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ resi_number: resiNumber.trim(), tracking_number: resiNumber.trim() }),
+        body: JSON.stringify(body),
       })
       const json = await res.json()
       if (!res.ok) { alert(json.error || 'Gagal konfirmasi'); return }
@@ -292,6 +296,23 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
           />
           <p className="text-xs text-gray-400 mt-1">Minimal 8 karakter</p>
         </div>
+
+        {/* Grab Tracking Link (opsional untuk Grab) */}
+        {(order.courier_type === 'grab' || order.shipping_method === 'instan' || order.shipping_method === 'sameday') && (
+          <div className="mb-6">
+            <label className="block text-sm font-semibold mb-2">
+              Grab Tracking Link <span className="text-gray-400 font-normal">(opsional)</span>
+            </label>
+            <input
+              type="url"
+              value={grabTrackingUrl}
+              onChange={(e) => setGrabTrackingUrl(e.target.value)}
+              placeholder="https://express.grab.com/track/..."
+              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-xs"
+            />
+            <p className="text-xs text-gray-400 mt-1">Salin link tracking dari Grab Driver app</p>
+          </div>
+        )}
 
         <div className="flex gap-3">
           <button
@@ -601,6 +622,14 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
               {order.shipping_courier} {order.tracking_number ?? '—'}
             </span>
           </div>
+          {order.tracking_url && (
+            <div className="bg-purple-50 border border-purple-100 rounded-xl p-3 text-sm">
+              <span className="text-slate-500">Tracking: </span>
+              <a href={order.tracking_url} target="_blank" rel="noopener noreferrer" className="text-xs text-green-600 hover:underline break-all">
+                {order.tracking_url}
+              </a>
+            </div>
+          )}
           <button
             onClick={() => setShowMarkDelivered(true)}
             className="w-full bg-green-600 text-white py-3 rounded-xl font-semibold hover:bg-green-700 transition-colors"

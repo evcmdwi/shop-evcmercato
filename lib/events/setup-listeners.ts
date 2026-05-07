@@ -77,7 +77,8 @@ export function setupEventListeners() {
       payload.orderShortId,
       payload.customerName,
       payload.courier,
-      payload.trackingNumber
+      payload.trackingNumber,
+      payload.trackingUrl
     )
     await sendWhatsApp({ to: payload.payerPhone, message })
   })

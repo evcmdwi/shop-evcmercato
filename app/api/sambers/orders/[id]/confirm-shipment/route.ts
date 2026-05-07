@@ -12,7 +12,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
 
     const admin = getSupabaseAdmin()
     const { id } = await params
-    const { resi_number } = await req.json()
+    const { resi_number, tracking_url } = await req.json()
 
     if (!resi_number || resi_number.trim().length < 8) {
       return NextResponse.json({ error: 'No. resi/order ID minimal 8 karakter' }, { status: 400 })
@@ -44,6 +44,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       .from('orders')
       .update({
         tracking_number: resi_number.trim(),
+        tracking_url: tracking_url?.trim() || null,
         shipping_courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
         status: 'shipped',
         shipped_at: new Date().toISOString(),
@@ -68,6 +69,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       status: 'shipped',
       courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
       trackingNumber: resi_number.trim(),
+      trackingUrl: tracking_url?.trim() || undefined,
     }).catch(console.error)
 
     return NextResponse.json({ data: { status: 'shipped', tracking_number: resi_number.trim() } })
