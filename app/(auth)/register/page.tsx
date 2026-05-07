@@ -38,8 +38,13 @@ function RegisterForm() {
       return
     }
 
-    if (phone.replace(/\D/g, '').length < 10) {
+    const cleanPhone = phone.replace(/\D/g, '')
+    if (cleanPhone.length < 10) {
       setError('Nomor WhatsApp minimal 10 digit.')
+      return
+    }
+    if (cleanPhone.length > 13) {
+      setError('Nomor WhatsApp tidak valid. Pastikan nomor Indonesia yang benar (contoh: 0812xxxxx).')
       return
     }
 
