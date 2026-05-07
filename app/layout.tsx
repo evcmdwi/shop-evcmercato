@@ -35,6 +35,9 @@ const montserrat = Montserrat({
 export const metadata: Metadata = {
   title: "EVC Mercato",
   description: "Toko Online EVC Mercato — Distributor Resmi KKI Group, Terpercaya Sejak 2003.",
+  verification: {
+    google: '-YVK8Cppb5yd2e9KGYSoAbsDtOE6jG7Qd4NIbSJWo_0',
+  },
 };
 
 export default async function RootLayout({
