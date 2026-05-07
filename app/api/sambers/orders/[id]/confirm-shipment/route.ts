@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { emitOrderShipped } from '@/lib/events/order-events'
+import { setupEventListeners } from '@/lib/events/setup-listeners'
+setupEventListeners()
 
 type RouteContext = { params: Promise<{ id: string }> }
 
