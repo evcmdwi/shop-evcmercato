@@ -23,7 +23,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     // Get current order (for cleanup + notification)
     const { data: order } = await admin
       .from('orders')
-      .select('courier_type, resi_barcode_url, user_id, shipping_phone, shipping_recipient_name')
+      .select('courier_type, resi_barcode_url, user_id, shipping_phone, shipping_recipient_name, shipping_method')
       .eq('id', id)
       .single()
 
