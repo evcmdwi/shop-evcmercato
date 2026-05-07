@@ -38,22 +38,32 @@ export function setupEventListeners() {
   // WA ke buyer saat order paid
   subscribeToOrderPaid(async (payload) => {
     if (!payload.payerPhone) {
-      console.log('[whatsapp] buyer — no phone, skipping')
+      console.warn('[whatsapp] paid — no payerPhone for order', payload.orderShortId)
       return
     }
     const message = generateOrderPaidBuyerWA(payload)
-    await sendWhatsApp({ to: payload.payerPhone, message })
+    const result = await sendWhatsApp({ to: payload.payerPhone, message })
+    if (!result?.success) {
+      console.error('[whatsapp] paid buyer — failed', payload.payerPhone, result?.error)
+    } else {
+      console.log('[whatsapp] paid buyer — sent to', payload.payerPhone, 'order', payload.orderShortId)
+    }
   })
 
   // WA ke admin saat order paid
   subscribeToOrderPaid(async (payload) => {
     const adminPhone = process.env.FONNTE_ADMIN_PHONE
     if (!adminPhone) {
-      console.log('[whatsapp] admin — FONNTE_ADMIN_PHONE not set, skipping')
+      console.warn('[whatsapp] admin — FONNTE_ADMIN_PHONE not set, skipping')
       return
     }
     const message = generateOrderPaidAdminWA(payload)
-    await sendWhatsApp({ to: adminPhone, message })
+    const result = await sendWhatsApp({ to: adminPhone, message })
+    if (!result?.success) {
+      console.error('[whatsapp] paid admin — failed', adminPhone, result?.error)
+    } else {
+      console.log('[whatsapp] paid admin — sent to', adminPhone, 'order', payload.orderShortId)
+    }
   })
 
   // WA ke buyer saat order expired (butuh data dari DB)
@@ -65,14 +75,33 @@ export function setupEventListeners() {
 
   // WA ke buyer saat order PROCESSED
   subscribeToOrderProcessed(async (payload) => {
-    if (!payload.payerPhone) return
+    if (!payload.payerPhone) {
+      console.warn('[whatsapp] processed — no payerPhone for order', payload.orderShortId)
+      return
+    }
     const message = generateOrderProcessedBuyerWA(payload.orderShortId, payload.customerName)
-    await sendWhatsApp({ to: payload.payerPhone, message })
+    const result = await sendWhatsApp({ to: payload.payerPhone, message })
+    if (!result?.success) {
+      console.error('[whatsapp] processed — failed', payload.payerPhone, result?.error)
+    } else {
+      console.log('[whatsapp] processed — sent to', payload.payerPhone, 'order', payload.orderShortId)
+    }
   })
 
   // WA ke buyer saat order SHIPPED
   subscribeToOrderShipped(async (payload) => {
-    if (!payload.payerPhone || !payload.courier || !payload.trackingNumber) return
+    if (!payload.payerPhone) {
+      console.warn('[whatsapp] shipped — no payerPhone for order', payload.orderShortId)
+      return
+    }
+    if (!payload.courier) {
+      console.warn('[whatsapp] shipped — no courier for order', payload.orderShortId)
+      return
+    }
+    if (!payload.trackingNumber) {
+      console.warn('[whatsapp] shipped — no trackingNumber for order', payload.orderShortId)
+      return
+    }
     const message = generateOrderShippedBuyerWA(
       payload.orderShortId,
       payload.customerName,
@@ -81,14 +110,27 @@ export function setupEventListeners() {
       payload.trackingUrl,
       payload.shippingMethod
     )
-    await sendWhatsApp({ to: payload.payerPhone, message })
+    const result = await sendWhatsApp({ to: payload.payerPhone, message })
+    if (!result?.success) {
+      console.error('[whatsapp] shipped — failed to send to', payload.payerPhone, 'order', payload.orderShortId, result?.error)
+    } else {
+      console.log('[whatsapp] shipped — sent to', payload.payerPhone, 'order', payload.orderShortId)
+    }
   })
 
   // WA ke buyer saat order DELIVERED
   subscribeToOrderDelivered(async (payload) => {
-    if (!payload.payerPhone) return
+    if (!payload.payerPhone) {
+      console.warn('[whatsapp] delivered — no payerPhone for order', payload.orderShortId)
+      return
+    }
     const message = generateOrderDeliveredBuyerWA(payload.orderShortId, payload.customerName, payload.deliveredNote)
-    await sendWhatsApp({ to: payload.payerPhone, message })
+    const result = await sendWhatsApp({ to: payload.payerPhone, message })
+    if (!result?.success) {
+      console.error('[whatsapp] delivered — failed', payload.payerPhone, result?.error)
+    } else {
+      console.log('[whatsapp] delivered — sent to', payload.payerPhone, 'order', payload.orderShortId)
+    }
   })
 
   // Update sold count setelah order PAID
