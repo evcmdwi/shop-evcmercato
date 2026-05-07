@@ -3,7 +3,8 @@ export function generateOrderShippedBuyerWA(
   customerName: string,
   courier: string,
   trackingNumber: string,
-  trackingUrl?: string
+  trackingUrl?: string,
+  shippingMethod?: string
 ): string {
   const defaultTrackingUrls: Record<string, string> = {
     'JNE': 'https://www.jne.co.id/id/tracking/trace',
@@ -16,25 +17,20 @@ export function generateOrderShippedBuyerWA(
     defaultTrackingUrls[courier] ||
     `https://www.google.com/search?q=${encodeURIComponent(courier + ' ' + trackingNumber)}`
 
-  let message = `Halo ${customerName}! 🚀
+  const estimasi = shippingMethod === 'instan'
+    ? '30-60 menit'
+    : shippingMethod === 'sameday'
+    ? '2-8 jam'
+    : '1-3 hari kerja'
+
+  return `Halo ${customerName}! 🚀
 
 Pesanan #${orderShortId} sudah dikirim!
 
 📦 Ekspedisi: ${courier}
 🔢 No. Resi: ${trackingNumber}
-🔍 Cek status: ${resolvedTrackingUrl}`
+🔍 Lacak Paket: ${resolvedTrackingUrl}
 
-  if (trackingUrl) {
-    message += `
-
-🔍 *Lacak Paket:*
-${trackingUrl}`
-  }
-
-  message += `
-
-Estimasi tiba 1-3 hari kerja.
+Estimasi tiba ${estimasi}.
 Terima kasih sudah belanja di EVC Mercato 💚`
-
-  return message
 }

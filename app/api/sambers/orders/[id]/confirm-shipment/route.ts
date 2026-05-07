@@ -70,6 +70,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
       trackingNumber: resi_number.trim(),
       trackingUrl: tracking_url?.trim() || undefined,
+      shippingMethod: order?.shipping_method || undefined,
     }).catch(console.error)
 
     return NextResponse.json({ data: { status: 'shipped', tracking_number: resi_number.trim() } })
