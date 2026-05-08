@@ -251,6 +251,31 @@ async function processWebhook(
       shipping_method: (order.shipping_method as 'reguler' | 'instan' | 'sameday') || 'reguler',
     })
 
+    // Affiliate commission — buat commission SETELAH order PAID (bukan saat checkout)
+    try {
+      const { data: paidOrder } = await admin.from('orders').select('attributed_affiliate_code, commission_id, total_amount, user_id').eq('id', orderId).single()
+      if (paidOrder?.attributed_affiliate_code && !paidOrder?.commission_id) {
+        const { data: aff } = await admin.from('affiliates').select('id').eq('affiliate_code', paidOrder.attributed_affiliate_code).eq('status', 'approved').single()
+        if (aff) {
+          const { data: orderItemsFull } = await admin.from('order_items').select('variant_id, quantity, product_name, variant_name').eq('order_id', orderId)
+          let totalPV = 0
+          const lineItems: { product_variant_id: string; product_name: string; variant_name: string; quantity: number; pv_per_unit: number; total_pv: number }[] = []
+          for (const item of orderItemsFull || []) {
+            const { data: variant } = await admin.from('product_variants').select('affiliate_pv_value').eq('id', item.variant_id).single()
+            const pvPerUnit = variant?.affiliate_pv_value || 0
+            totalPV += pvPerUnit * item.quantity
+            lineItems.push({ product_variant_id: item.variant_id, product_name: item.product_name, variant_name: item.variant_name || '', quantity: item.quantity, pv_per_unit: pvPerUnit, total_pv: pvPerUnit * item.quantity })
+          }
+          const { data: commission } = await admin.from('commissions').insert({ affiliate_id: aff.id, affiliate_code: paidOrder.attributed_affiliate_code, order_id: orderId, user_id: paidOrder.user_id, order_total: paidOrder.total_amount || 0, pv_earned: totalPV, status: 'pending' }).select('id').single()
+          if (commission?.id) {
+            if (lineItems.length > 0) await admin.from('commission_line_items').insert(lineItems.map(li => ({ ...li, commission_id: commission.id })))
+            await admin.from('orders').update({ commission_id: commission.id }).eq('id', orderId)
+          }
+          console.log('[affiliate] commission created on paid:', orderId, '| code:', paidOrder.attributed_affiliate_code, '| PV:', totalPV)
+        }
+      }
+    } catch (e) { console.error('[affiliate] commission creation on paid failed:', e) }
+
   } else if (status === 'EXPIRED') {
     if (order.status === 'expired' || order.status === 'cancelled') return
 
