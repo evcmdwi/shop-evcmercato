@@ -622,17 +622,25 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
         setAffiliate(aff)
         setView(aff.status as ViewState)
         if (aff.status === 'approved') {
-          const statsRes = await fetch('/api/affiliate/stats')
-          const statsData = await statsRes.json()
-          setStats(statsData?.stats ?? statsData ?? {
-            lifetime_pv: 0,
-            pending_pv: 0,
-            total_clicks: 0,
-            total_members: 0,
-          })
+          // Stats fetch terpisah — error di sini tidak boleh reset view
+          try {
+            const statsRes = await fetch('/api/affiliate/dashboard-stats')
+            const statsData = await statsRes.json()
+            setStats(statsData?.stats ?? statsData ?? {
+              lifetime_pv: 0,
+              pending_pv: 0,
+              total_clicks: 0,
+              total_members: 0,
+            })
+          } catch (statsErr) {
+            console.error('[affiliate] gagal fetch stats:', statsErr)
+            // Biarkan stats default 0, view tetap 'approved'
+          }
         }
       }
-    } catch {
+    } catch (e) {
+      console.error('[affiliate] fetchStatus error:', e)
+      // Hanya fallback not_applied kalau memang gagal fetch status
       setView('not_applied')
     }
   }, [])
