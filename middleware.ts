@@ -55,9 +55,21 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
+  // Affiliate ref cookie — set from ?ref=CODE URL param
+  const refCode = request.nextUrl.searchParams.get('ref')
+  if (refCode && !request.cookies.get('evc_ref')) {
+    supabaseResponse.cookies.set('evc_ref', refCode, {
+      maxAge: 2592000, // 30 days
+      httpOnly: true,
+      secure: true,
+      sameSite: 'lax',
+      path: '/'
+    })
+  }
+
   return supabaseResponse
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/account/:path*', '/profile/:path*', '/orders/:path*', '/keranjang/:path*', '/checkout/:path*'],
+  matcher: ['/dashboard/:path*', '/account/:path*', '/profile/:path*', '/orders/:path*', '/keranjang/:path*', '/checkout/:path*', '/katalog/:path*', '/'],
 }
