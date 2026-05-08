@@ -324,8 +324,47 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
   const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<string | null>(null)
+  const [resultIsExisting, setResultIsExisting] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [existingLinks, setExistingLinks] = useState<Record<string, string>>({})
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Load semua existing links saat mount — reuse instead of generate
+  useEffect(() => {
+    fetch('/api/affiliate/links?limit=100')
+      .then(r => r.json())
+      .then(data => {
+        const map: Record<string, string> = {}
+        for (const link of data?.links ?? []) {
+          // key: "homepage", "category:natesh", "product:slug"
+          if (link.link_type === 'homepage') map['homepage'] = link.short_url
+          else if (link.link_type === 'category' && link.target_url) {
+            const slug = link.target_url.split('/katalog/')[1]?.split('?')[0]
+            if (slug) map[`category:${slug}`] = link.short_url
+          } else if (link.link_type === 'product' && link.target_url) {
+            const slug = link.target_url.split('/katalog/')[1]?.split('?')[0]
+            if (slug) map[`product:${slug}`] = link.short_url
+          }
+        }
+        setExistingLinks(map)
+        // Auto-show homepage link kalau sudah ada
+        if (map['homepage']) { setResult(map['homepage']); setResultIsExisting(true) }
+      })
+      .catch(() => {})
+  }, [])
+
+  // Saat target/produk/kategori berubah: cek existing dulu
+  useEffect(() => {
+    setResult(null)
+    setResultIsExisting(false)
+    if (target === 'homepage' && existingLinks['homepage']) {
+      setResult(existingLinks['homepage']); setResultIsExisting(true)
+    } else if (target === 'category' && selectedCategory && existingLinks[`category:${selectedCategory}`]) {
+      setResult(existingLinks[`category:${selectedCategory}`]); setResultIsExisting(true)
+    } else if (target === 'product' && selectedProduct && existingLinks[`product:${selectedProduct.slug}`]) {
+      setResult(existingLinks[`product:${selectedProduct.slug}`]); setResultIsExisting(true)
+    }
+  }, [target, selectedCategory, selectedProduct, existingLinks])
 
   const searchProducts = useCallback((q: string) => {
     if (debounceRef.current) clearTimeout(debounceRef.current)
@@ -363,7 +402,14 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data?.error ?? 'Gagal generate link')
-      setResult(data.short_url ?? data.url ?? '')
+      const newUrl = data.short_url ?? data.url ?? ''
+      setResult(newUrl)
+      setResultIsExisting(false)
+      // Simpan ke cache lokal
+      const key = target === 'homepage' ? 'homepage'
+        : target === 'category' ? `category:${selectedCategory}`
+        : `product:${selectedProduct?.slug}`
+      if (key) setExistingLinks(prev => ({ ...prev, [key]: newUrl }))
     } catch (e) {
       setResult(null)
       alert(e instanceof Error ? e.message : 'Error')
@@ -477,11 +523,14 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
       >
-        {generating ? 'Generating...' : 'Generate Link'}
+        {generating ? 'Generating...' : resultIsExisting ? 'Buat Link Baru' : 'Generate Link'}
       </button>
 
       {result && (
         <div className="bg-[#f8fce8] rounded-xl p-4">
+          {resultIsExisting && (
+            <p className="text-xs text-[#7FB300] font-medium mb-1">✓ Link sudah ada — ditampilkan kembali</p>
+          )}
           <p className="text-xs text-gray-500 mb-2">Link Affiliate Anda:</p>
           <p className="font-mono text-sm text-[#7FB300] break-all mb-3">{result}</p>
           <div className="flex gap-2">
