@@ -244,7 +244,7 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
               placeholder="Nama sponsor Anda"
             />
           </div>
-          <button
+          <button type="button"
             onClick={handleNext}
             className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors"
           >
@@ -300,7 +300,7 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
                     placeholder="URL / username"
                   />
                   {channels.length > 1 && (
-                    <button
+                    <button type="button"
                       onClick={() => removeChannel(idx)}
                       className="text-red-400 hover:text-red-600 px-2"
                     >
@@ -310,7 +310,7 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
                 </div>
               ))}
             </div>
-            <button
+            <button type="button"
               onClick={addChannel}
               className="mt-2 text-sm text-[#7FB300] font-semibold hover:underline"
             >
@@ -319,13 +319,13 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
           </div>
 
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={() => setStep(1)}
               className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
             >
               Kembali
             </button>
-            <button
+            <button type="button"
               onClick={handleNext}
               className="flex-1 bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors"
             >
@@ -380,13 +380,13 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
           </label>
 
           <div className="flex gap-2 pt-2">
-            <button
+            <button type="button"
               onClick={() => setStep(2)}
               className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
             >
               Kembali
             </button>
-            <button
+            <button type="button"
               onClick={handleSubmit}
               disabled={!canSubmit || submitting}
               className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${
@@ -513,7 +513,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
           {products.length > 0 && (
             <div className="mt-2 border border-gray-200 rounded-xl overflow-hidden">
               {products.map((p) => (
-                <button
+                <button type="button"
                   key={p.id}
                   onClick={() => { setSelectedProduct(p); setProducts([]); setProductSearch(p.name) }}
                   className={`w-full text-left px-4 py-3 text-sm hover:bg-[#f8fce8] transition-colors ${
@@ -531,7 +531,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
         </div>
       )}
 
-      <button
+      <button type="button"
         onClick={handleGenerate}
         disabled={generating || (target === 'product' && !selectedProduct)}
         className={`w-full py-3 rounded-xl font-semibold transition-colors ${
@@ -548,13 +548,13 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
           <p className="text-xs text-gray-500 mb-2">Link Affiliate Anda:</p>
           <p className="font-mono text-sm text-[#7FB300] break-all mb-3">{result}</p>
           <div className="flex gap-2">
-            <button
+            <button type="button"
               onClick={handleCopy}
               className="flex-1 border border-[#7FB300] text-[#7FB300] py-2 rounded-lg text-sm font-semibold hover:bg-[#7FB300] hover:text-white transition-colors"
             >
               {copied ? '✓ Tersalin!' : 'Salin Link'}
             </button>
-            <button
+            <button type="button"
               onClick={shareWA}
               className="flex-1 bg-green-500 text-white py-2 rounded-lg text-sm font-semibold hover:bg-green-600 transition-colors"
             >
@@ -785,7 +785,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
             </div>
           </div>
 
-          <button
+          <button type="button"
             onClick={() => setView('applying')}
             className="bg-[#7FB300] text-white px-8 py-4 rounded-full font-semibold text-lg hover:bg-[#6B9700] transition-colors"
           >
@@ -800,7 +800,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
   if (view === 'applying') {
     return (
       <div>
-        <button
+        <button type="button"
           onClick={() => setView('not_applied')}
           className="flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
         >
@@ -840,7 +840,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
           <div className="text-5xl mb-4">❌</div>
           <h2 className="font-display text-2xl text-gray-900 mb-2">Pengajuan Tidak Disetujui</h2>
           <p className="text-gray-500 mb-4">{affiliate?.rejected_reason}</p>
-          <button
+          <button type="button"
             onClick={() => setView('applying')}
             className="bg-[#7FB300] text-white px-6 py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors"
           >
@@ -899,7 +899,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
         <div className="flex border-b border-gray-100 overflow-x-auto">
           {tabs.map((t) => (
-            <button
+            <button type="button"
               key={t.key}
               onClick={() => setActiveTab(t.key)}
               className={`flex-1 min-w-max px-4 py-3 text-sm font-medium transition-colors ${
