@@ -125,6 +125,9 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
           const { data: aff } = await admin.from('affiliates').select('lifetime_pv, lifetime_orders').eq('id', commission.affiliate_id).single()
           if (aff) await admin.from('affiliates').update({ lifetime_pv: (aff.lifetime_pv || 0) + commission.pv_earned, lifetime_orders: (aff.lifetime_orders || 0) + 1 }).eq('id', commission.affiliate_id)
           console.log('[affiliate] commission validated for order', id, '| PV:', commission.pv_earned)
+          // Notify affiliate about new commission (non-critical)
+          const { notifyCommissionValid } = await import('@/lib/affiliate/notifications')
+          notifyCommissionValid(commission.id).catch(console.error)
         }
       } catch (e) { console.error('[affiliate] commission validation failed (non-critical):', e) }
     }

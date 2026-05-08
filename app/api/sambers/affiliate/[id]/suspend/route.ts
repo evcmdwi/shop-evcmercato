@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuthWithRole } from '@/lib/admin-auth-role'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { notifyAffiliateSuspended } from '@/lib/affiliate/notifications'
 
 export async function POST(
   req: NextRequest,
@@ -57,6 +58,9 @@ export async function POST(
     .from('short_links')
     .update({ status: 'disabled' })
     .eq('affiliate_id', id)
+
+  // Send WA + email + in-app notification (non-critical)
+  notifyAffiliateSuspended(id, reason).catch(console.error)
 
   return NextResponse.json({ success: true })
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuthWithRole } from '@/lib/admin-auth-role'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { generateAffiliateCode } from '@/lib/affiliate/tracking'
+import { notifyAffiliateApproved } from '@/lib/affiliate/notifications'
 
 export async function POST(
   req: NextRequest,
@@ -55,18 +56,8 @@ export async function POST(
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
 
-  // Insert notification for user
-  const notifBody = notes
-    ? `Selamat! Pengajuan affiliate Anda telah disetujui. Kode affiliate Anda: ${affiliateCode}. Catatan: ${notes}`
-    : `Selamat! Pengajuan affiliate Anda telah disetujui. Kode affiliate Anda: ${affiliateCode}`
-
-  await admin.from('notifications').insert({
-    user_id: affiliate.user_id,
-    type: 'affiliate_approved',
-    title: 'Pengajuan Affiliate Disetujui',
-    body: notifBody,
-    metadata: { affiliate_code: affiliateCode },
-  })
+  // Send WA + email + in-app notification (non-critical)
+  notifyAffiliateApproved(id, notes ?? undefined).catch(console.error)
 
   return NextResponse.json({ success: true, affiliate_code: affiliateCode })
 }

@@ -282,7 +282,7 @@ export async function POST(req: NextRequest) {
             totalPV += pvPerUnit * item.quantity
             lineItems.push({ product_variant_id: item.variant_id, product_name: item.product_name, variant_name: item.variant_name || '', quantity: item.quantity, pv_per_unit: pvPerUnit, total_pv: pvPerUnit * item.quantity })
           }
-          const { data: commission } = await admin.from('commissions').insert({ affiliate_id: aff.id, affiliate_code: attribution.code, order_id: order.id, user_id: user.id, order_total: order.total_amount || 0, pv_earned: totalPV, status: 'pending' }).select('id').single()
+          const { data: commission } = await admin.from('commissions').insert({ affiliate_id: aff.id, affiliate_code: attribution.code, order_id: order.id, user_id: user.id, order_total: total_amount || 0, pv_earned: totalPV, status: 'pending' }).select('id').single()
           if (commission?.id && lineItems.length > 0) {
             await admin.from('commission_line_items').insert(lineItems.map(li => ({ ...li, commission_id: commission.id })))
             await admin.from('orders').update({ commission_id: commission.id }).eq('id', order.id)
