@@ -33,9 +33,13 @@ interface AffiliateRow {
   approved_at: string | null
 }
 
-type Tab = 'pengajuan' | 'aktif' | 'settlement'
+type Tab = 'pengajuan' | 'aktif' | 'settlement' | 'pengaturan-pv'
 
 // ─── Helpers ────────────────────────────────────────────────────────
+
+function formatRupiah(n: number) {
+  return n.toLocaleString('id-ID')
+}
 
 function formatDate(d: string | null) {
   if (!d) return '—'
@@ -510,6 +514,149 @@ function formatNumber(n: number) {
   return n.toLocaleString('id-ID')
 }
 
+// ─── Tab: Pengaturan PV ────────────────────────────────────────────────
+
+interface PVVariant {
+  variant_id: string
+  variant_name: string
+  price: number
+  affiliate_pv_value: number
+  is_default: boolean
+}
+
+interface PVProduct {
+  product_id: string
+  product_name: string
+  has_variants: boolean
+  variants: PVVariant[]
+}
+
+function PengaturanPVTab() {
+  const [products, setProducts] = useState<PVProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [pvSearch, setPvSearch] = useState('')
+  const [showMissingOnly, setShowMissingOnly] = useState(false)
+  const [pvValues, setPvValues] = useState<Record<string, number>>({})
+  const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (pvSearch) params.set('search', pvSearch)
+      if (showMissingOnly) params.set('show_missing_pv', 'true')
+      const res = await fetch(`/api/sambers/affiliate/product-pv?${params}`)
+      const data = await res.json()
+      setProducts(data.products ?? [])
+    } finally {
+      setLoading(false)
+    }
+  }, [pvSearch, showMissingOnly])
+
+  useEffect(() => { load() }, [load])
+
+  const savePV = async (variantId: string) => {
+    setSaving(prev => ({ ...prev, [variantId]: true }))
+    const pv = pvValues[variantId] ?? 0
+    try {
+      const res = await fetch(`/api/sambers/affiliate/product-pv/${variantId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pv_value: pv }),
+      })
+      if (res.ok) {
+        setProducts(prev => prev.map(p => ({
+          ...p,
+          variants: p.variants.map(v =>
+            v.variant_id === variantId ? { ...v, affiliate_pv_value: pv } : v
+          ),
+        })))
+        setMessage({ text: '✅ PV berhasil disimpan.', ok: true })
+      } else {
+        const data = await res.json()
+        setMessage({ text: `❌ ${data.error ?? 'Gagal menyimpan PV'}`, ok: false })
+      }
+    } catch {
+      setMessage({ text: '❌ Terjadi kesalahan jaringan.', ok: false })
+    } finally {
+      setSaving(prev => ({ ...prev, [variantId]: false }))
+    }
+  }
+
+  return (
+    <div>
+      {message && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${message.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          {message.text}
+          <button className="ml-3 underline" onClick={() => setMessage(null)}>Tutup</button>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-gray-900">PV per Produk</h2>
+        <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMissingOnly}
+            onChange={e => setShowMissingOnly(e.target.checked)}
+            className="accent-[#7FB300]"
+          />
+          Tampilkan yang belum di-set (PV = 0)
+        </label>
+      </div>
+
+      <input
+        type="text"
+        value={pvSearch}
+        onChange={e => setPvSearch(e.target.value)}
+        placeholder="Cari nama produk..."
+        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm mb-4"
+      />
+
+      {loading ? (
+        <div className="text-sm text-gray-500 py-8 text-center">Memuat…</div>
+      ) : products.length === 0 ? (
+        <div className="text-sm text-gray-500 py-12 text-center">Tidak ada produk ditemukan.</div>
+      ) : (
+        products.map(product => (
+          <div key={product.product_id} className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+            <p className="font-semibold text-sm text-gray-900 mb-2">{product.product_name}</p>
+            {product.variants.map(variant => (
+              <div key={variant.variant_id} className="flex items-center gap-3 py-2 border-t border-gray-50">
+                <span className="text-sm text-gray-500 flex-1">
+                  {product.has_variants ? variant.variant_name : 'Default'}
+                  <span className="text-xs text-gray-400 ml-2">Rp {formatRupiah(variant.price)}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">PV:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={pvValues[variant.variant_id] ?? variant.affiliate_pv_value}
+                    onChange={e => setPvValues(prev => ({ ...prev, [variant.variant_id]: Number(e.target.value) }))}
+                    className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:border-[#7FB300]"
+                  />
+                  <button
+                    onClick={() => savePV(variant.variant_id)}
+                    disabled={saving[variant.variant_id]}
+                    className="bg-[#7FB300] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#6B9700] disabled:opacity-50"
+                  >
+                    {saving[variant.variant_id] ? '...' : 'Simpan'}
+                  </button>
+                  {variant.affiliate_pv_value === 0 && (
+                    <span className="text-xs text-amber-500">⚠️ Belum di-set</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
 // ─── Tab: Settlement ─────────────────────────────────────────────────
 
 function SettlementTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
@@ -759,6 +906,7 @@ export default function AdminAffiliatePage() {
     { id: 'pengajuan', label: '📝 Pengajuan' },
     { id: 'aktif', label: '✅ Affiliate Aktif' },
     { id: 'settlement', label: '📊 Settlement' },
+    { id: 'pengaturan-pv', label: '⚙️ Pengaturan PV' },
   ]
 
   return (
@@ -793,6 +941,7 @@ export default function AdminAffiliatePage() {
           {activeTab === 'pengajuan' && <PengajuanTab isSuperAdmin={isSuperAdmin} />}
           {activeTab === 'aktif' && <AktifTab isSuperAdmin={isSuperAdmin} />}
           {activeTab === 'settlement' && <SettlementTab isSuperAdmin={isSuperAdmin} />}
+          {activeTab === 'pengaturan-pv' && <PengaturanPVTab />}
         </>
       )}
     </div>
