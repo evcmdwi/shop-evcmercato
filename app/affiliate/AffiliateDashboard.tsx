@@ -340,11 +340,17 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
         const map: Record<string, string> = {}
         for (const link of data?.links ?? []) {
           // key: "homepage", "category:natesh", "product:slug"
-          if (link.link_type === 'homepage') map['homepage'] = link.short_url
-          else if (link.link_type === 'category' && link.target_url) {
-            const slug = link.target_url.split('/katalog/')[1]?.split('?')[0]
-            if (slug) map[`category:${slug}`] = link.short_url
+          if (link.link_type === 'homepage') {
+            map['homepage'] = link.short_url
+          } else if (link.link_type === 'category' && link.target_url) {
+            // URL format: /katalog?category=natesh&ref=...
+            try {
+              const u = new URL(link.target_url)
+              const cat = u.searchParams.get('category')
+              if (cat) map[`category:${cat}`] = link.short_url
+            } catch {}
           } else if (link.link_type === 'product' && link.target_url) {
+            // URL format: /katalog/natesh-night-...
             const slug = link.target_url.split('/katalog/')[1]?.split('?')[0]
             if (slug) map[`product:${slug}`] = link.short_url
           }
