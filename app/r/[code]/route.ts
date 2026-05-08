@@ -28,15 +28,15 @@ export async function GET(
   const fingerprint = computeFingerprint(req)
 
   // Record click (fire and forget)
-  admin.from('referral_clicks').insert({
+  void Promise.resolve(admin.from('referral_clicks').insert({
     short_link_id: link.id,
     affiliate_code: affiliateCode,
     ip_address: getClientIP(req),
     user_agent: req.headers.get('user-agent') || '',
     fingerprint_hash: fingerprint,
-  }).then(() => {
+  })).then(async () => {
     // Increment click count
-    admin.from('short_links')
+    await admin.from('short_links')
       .update({ 
         click_count: (link.click_count || 0) + 1,
         last_clicked_at: new Date().toISOString()
