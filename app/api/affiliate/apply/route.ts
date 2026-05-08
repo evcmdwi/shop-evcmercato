@@ -79,9 +79,6 @@ export async function POST(req: NextRequest) {
       director_leader,
       whatsapp,
       email,
-      agreement_kki_ethics: true,
-      agreement_no_medical_claim: true,
-      agreement_terms: true,
       status: 'pending',
     })
     .select('id')
