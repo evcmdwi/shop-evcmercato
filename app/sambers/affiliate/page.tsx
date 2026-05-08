@@ -33,9 +33,13 @@ interface AffiliateRow {
   approved_at: string | null
 }
 
-type Tab = 'pengajuan' | 'aktif' | 'settlement'
+type Tab = 'pengajuan' | 'aktif' | 'settlement' | 'pengaturan-pv'
 
 // ─── Helpers ────────────────────────────────────────────────────────
+
+function formatRupiah(n: number) {
+  return n.toLocaleString('id-ID')
+}
 
 function formatDate(d: string | null) {
   if (!d) return '—'
@@ -474,14 +478,408 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   )
 }
 
-// ─── Tab: Settlement (Placeholder) ──────────────────────────────────
+// ─── Types: Settlement ──────────────────────────────────────────────
 
-function SettlementTab() {
+interface CurrentPeriod {
+  label: string
+  start: string
+  end: string
+  settlement_date: string
+  total_pv: number
+  total_affiliates: number
+  total_orders: number
+}
+
+interface AffiliateBreakdown {
+  affiliate_id: string
+  affiliate_name: string
+  kki_member_id: string
+  orders_count: number
+  total_pv: number
+  net_pv: number
+}
+
+interface SettlementRecord {
+  id: string
+  period_label: string
+  settlement_date: string
+  total_affiliates: number
+  total_pv: number
+  status: string
+}
+
+// ─── Helper ─────────────────────────────────────────────────────────
+
+function formatNumber(n: number) {
+  return n.toLocaleString('id-ID')
+}
+
+// ─── Tab: Pengaturan PV ────────────────────────────────────────────────
+
+interface PVVariant {
+  variant_id: string
+  variant_name: string
+  price: number
+  affiliate_pv_value: number
+  is_default: boolean
+}
+
+interface PVProduct {
+  product_id: string
+  product_name: string
+  has_variants: boolean
+  variants: PVVariant[]
+}
+
+function PengaturanPVTab() {
+  const [products, setProducts] = useState<PVProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [pvSearch, setPvSearch] = useState('')
+  const [showMissingOnly, setShowMissingOnly] = useState(false)
+  const [pvValues, setPvValues] = useState<Record<string, number>>({})
+  const [saving, setSaving] = useState<Record<string, boolean>>({})
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const load = useCallback(async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      if (pvSearch) params.set('search', pvSearch)
+      if (showMissingOnly) params.set('show_missing_pv', 'true')
+      const res = await fetch(`/api/sambers/affiliate/product-pv?${params}`)
+      const data = await res.json()
+      setProducts(data.products ?? [])
+    } finally {
+      setLoading(false)
+    }
+  }, [pvSearch, showMissingOnly])
+
+  useEffect(() => { load() }, [load])
+
+  const savePV = async (variantId: string) => {
+    setSaving(prev => ({ ...prev, [variantId]: true }))
+    const pv = pvValues[variantId] ?? 0
+    try {
+      const res = await fetch(`/api/sambers/affiliate/product-pv/${variantId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pv_value: pv }),
+      })
+      if (res.ok) {
+        setProducts(prev => prev.map(p => ({
+          ...p,
+          variants: p.variants.map(v =>
+            v.variant_id === variantId ? { ...v, affiliate_pv_value: pv } : v
+          ),
+        })))
+        setMessage({ text: '✅ PV berhasil disimpan.', ok: true })
+      } else {
+        const data = await res.json()
+        setMessage({ text: `❌ ${data.error ?? 'Gagal menyimpan PV'}`, ok: false })
+      }
+    } catch {
+      setMessage({ text: '❌ Terjadi kesalahan jaringan.', ok: false })
+    } finally {
+      setSaving(prev => ({ ...prev, [variantId]: false }))
+    }
+  }
+
   return (
-    <div className="py-16 text-center">
-      <div className="text-4xl mb-3">📊</div>
-      <div className="text-lg font-semibold text-gray-700">Settlement — Phase 2</div>
-      <div className="text-sm text-gray-500 mt-2">Fitur ini akan tersedia setelah Phase 1 selesai.</div>
+    <div>
+      {message && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${message.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          {message.text}
+          <button className="ml-3 underline" onClick={() => setMessage(null)}>Tutup</button>
+        </div>
+      )}
+
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="font-semibold text-gray-900">PV per Produk</h2>
+        <label className="flex items-center gap-2 text-sm text-gray-500 cursor-pointer">
+          <input
+            type="checkbox"
+            checked={showMissingOnly}
+            onChange={e => setShowMissingOnly(e.target.checked)}
+            className="accent-[#7FB300]"
+          />
+          Tampilkan yang belum di-set (PV = 0)
+        </label>
+      </div>
+
+      <input
+        type="text"
+        value={pvSearch}
+        onChange={e => setPvSearch(e.target.value)}
+        placeholder="Cari nama produk..."
+        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm mb-4"
+      />
+
+      {loading ? (
+        <div className="text-sm text-gray-500 py-8 text-center">Memuat…</div>
+      ) : products.length === 0 ? (
+        <div className="text-sm text-gray-500 py-12 text-center">Tidak ada produk ditemukan.</div>
+      ) : (
+        products.map(product => (
+          <div key={product.product_id} className="bg-white rounded-xl border border-gray-100 p-4 mb-3">
+            <p className="font-semibold text-sm text-gray-900 mb-2">{product.product_name}</p>
+            {product.variants.map(variant => (
+              <div key={variant.variant_id} className="flex items-center gap-3 py-2 border-t border-gray-50">
+                <span className="text-sm text-gray-500 flex-1">
+                  {product.has_variants ? variant.variant_name : 'Default'}
+                  <span className="text-xs text-gray-400 ml-2">Rp {formatRupiah(variant.price)}</span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">PV:</span>
+                  <input
+                    type="number"
+                    min="0"
+                    value={pvValues[variant.variant_id] ?? variant.affiliate_pv_value}
+                    onChange={e => setPvValues(prev => ({ ...prev, [variant.variant_id]: Number(e.target.value) }))}
+                    className="w-24 border border-gray-200 rounded-lg px-2 py-1 text-sm text-right focus:outline-none focus:border-[#7FB300]"
+                  />
+                  <button
+                    onClick={() => savePV(variant.variant_id)}
+                    disabled={saving[variant.variant_id]}
+                    className="bg-[#7FB300] text-white text-xs px-3 py-1.5 rounded-lg hover:bg-[#6B9700] disabled:opacity-50"
+                  >
+                    {saving[variant.variant_id] ? '...' : 'Simpan'}
+                  </button>
+                  {variant.affiliate_pv_value === 0 && (
+                    <span className="text-xs text-amber-500">⚠️ Belum di-set</span>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
+// ─── Tab: Settlement ─────────────────────────────────────────────────
+
+function SettlementTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
+  const [period, setPeriod] = useState<CurrentPeriod | null>(null)
+  const [affiliates, setAffiliates] = useState<AffiliateBreakdown[]>([])
+  const [settlements, setSettlements] = useState<SettlementRecord[]>([])
+  const [loadingPeriod, setLoadingPeriod] = useState(true)
+  const [loadingSettlements, setLoadingSettlements] = useState(true)
+  const [showGenerateModal, setShowGenerateModal] = useState(false)
+  const [generating, setGenerating] = useState(false)
+  const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
+
+  const fetchCurrentPeriod = useCallback(async () => {
+    setLoadingPeriod(true)
+    try {
+      const res = await fetch('/api/sambers/settlement/current-period')
+      if (res.ok) {
+        const data = await res.json()
+        setPeriod(data.period ?? null)
+        setAffiliates(data.affiliates ?? [])
+      }
+    } finally {
+      setLoadingPeriod(false)
+    }
+  }, [])
+
+  const fetchSettlements = useCallback(async () => {
+    setLoadingSettlements(true)
+    try {
+      const res = await fetch('/api/sambers/settlement/list')
+      if (res.ok) {
+        const data = await res.json()
+        setSettlements(data.settlements ?? [])
+      }
+    } finally {
+      setLoadingSettlements(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchCurrentPeriod()
+    fetchSettlements()
+  }, [fetchCurrentPeriod, fetchSettlements])
+
+  const handleGenerate = async () => {
+    if (!period) return
+    setGenerating(true)
+    try {
+      const res = await fetch('/api/sambers/settlement/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ period_start: period.start, period_end: period.end }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setShowGenerateModal(false)
+        fetchSettlements()
+        fetchCurrentPeriod()
+        setMessage({ text: `✅ Settlement berhasil! Total PV: ${formatNumber(data.total_pv)}`, ok: true })
+      } else {
+        setMessage({ text: `❌ Gagal generate: ${data.error}`, ok: false })
+      }
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  return (
+    <div>
+      {message && (
+        <div className={`mb-4 px-4 py-3 rounded-lg text-sm ${message.ok ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+          {message.text}
+          <button className="ml-3 underline" onClick={() => setMessage(null)}>Tutup</button>
+        </div>
+      )}
+
+      {/* Section 1: Periode Berjalan */}
+      <h2 className="text-base font-semibold text-gray-800 mb-3">Periode Berjalan</h2>
+      {loadingPeriod ? (
+        <div className="text-sm text-gray-500 py-6 text-center">Memuat data periode…</div>
+      ) : !period ? (
+        <div className="bg-gray-50 rounded-xl p-6 text-center text-sm text-gray-500">
+          Tidak ada data periode berjalan.
+        </div>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+          <div className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+            <p className="text-xs text-gray-400 uppercase tracking-wide mb-1">Periode Berjalan</p>
+            <p className="font-semibold text-gray-900">{period.label}</p>
+            <p className="text-xs text-gray-500 mt-1">Settlement: {formatDate(period.settlement_date)}</p>
+            <div className="mt-4 flex gap-6">
+              <div>
+                <p className="text-2xl font-bold text-[#7FB300]">{formatNumber(period.total_pv)}</p>
+                <p className="text-xs text-gray-500">Total PV Valid</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{period.total_affiliates}</p>
+                <p className="text-xs text-gray-500">Affiliate</p>
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-gray-900">{period.total_orders}</p>
+                <p className="text-xs text-gray-500">Order</p>
+              </div>
+            </div>
+            {isSuperAdmin && period.total_pv > 0 && (
+              <button
+                onClick={() => setShowGenerateModal(true)}
+                className="mt-4 w-full bg-[#7FB300] text-white py-2 rounded-xl text-sm font-semibold hover:bg-[#6B9700]"
+              >
+                Generate Settlement
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Section 2: Preview Table */}
+      {!loadingPeriod && period && affiliates.length > 0 && (
+        <details className="bg-gray-50 rounded-xl p-4 mb-6">
+          <summary className="cursor-pointer font-semibold text-sm text-gray-700 select-none">
+            Lihat Rincian Per Affiliate ({affiliates.length})
+          </summary>
+          <div className="overflow-x-auto mt-3">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-gray-500 text-xs border-b border-gray-200">
+                  <th className="pb-2 pr-4">Affiliate</th>
+                  <th className="pb-2 pr-4">ID KKI</th>
+                  <th className="pb-2 pr-4 text-right">Orders</th>
+                  <th className="pb-2 pr-4 text-right">Total PV</th>
+                  <th className="pb-2 text-right">Net PV</th>
+                </tr>
+              </thead>
+              <tbody>
+                {affiliates.map(aff => (
+                  <tr key={aff.affiliate_id} className="border-t border-gray-200 hover:bg-gray-100">
+                    <td className="py-2 pr-4 font-medium text-gray-800">{aff.affiliate_name}</td>
+                    <td className="py-2 pr-4 text-gray-600">{aff.kki_member_id}</td>
+                    <td className="py-2 pr-4 text-right text-gray-600">{aff.orders_count}</td>
+                    <td className="py-2 pr-4 text-right text-gray-700">{formatNumber(aff.total_pv)}</td>
+                    <td className="py-2 text-right font-semibold text-[#7FB300]">{formatNumber(aff.net_pv)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </details>
+      )}
+
+      {/* Section 3: Riwayat Settlement */}
+      <h2 className="text-base font-semibold text-gray-800 mb-3">Riwayat Settlement</h2>
+      {loadingSettlements ? (
+        <div className="text-sm text-gray-500 py-6 text-center">Memuat riwayat…</div>
+      ) : settlements.length === 0 ? (
+        <div className="bg-gray-50 rounded-xl p-6 text-center text-sm text-gray-500">
+          Belum ada riwayat settlement.
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {settlements.map(s => (
+            <div key={s.id} className="bg-white rounded-xl p-4 flex flex-wrap items-center justify-between gap-3 shadow-sm border border-gray-100">
+              <div>
+                <p className="font-semibold text-sm text-gray-900">{s.period_label}</p>
+                <p className="text-xs text-gray-500 mt-0.5">
+                  Settlement: {formatDate(s.settlement_date)}
+                  {' · '}{s.total_affiliates} affiliate
+                  {' · '}{formatNumber(s.total_pv)} PV
+                </p>
+              </div>
+              <div className="flex gap-2 items-center">
+                <span className="text-xs bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-medium capitalize">
+                  {s.status}
+                </span>
+                <a
+                  href={`/api/sambers/settlement/${s.id}/export-excel`}
+                  className="text-xs bg-green-50 text-green-700 px-3 py-1.5 rounded-lg hover:bg-green-100 font-medium"
+                >
+                  Excel
+                </a>
+                <a
+                  href={`/api/sambers/settlement/${s.id}/export-csv`}
+                  className="text-xs bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg hover:bg-blue-100 font-medium"
+                >
+                  CSV
+                </a>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Generate Confirmation Modal */}
+      {showGenerateModal && period && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl p-6 w-full max-w-md">
+            <h2 className="font-bold text-lg mb-4">Generate Settlement</h2>
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 mb-4 text-sm text-amber-800">
+              ⚠️ Setelah di-generate, komisi yang sudah valid tidak bisa diubah. Pastikan data sudah benar.
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Periode: <strong>{period.label}</strong><br />
+              Total PV: <strong>{formatNumber(period.total_pv)}</strong><br />
+              Affiliates: <strong>{period.total_affiliates}</strong>
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                disabled={generating}
+                className="flex-1 border border-gray-200 rounded-xl py-2 text-sm text-gray-600 hover:bg-gray-50 disabled:opacity-50"
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleGenerate}
+                disabled={generating}
+                className="flex-1 bg-[#7FB300] text-white rounded-xl py-2 font-semibold text-sm disabled:opacity-50 hover:bg-[#6B9700]"
+              >
+                {generating ? 'Memproses...' : 'Generate Final'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -508,6 +906,7 @@ export default function AdminAffiliatePage() {
     { id: 'pengajuan', label: '📝 Pengajuan' },
     { id: 'aktif', label: '✅ Affiliate Aktif' },
     { id: 'settlement', label: '📊 Settlement' },
+    { id: 'pengaturan-pv', label: '⚙️ Pengaturan PV' },
   ]
 
   return (
@@ -541,7 +940,8 @@ export default function AdminAffiliatePage() {
         <>
           {activeTab === 'pengajuan' && <PengajuanTab isSuperAdmin={isSuperAdmin} />}
           {activeTab === 'aktif' && <AktifTab isSuperAdmin={isSuperAdmin} />}
-          {activeTab === 'settlement' && <SettlementTab />}
+          {activeTab === 'settlement' && <SettlementTab isSuperAdmin={isSuperAdmin} />}
+          {activeTab === 'pengaturan-pv' && <PengaturanPVTab />}
         </>
       )}
     </div>
