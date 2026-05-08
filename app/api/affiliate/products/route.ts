@@ -14,7 +14,7 @@ export async function GET(req: NextRequest) {
 
   let query = supabase
     .from('products')
-    .select('id, name, slug, category_id')
+    .select('id, name, category_id')
     .eq('is_active', true)
     .limit(limit)
 

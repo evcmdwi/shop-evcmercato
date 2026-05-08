@@ -40,7 +40,10 @@ interface Settlement {
 interface Product {
   id: string
   name: string
-  slug: string
+}
+
+function slugify(text: string): string {
+  return text.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '')
 }
 
 type ViewState =
@@ -361,8 +364,8 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
       setResult(existingLinks['homepage']); setResultIsExisting(true)
     } else if (target === 'category' && selectedCategory && existingLinks[`category:${selectedCategory}`]) {
       setResult(existingLinks[`category:${selectedCategory}`]); setResultIsExisting(true)
-    } else if (target === 'product' && selectedProduct && existingLinks[`product:${selectedProduct.slug}`]) {
-      setResult(existingLinks[`product:${selectedProduct.slug}`]); setResultIsExisting(true)
+    } else if (target === 'product' && selectedProduct && existingLinks[`product:${slugify(selectedProduct.name)}`]) {
+      setResult(existingLinks[`product:${slugify(selectedProduct.name)}`]); setResultIsExisting(true)
     }
   }, [target, selectedCategory, selectedProduct, existingLinks])
 
@@ -391,7 +394,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
       const payload: Record<string, string> = { link_type: target }
       if (target === 'product' && selectedProduct) {
         payload.target_id = selectedProduct.id
-        payload.slug = selectedProduct.slug
+        payload.slug = slugify(selectedProduct.name)
       } else if (target === 'category' && selectedCategory) {
         payload.slug = selectedCategory
       }
