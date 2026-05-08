@@ -340,10 +340,10 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
     setGenerating(true)
     setResult(null)
     try {
-      const payload: Record<string, string> = { type: target }
+      const payload: Record<string, string> = { link_type: target }
       if (target === 'product' && selectedProduct) {
-        payload.product_id = selectedProduct.id
-        payload.product_slug = selectedProduct.slug
+        payload.target_id = selectedProduct.id
+        payload.slug = selectedProduct.slug
       }
       const res = await fetch('/api/affiliate/generate-link', {
         method: 'POST',
