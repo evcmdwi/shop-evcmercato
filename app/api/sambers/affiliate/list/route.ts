@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
   let query = admin
     .from('affiliates')
     .select(
-      'id, affiliate_code, full_name_kkd, kki_member_id, status, lifetime_pv, lifetime_orders, lifetime_members, approved_at',
+      'id, affiliate_code, full_name_kkd, kki_member_id, director_leader, whatsapp, email, status, lifetime_pv, lifetime_orders, lifetime_members, approved_at',
       { count: 'exact' }
     )
     .order('approved_at', { ascending: false })

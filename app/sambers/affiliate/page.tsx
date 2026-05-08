@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 
 // ─── Types ─────────────────────────────────────────────────────────
 
@@ -26,6 +26,9 @@ interface AffiliateRow {
   affiliate_code: string | null
   full_name_kkd: string
   kki_member_id: string
+  director_leader?: string
+  whatsapp?: string
+  email?: string
   status: string
   lifetime_pv: number
   lifetime_orders: number
@@ -79,6 +82,58 @@ interface ModalProps {
   required: boolean
   confirmLabel: string
   confirmStyle?: string
+}
+
+function EditAffiliateModal({ affiliate, loading, onClose, onConfirm }: {
+  affiliate: AffiliateRow
+  loading: boolean
+  onClose: () => void
+  onConfirm: (data: { full_name_kkd: string; kki_member_id: string; director_leader: string; whatsapp: string; email: string }) => void
+}) {
+  const [form, setForm] = React.useState({
+    full_name_kkd: affiliate.full_name_kkd ?? '',
+    kki_member_id: affiliate.kki_member_id ?? '',
+    director_leader: affiliate.director_leader ?? '',
+    whatsapp: affiliate.whatsapp ?? '',
+    email: affiliate.email ?? '',
+  })
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-md p-6">
+        <h3 className="text-lg font-semibold mb-4">Edit Data Affiliate</h3>
+        <div className="space-y-3">
+          {([
+            { key: 'full_name_kkd', label: 'Nama Lengkap (KKI)' },
+            { key: 'kki_member_id', label: 'ID Member KKI' },
+            { key: 'director_leader', label: 'Director/Leader Sponsor' },
+            { key: 'whatsapp', label: 'No WhatsApp' },
+            { key: 'email', label: 'Email' },
+          ] as { key: keyof typeof form; label: string }[]).map(({ key, label }) => (
+            <div key={key}>
+              <label className="block text-xs text-gray-500 mb-1">{label}</label>
+              <input
+                type={key === 'email' ? 'email' : 'text'}
+                value={form[key]}
+                onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
+                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+              />
+            </div>
+          ))}
+        </div>
+        <div className="flex gap-3 justify-end mt-5">
+          <button type="button" onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg">Batal</button>
+          <button
+            type="button"
+            onClick={() => onConfirm(form)}
+            disabled={loading}
+            className="px-4 py-2 text-sm text-white bg-blue-600 hover:bg-blue-700 rounded-lg disabled:opacity-50"
+          >
+            {loading ? 'Menyimpan…' : 'Simpan'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
 }
 
 function TextModal({ title, onClose, onConfirm, loading, textLabel, required, confirmLabel, confirmStyle }: ModalProps) {
@@ -287,7 +342,7 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
-  const [modal, setModal] = useState<{ type: 'suspend' | 'reactivate'; id: string; name: string } | null>(null)
+  const [modal, setModal] = useState<{ type: 'suspend' | 'reactivate' | 'edit' | 'delete'; id: string; name: string; data?: AffiliateRow } | null>(null)
   const [actionLoading, setActionLoading] = useState(false)
   const [message, setMessage] = useState<{ text: string; ok: boolean } | null>(null)
 
@@ -319,6 +374,48 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
       const data = await res.json()
       if (res.ok) {
         setMessage({ text: '✅ Affiliate disuspend.', ok: true })
+        setModal(null)
+        load()
+      } else {
+        setMessage({ text: `❌ ${data.error}`, ok: false })
+      }
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleEdit(updated: { full_name_kkd: string; kki_member_id: string; director_leader: string; whatsapp: string; email: string }) {
+    if (!modal) return
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/sambers/affiliate/${modal.id}/edit`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updated),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage({ text: '✅ Data affiliate diperbarui.', ok: true })
+        setModal(null)
+        load()
+      } else {
+        setMessage({ text: `❌ ${data.error}`, ok: false })
+      }
+    } finally {
+      setActionLoading(false)
+    }
+  }
+
+  async function handleDelete() {
+    if (!modal) return
+    setActionLoading(true)
+    try {
+      const res = await fetch(`/api/sambers/affiliate/${modal.id}/delete`, {
+        method: 'DELETE',
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setMessage({ text: '✅ Affiliate dihapus.', ok: true })
         setModal(null)
         load()
       } else {
@@ -409,22 +506,36 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                   <td className="px-4 py-3 text-center"><StatusBadge status={aff.status} /></td>
                   {isSuperAdmin && (
                     <td className="px-4 py-3 text-center">
-                      {aff.status === 'approved' && (
+                      <div className="flex gap-1 justify-center flex-wrap">
+                        {aff.status === 'approved' && (
+                          <button
+                            onClick={() => setModal({ type: 'suspend', id: aff.id, name: aff.full_name_kkd })}
+                            className="px-2 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg font-medium"
+                          >
+                            Suspend
+                          </button>
+                        )}
+                        {aff.status === 'suspended' && (
+                          <button
+                            onClick={() => setModal({ type: 'reactivate', id: aff.id, name: aff.full_name_kkd })}
+                            className="px-2 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg font-medium"
+                          >
+                            Aktifkan
+                          </button>
+                        )}
                         <button
-                          onClick={() => setModal({ type: 'suspend', id: aff.id, name: aff.full_name_kkd })}
-                          className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs rounded-lg font-medium"
+                          onClick={() => setModal({ type: 'edit', id: aff.id, name: aff.full_name_kkd, data: aff })}
+                          className="px-2 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded-lg font-medium"
                         >
-                          Suspend
+                          Edit
                         </button>
-                      )}
-                      {aff.status === 'suspended' && (
                         <button
-                          onClick={() => setModal({ type: 'reactivate', id: aff.id, name: aff.full_name_kkd })}
-                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs rounded-lg font-medium"
+                          onClick={() => setModal({ type: 'delete', id: aff.id, name: aff.full_name_kkd })}
+                          className="px-2 py-1 bg-gray-600 hover:bg-gray-700 text-white text-xs rounded-lg font-medium"
                         >
-                          Aktifkan
+                          Hapus
                         </button>
-                      )}
+                      </div>
                     </td>
                   )}
                 </tr>
@@ -446,6 +557,41 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
           onClose={() => setModal(null)}
           onConfirm={handleSuspend}
         />
+      )}
+
+      {/* Edit Modal */}
+      {modal?.type === 'edit' && modal.data && (
+        <EditAffiliateModal
+          affiliate={modal.data}
+          loading={actionLoading}
+          onClose={() => setModal(null)}
+          onConfirm={handleEdit}
+        />
+      )}
+
+      {/* Delete Confirm Modal */}
+      {modal?.type === 'delete' && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4">
+          <div className="bg-white rounded-xl shadow-xl w-full max-w-sm p-6">
+            <h3 className="text-lg font-semibold mb-3 text-red-700">Hapus Affiliate?</h3>
+            <p className="text-sm text-gray-600 mb-2">
+              Affiliate <strong>{modal.name}</strong> akan dihapus permanen.
+            </p>
+            <p className="text-xs text-amber-700 bg-amber-50 rounded-lg p-3 mb-5">
+              ⚠️ Data komisi dan short link affiliate ini juga akan ikut terhapus. Aksi ini tidak bisa dibatalkan.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button onClick={() => setModal(null)} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg">Batal</button>
+              <button
+                onClick={handleDelete}
+                disabled={actionLoading}
+                className="px-4 py-2 text-sm text-white bg-red-600 hover:bg-red-700 rounded-lg disabled:opacity-50"
+              >
+                {actionLoading ? 'Menghapus…' : 'Hapus Permanen'}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* Reactivate Confirm Modal (simple) */}
