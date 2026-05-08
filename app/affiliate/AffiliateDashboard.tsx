@@ -417,7 +417,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
       // Simpan ke cache lokal
       const key = target === 'homepage' ? 'homepage'
         : target === 'category' ? `category:${selectedCategory}`
-        : `product:${selectedProduct?.slug}`
+        : `product:${selectedProduct ? slugify(selectedProduct.name) : ''}`
       if (key) setExistingLinks(prev => ({ ...prev, [key]: newUrl }))
     } catch (e) {
       setResult(null)
