@@ -3,7 +3,7 @@ import { checkAdminAuthWithRole } from '@/lib/admin-auth-role'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
-  const auth = await checkAdminAuthWithRole(req)
+  const auth = await checkAdminAuthWithRole()
   if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { id } = await params
