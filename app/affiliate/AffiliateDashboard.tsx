@@ -129,284 +129,180 @@ interface ApplyFormProps {
 }
 
 function ApplyForm({ onSuccess }: ApplyFormProps) {
-  const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
-
-  // Uncontrolled refs — baca langsung dari DOM, anti-bug di semua browser
-  const fullNameRef = useRef<HTMLInputElement>(null)
-  const kkiIdRef = useRef<HTMLInputElement>(null)
-  const sponsorRef = useRef<HTMLInputElement>(null)
-  const whatsappRef = useRef<HTMLInputElement>(null)
-  const emailRef = useRef<HTMLInputElement>(null)
-
-  // State hanya untuk channels (array) dan checkboxes
-  const [channels, setChannels] = useState<Channel[]>([{ platform: 'instagram', url: '' }])
   const [check1, setCheck1] = useState(false)
   const [check2, setCheck2] = useState(false)
   const [check3, setCheck3] = useState(false)
+  const [channels, setChannels] = useState<Channel[]>([{ platform: 'instagram', url: '' }])
 
   const addChannel = () =>
     setChannels((prev) => [...prev, { platform: 'instagram', url: '' }])
-
   const updateChannel = (idx: number, field: keyof Channel, val: string) =>
-    setChannels((prev) =>
-      prev.map((c, i) => (i === idx ? { ...c, [field]: val } : c))
-    )
-
+    setChannels((prev) => prev.map((c, i) => (i === idx ? { ...c, [field]: val } : c)))
   const removeChannel = (idx: number) =>
     setChannels((prev) => prev.filter((_, i) => i !== idx))
 
-  const canSubmit = check1 && check2 && check3
-
-  const handleNext = () => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault()
     setError('')
-    if (step === 1) {
-      const fn = (fullNameRef.current?.value ?? '').trim()
-      const ki = (kkiIdRef.current?.value ?? '').trim()
-      const sp = (sponsorRef.current?.value ?? '').trim()
-      if (!fn || !ki || !sp) {
-        setError('Semua field wajib diisi')
-        return
-      }
-    } else if (step === 2) {
-      const wa = (whatsappRef.current?.value ?? '').trim()
-      const em = (emailRef.current?.value ?? '').trim()
-      if (!wa || !em) {
-        setError('No WhatsApp dan Email wajib diisi')
-        return
-      }
+    const form = e.currentTarget
+    const data = new FormData(form)
+    const fullName = (data.get('fullName') as string ?? '').trim()
+    const kkiId = (data.get('kkiId') as string ?? '').trim()
+    const sponsor = (data.get('sponsor') as string ?? '').trim()
+    const whatsapp = (data.get('whatsapp') as string ?? '').trim()
+    const email = (data.get('email') as string ?? '').trim()
+
+    if (!fullName || !kkiId || !sponsor) {
+      setError('Nama lengkap, ID Member KKI, dan nama sponsor wajib diisi')
+      return
     }
-    setStep((s) => s + 1)
-  }
+    if (!whatsapp || !email) {
+      setError('No WhatsApp dan Email wajib diisi')
+      return
+    }
+    if (!check1 || !check2 || !check3) {
+      setError('Centang semua persetujuan untuk melanjutkan')
+      return
+    }
 
-  const handleSubmit = async () => {
-    if (!canSubmit) return
     setSubmitting(true)
-    setError('')
     try {
       const res = await fetch('/api/affiliate/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          full_name_kkd: (fullNameRef.current?.value ?? '').trim(),
-          kki_member_id: (kkiIdRef.current?.value ?? '').trim(),
-          sponsor: (sponsorRef.current?.value ?? '').trim(),
-          whatsapp: (whatsappRef.current?.value ?? '').trim(),
-          email: (emailRef.current?.value ?? '').trim(),
-          channels,
-        }),
+        body: JSON.stringify({ full_name_kkd: fullName, kki_member_id: kkiId, sponsor, whatsapp, email, channels }),
       })
       if (!res.ok) {
-        const data = await res.json().catch(() => ({}))
-        throw new Error(data?.error ?? 'Gagal mengirim pengajuan')
+        const d = await res.json().catch(() => ({}))
+        throw new Error(d?.error ?? 'Gagal mengirim pengajuan')
       }
       onSuccess()
-    } catch (e) {
-      setError(e instanceof Error ? e.message : 'Terjadi kesalahan')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Terjadi kesalahan')
     } finally {
       setSubmitting(false)
     }
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-      <StepIndicator current={step} total={3} />
-
+    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
       {error && (
-        <div className="mb-4 p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>
+        <div className="p-3 bg-red-50 text-red-600 rounded-xl text-sm">{error}</div>
       )}
 
-      {step === 1 && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg mb-4">Identitas KKI</h2>
+      {/* Identitas KKI */}
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-3">Identitas KKI</h2>
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Nama Lengkap (sesuai KKI)</label>
-            <input
-              ref={fullNameRef}
-              type="text"
-              autoComplete="name"
+            <label className="block text-sm text-gray-600 mb-1">Nama Lengkap (sesuai KKI) <span className="text-red-500">*</span></label>
+            <input name="fullName" type="text" autoComplete="name" required
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              placeholder="Nama sesuai kartu KKI"
-            />
+              placeholder="Nama sesuai kartu KKI" />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">ID Member KKI</label>
-            <input
-              ref={kkiIdRef}
-              type="text"
-              autoComplete="off"
+            <label className="block text-sm text-gray-600 mb-1">ID Member KKI <span className="text-red-500">*</span></label>
+            <input name="kkiId" type="text" autoComplete="off" required
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              placeholder="Contoh: KKI-12345678"
-            />
+              placeholder="Contoh: KKI-12345678" />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Director/Leader Sponsor</label>
-            <input
-              ref={sponsorRef}
-              type="text"
-              autoComplete="off"
+            <label className="block text-sm text-gray-600 mb-1">Director/Leader Sponsor <span className="text-red-500">*</span></label>
+            <input name="sponsor" type="text" autoComplete="off" required
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              placeholder="Nama sponsor Anda"
-            />
+              placeholder="Nama sponsor Anda" />
           </div>
-          <button type="button"
-            onClick={handleNext}
-            className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors"
-          >
-            Lanjut
-          </button>
         </div>
-      )}
+      </div>
 
-      {step === 2 && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg mb-4">Kontak & Channel Promosi</h2>
+      <hr className="border-gray-100" />
+
+      {/* Kontak */}
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-3">Kontak</h2>
+        <div className="space-y-3">
           <div>
-            <label className="block text-sm text-gray-600 mb-1">No WhatsApp</label>
-            <input
+            <label className="block text-sm text-gray-600 mb-1">No WhatsApp <span className="text-red-500">*</span></label>
+            <input name="whatsapp" type="tel" autoComplete="tel" required
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              ref={whatsappRef}
-              placeholder="08xxxxxxxxxx"
-              type="tel"
-              autoComplete="tel"
-            />
+              placeholder="08xxxxxxxxxx" />
           </div>
           <div>
-            <label className="block text-sm text-gray-600 mb-1">Email</label>
-            <input
+            <label className="block text-sm text-gray-600 mb-1">Email <span className="text-red-500">*</span></label>
+            <input name="email" type="email" autoComplete="email" required
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              ref={emailRef}
-              placeholder="email@anda.com"
-              type="email"
-              autoComplete="email"
-            />
+              placeholder="email@anda.com" />
           </div>
+        </div>
+      </div>
 
-          <div>
-            <label className="block text-sm text-gray-600 mb-2">Channel Promosi</label>
-            <div className="space-y-2">
-              {channels.map((ch, idx) => (
-                <div key={idx} className="flex gap-2">
-                  <select
-                    className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-                    value={ch.platform}
-                    onChange={(e) => updateChannel(idx, 'platform', e.target.value)}
-                  >
-                    {PLATFORM_OPTIONS.map((p) => (
-                      <option key={p} value={p}>
-                        {p.replace('_', ' ')}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-                    value={ch.url}
-                    onChange={(e) => updateChannel(idx, 'url', e.target.value)}
-                    placeholder="URL / username"
-                  />
-                  {channels.length > 1 && (
-                    <button type="button"
-                      onClick={() => removeChannel(idx)}
-                      className="text-red-400 hover:text-red-600 px-2"
-                    >
-                      ✕
-                    </button>
-                  )}
-                </div>
-              ))}
+      <hr className="border-gray-100" />
+
+      {/* Channel Promosi */}
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-3">Channel Promosi</h2>
+        <div className="space-y-2">
+          {channels.map((ch, idx) => (
+            <div key={idx} className="flex gap-2">
+              <select
+                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+                value={ch.platform}
+                onChange={(e) => updateChannel(idx, 'platform', e.target.value)}
+              >
+                {PLATFORM_OPTIONS.map((p) => (
+                  <option key={p} value={p}>{p.replace('_', ' ')}</option>
+                ))}
+              </select>
+              <input
+                className="flex-1 border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+                value={ch.url}
+                onChange={(e) => updateChannel(idx, 'url', e.target.value)}
+                placeholder="URL / username"
+              />
+              {channels.length > 1 && (
+                <button type="button" onClick={() => removeChannel(idx)} className="text-red-400 hover:text-red-600 px-2">✕</button>
+              )}
             </div>
-            <button type="button"
-              onClick={addChannel}
-              className="mt-2 text-sm text-[#7FB300] font-semibold hover:underline"
-            >
-              + Tambah Channel
-            </button>
-          </div>
-
-          <div className="flex gap-2">
-            <button type="button"
-              onClick={() => setStep(1)}
-              className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Kembali
-            </button>
-            <button type="button"
-              onClick={handleNext}
-              className="flex-1 bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors"
-            >
-              Lanjut
-            </button>
-          </div>
+          ))}
         </div>
-      )}
+        <button type="button" onClick={addChannel} className="mt-2 text-sm text-[#7FB300] font-semibold hover:underline">
+          + Tambah Channel
+        </button>
+      </div>
 
-      {step === 3 && (
-        <div className="space-y-4">
-          <h2 className="font-semibold text-gray-900 text-lg mb-4">Persetujuan</h2>
+      <hr className="border-gray-100" />
 
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-1 w-4 h-4 accent-[#7FB300]"
-              checked={check1}
-              onChange={(e) => setCheck1(e.target.checked)}
-            />
-            <span className="text-sm text-gray-600">
-              Saya berkomitmen mematuhi etika bisnis KKI Group
-            </span>
-          </label>
+      {/* Persetujuan */}
+      <div className="space-y-3">
+        <h2 className="font-semibold text-gray-900">Persetujuan</h2>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" className="mt-1 w-4 h-4 accent-[#7FB300]" checked={check1} onChange={(e) => setCheck1(e.target.checked)} />
+          <span className="text-sm text-gray-600">Saya berkomitmen mematuhi etika bisnis KKI Group</span>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" className="mt-1 w-4 h-4 accent-[#7FB300]" checked={check2} onChange={(e) => setCheck2(e.target.checked)} />
+          <span className="text-sm text-gray-600">Saya tidak akan membuat klaim kesehatan/medis dalam promosi</span>
+        </label>
+        <label className="flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" className="mt-1 w-4 h-4 accent-[#7FB300]" checked={check3} onChange={(e) => setCheck3(e.target.checked)} />
+          <span className="text-sm text-gray-600">
+            Saya menyetujui{' '}
+            <Link href="/syarat-ketentuan" className="text-[#7FB300] underline" target="_blank">Syarat & Ketentuan</Link>{' '}
+            program affiliate EVC
+          </span>
+        </label>
+      </div>
 
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-1 w-4 h-4 accent-[#7FB300]"
-              checked={check2}
-              onChange={(e) => setCheck2(e.target.checked)}
-            />
-            <span className="text-sm text-gray-600">
-              Saya tidak akan membuat klaim kesehatan/medis dalam promosi
-            </span>
-          </label>
-
-          <label className="flex items-start gap-3 cursor-pointer">
-            <input
-              type="checkbox"
-              className="mt-1 w-4 h-4 accent-[#7FB300]"
-              checked={check3}
-              onChange={(e) => setCheck3(e.target.checked)}
-            />
-            <span className="text-sm text-gray-600">
-              Saya menyetujui{' '}
-              <Link href="/syarat-ketentuan" className="text-[#7FB300] underline" target="_blank">
-                Syarat & Ketentuan
-              </Link>{' '}
-              program affiliate EVC
-            </span>
-          </label>
-
-          <div className="flex gap-2 pt-2">
-            <button type="button"
-              onClick={() => setStep(2)}
-              className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition-colors"
-            >
-              Kembali
-            </button>
-            <button type="button"
-              onClick={handleSubmit}
-              disabled={!canSubmit || submitting}
-              className={`flex-1 py-3 rounded-xl font-semibold transition-colors ${
-                canSubmit && !submitting
-                  ? 'bg-[#7FB300] text-white hover:bg-[#6B9700]'
-                  : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-              }`}
-            >
-              {submitting ? 'Mengirim...' : 'Kirim Pengajuan'}
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
+      <button
+        type="submit"
+        disabled={submitting}
+        className="w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] disabled:opacity-50 transition-colors"
+      >
+        {submitting ? 'Mengirim...' : 'Kirim Pengajuan'}
+      </button>
+    </form>
   )
 }
 
