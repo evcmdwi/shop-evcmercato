@@ -308,11 +308,20 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
 
 // ─── Generate Link Tab ────────────────────────────────────────────────────────
 
+const CATEGORIES = [
+  { name: 'Natesh', slug: 'natesh' },
+  { name: 'Suplemen', slug: 'suplemen' },
+  { name: 'Kecantikan', slug: 'kecantikan' },
+  { name: 'FITSOL', slug: 'fitsol' },
+  { name: 'Others', slug: 'others' },
+]
+
 function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
   const [target, setTarget] = useState<LinkTarget>('homepage')
   const [productSearch, setProductSearch] = useState('')
   const [products, setProducts] = useState<Product[]>([])
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>('')
   const [generating, setGenerating] = useState(false)
   const [result, setResult] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
@@ -323,7 +332,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
     debounceRef.current = setTimeout(async () => {
       if (!q.trim()) { setProducts([]); return }
       try {
-        const res = await fetch(`/api/products?q=${encodeURIComponent(q)}&limit=10`)
+        const res = await fetch(`/api/affiliate/products?q=${encodeURIComponent(q)}&limit=10`)
         const data = await res.json()
         setProducts(data?.products ?? data ?? [])
       } catch {
@@ -344,6 +353,8 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
       if (target === 'product' && selectedProduct) {
         payload.target_id = selectedProduct.id
         payload.slug = selectedProduct.slug
+      } else if (target === 'category' && selectedCategory) {
+        payload.slug = selectedCategory
       }
       const res = await fetch('/api/affiliate/generate-link', {
         method: 'POST',
@@ -394,7 +405,7 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
                 type="radio"
                 className="hidden"
                 checked={target === t}
-                onChange={() => { setTarget(t); setResult(null); setSelectedProduct(null) }}
+                onChange={() => { setTarget(t); setResult(null); setSelectedProduct(null); setSelectedCategory('') }}
               />
               {t === 'homepage' ? 'Homepage' : t === 'product' ? 'Produk' : 'Kategori'}
             </label>
@@ -433,11 +444,35 @@ function GenerateLinkTab({ affiliateCode }: { affiliateCode: string }) {
         </div>
       )}
 
+      {/* Category selector */}
+      {target === 'category' && (
+        <div>
+          <p className="text-sm text-gray-600 mb-2">Pilih Kategori</p>
+          <div className="grid grid-cols-2 gap-2">
+            {CATEGORIES.map((cat) => (
+              <button type="button" key={cat.slug}
+                onClick={() => setSelectedCategory(cat.slug)}
+                className={`px-3 py-2 rounded-xl border text-sm text-left transition-colors ${
+                  selectedCategory === cat.slug
+                    ? 'border-[#7FB300] bg-[#f8fce8] text-[#7FB300] font-semibold'
+                    : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+                }`}
+              >
+                {cat.name}
+              </button>
+            ))}
+          </div>
+          {selectedCategory && (
+            <p className="text-xs text-[#7FB300] mt-2">✓ Kategori dipilih: {CATEGORIES.find(c => c.slug === selectedCategory)?.name}</p>
+          )}
+        </div>
+      )}
+
       <button type="button"
         onClick={handleGenerate}
-        disabled={generating || (target === 'product' && !selectedProduct)}
+        disabled={generating || (target === 'product' && !selectedProduct) || (target === 'category' && !selectedCategory)}
         className={`w-full py-3 rounded-xl font-semibold transition-colors ${
-          !generating && !(target === 'product' && !selectedProduct)
+          !generating && !(target === 'product' && !selectedProduct) && !(target === 'category' && !selectedCategory)
             ? 'bg-[#7FB300] text-white hover:bg-[#6B9700]'
             : 'bg-gray-100 text-gray-400 cursor-not-allowed'
         }`}
