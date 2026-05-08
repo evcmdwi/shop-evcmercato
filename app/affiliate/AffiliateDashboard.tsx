@@ -133,17 +133,15 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
 
-  // Step 1
-  const [fullName, setFullName] = useState('')
-  const [kkiId, setKkiId] = useState('')
-  const [sponsor, setSponsor] = useState('')
+  // Uncontrolled refs — baca langsung dari DOM, anti-bug di semua browser
+  const fullNameRef = useRef<HTMLInputElement>(null)
+  const kkiIdRef = useRef<HTMLInputElement>(null)
+  const sponsorRef = useRef<HTMLInputElement>(null)
+  const whatsappRef = useRef<HTMLInputElement>(null)
+  const emailRef = useRef<HTMLInputElement>(null)
 
-  // Step 2
-  const [whatsapp, setWhatsapp] = useState('')
-  const [email, setEmail] = useState('')
+  // State hanya untuk channels (array) dan checkboxes
   const [channels, setChannels] = useState<Channel[]>([{ platform: 'instagram', url: '' }])
-
-  // Step 3
   const [check1, setCheck1] = useState(false)
   const [check2, setCheck2] = useState(false)
   const [check3, setCheck3] = useState(false)
@@ -162,18 +160,23 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
   const canSubmit = check1 && check2 && check3
 
   const handleNext = () => {
+    setError('')
     if (step === 1) {
-      if (!fullName.trim() || !kkiId.trim() || !sponsor.trim()) {
+      const fn = (fullNameRef.current?.value ?? '').trim()
+      const ki = (kkiIdRef.current?.value ?? '').trim()
+      const sp = (sponsorRef.current?.value ?? '').trim()
+      if (!fn || !ki || !sp) {
         setError('Semua field wajib diisi')
         return
       }
     } else if (step === 2) {
-      if (!whatsapp.trim() || !email.trim()) {
+      const wa = (whatsappRef.current?.value ?? '').trim()
+      const em = (emailRef.current?.value ?? '').trim()
+      if (!wa || !em) {
         setError('No WhatsApp dan Email wajib diisi')
         return
       }
     }
-    setError('')
     setStep((s) => s + 1)
   }
 
@@ -186,11 +189,11 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          full_name_kkd: fullName,
-          kki_member_id: kkiId,
-          sponsor,
-          whatsapp,
-          email,
+          full_name_kkd: (fullNameRef.current?.value ?? '').trim(),
+          kki_member_id: (kkiIdRef.current?.value ?? '').trim(),
+          sponsor: (sponsorRef.current?.value ?? '').trim(),
+          whatsapp: (whatsappRef.current?.value ?? '').trim(),
+          email: (emailRef.current?.value ?? '').trim(),
           channels,
         }),
       })
@@ -220,27 +223,30 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
           <div>
             <label className="block text-sm text-gray-600 mb-1">Nama Lengkap (sesuai KKI)</label>
             <input
+              ref={fullNameRef}
+              type="text"
+              autoComplete="name"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
               placeholder="Nama sesuai kartu KKI"
             />
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">ID Member KKI</label>
             <input
+              ref={kkiIdRef}
+              type="text"
+              autoComplete="off"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              value={kkiId}
-              onChange={(e) => setKkiId(e.target.value)}
               placeholder="Contoh: KKI-12345678"
             />
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">Director/Leader Sponsor</label>
             <input
+              ref={sponsorRef}
+              type="text"
+              autoComplete="off"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              value={sponsor}
-              onChange={(e) => setSponsor(e.target.value)}
               placeholder="Nama sponsor Anda"
             />
           </div>
@@ -260,20 +266,20 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
             <label className="block text-sm text-gray-600 mb-1">No WhatsApp</label>
             <input
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
+              ref={whatsappRef}
               placeholder="08xxxxxxxxxx"
               type="tel"
+              autoComplete="tel"
             />
           </div>
           <div>
             <label className="block text-sm text-gray-600 mb-1">Email</label>
             <input
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              ref={emailRef}
               placeholder="email@anda.com"
               type="email"
+              autoComplete="email"
             />
           </div>
 
