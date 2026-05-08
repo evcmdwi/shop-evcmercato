@@ -116,6 +116,22 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     else if (status === 'shipped') emitOrderShipped(payload).catch(console.error)
     else if (status === 'delivered') emitOrderDelivered(payload).catch(console.error)
 
+    // Affiliate commission validation on delivered
+    if (status === 'delivered') {
+      try {
+        const { data: commission } = await admin.from('commissions').select('id, affiliate_id, pv_earned').eq('order_id', id).eq('status', 'pending').single()
+        if (commission) {
+          await admin.from('commissions').update({ status: 'valid', order_delivered_at: new Date().toISOString(), valid_at: new Date().toISOString() }).eq('id', commission.id)
+          const { data: aff } = await admin.from('affiliates').select('lifetime_pv, lifetime_orders').eq('id', commission.affiliate_id).single()
+          if (aff) await admin.from('affiliates').update({ lifetime_pv: (aff.lifetime_pv || 0) + commission.pv_earned, lifetime_orders: (aff.lifetime_orders || 0) + 1 }).eq('id', commission.affiliate_id)
+          console.log('[affiliate] commission validated for order', id, '| PV:', commission.pv_earned)
+          // Notify affiliate about new commission (non-critical)
+          const { notifyCommissionValid } = await import('@/lib/affiliate/notifications')
+          notifyCommissionValid(commission.id).catch(console.error)
+        }
+      } catch (e) { console.error('[affiliate] commission validation failed (non-critical):', e) }
+    }
+
     return NextResponse.json({ data: { order: updatedOrder }, message: 'Status berhasil diperbarui' })
   } catch (err) {
     console.error('[/api/sambers/orders/[id] PATCH] error:', err)

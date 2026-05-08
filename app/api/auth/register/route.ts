@@ -57,6 +57,32 @@ export async function POST(request: NextRequest) {
       })
     }
 
+    // Affiliate attribution — save referred_by permanent at registration
+    try {
+      const { resolveAttribution, computeFingerprint } = await import('@/lib/affiliate/tracking')
+      const attribution = await resolveAttribution(request, null, admin)
+      if (attribution.code) {
+        await admin.from('users').update({
+          referred_by_affiliate_code: attribution.code,
+          referred_at: new Date().toISOString()
+        }).eq('id', id)
+
+        // Increment lifetime_members
+        const { data: aff } = await admin.from('affiliates').select('id, lifetime_members').eq('affiliate_code', attribution.code).single()
+        if (aff) await admin.from('affiliates').update({ lifetime_members: (aff.lifetime_members || 0) + 1 }).eq('id', aff.id)
+
+        // Update referral_clicks: mark converted
+        const fingerprint = computeFingerprint(request)
+        await admin.from('referral_clicks').update({ converted_to_user_id: id })
+          .eq('fingerprint_hash', fingerprint).is('converted_to_user_id', null)
+
+        console.log('[affiliate] register via', attribution.code, 'source:', attribution.source)
+        // Notify affiliate about new referral member (non-critical)
+        const { notifyNewReferralMember } = await import('@/lib/affiliate/notifications')
+        notifyNewReferralMember(attribution.code, id).catch(console.error)
+      }
+    } catch (e) { console.error('[affiliate] register attribution failed (non-critical):', e) }
+
     return NextResponse.json({ success: true })
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Internal server error'

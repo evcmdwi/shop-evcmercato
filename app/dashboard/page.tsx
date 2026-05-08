@@ -80,6 +80,18 @@ export default async function DashboardPage() {
             </Link>
           </div>
 
+          {/* Affiliate Program */}
+          <Link href="/affiliate" className="block w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow mt-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔗</span>
+              <div>
+                <p className="font-semibold text-gray-900">Affiliate Program</p>
+                <p className="text-sm text-gray-500">Promosi produk & dapatkan PV KKI</p>
+              </div>
+              <span className="ml-auto text-gray-300">›</span>
+            </div>
+          </Link>
+
           {/* Evie Health Poster */}
           <a
             href="https://t.me/evie_evc_bot?start=6285820852908"

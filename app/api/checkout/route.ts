@@ -264,6 +264,34 @@ export async function POST(req: NextRequest) {
       await admin.from('cart_items').delete().eq('cart_id', cart.id)
     }
 
+    // Affiliate attribution — create commission for this order
+    try {
+      const { resolveAttribution } = await import('@/lib/affiliate/tracking')
+      const attribution = await resolveAttribution(req, user.id, admin)
+      if (attribution.code) {
+        await admin.from('orders').update({ attributed_affiliate_code: attribution.code }).eq('id', order.id)
+
+        const { data: aff } = await admin.from('affiliates').select('id').eq('affiliate_code', attribution.code).eq('status', 'approved').single()
+        if (aff) {
+          const { data: items } = await admin.from('order_items').select('variant_id, quantity, product_name, variant_name').eq('order_id', order.id)
+          let totalPV = 0
+          const lineItems: any[] = []
+          for (const item of items || []) {
+            const { data: variant } = await admin.from('product_variants').select('affiliate_pv_value').eq('id', item.variant_id).single()
+            const pvPerUnit = variant?.affiliate_pv_value || 0
+            totalPV += pvPerUnit * item.quantity
+            lineItems.push({ product_variant_id: item.variant_id, product_name: item.product_name, variant_name: item.variant_name || '', quantity: item.quantity, pv_per_unit: pvPerUnit, total_pv: pvPerUnit * item.quantity })
+          }
+          const { data: commission } = await admin.from('commissions').insert({ affiliate_id: aff.id, affiliate_code: attribution.code, order_id: order.id, user_id: user.id, order_total: total_amount || 0, pv_earned: totalPV, status: 'pending' }).select('id').single()
+          if (commission?.id && lineItems.length > 0) {
+            await admin.from('commission_line_items').insert(lineItems.map(li => ({ ...li, commission_id: commission.id })))
+            await admin.from('orders').update({ commission_id: commission.id }).eq('id', order.id)
+          }
+          console.log('[affiliate] order', order.id, 'attributed to', attribution.code, '| PV:', totalPV)
+        }
+      }
+    } catch (e) { console.error('[affiliate] checkout attribution failed (non-critical):', e) }
+
     return NextResponse.json({
       data: { order_id: order.id, xendit_invoice_url: xenditInvoiceUrl },
       message: 'Pesanan berhasil dibuat'
