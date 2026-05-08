@@ -172,7 +172,7 @@ function ApplyForm({ onSuccess }: ApplyFormProps) {
       const res = await fetch('/api/affiliate/apply', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ full_name_kkd: fullName, kki_member_id: kkiId, sponsor, whatsapp, email, channels }),
+        body: JSON.stringify({ full_name_kkd: fullName, kki_member_id: kkiId, director_leader: sponsor, whatsapp, email, channels, agreement_kki_ethics: check1, agreement_no_medical_claim: check2, agreement_terms: check3 }),
       })
       if (!res.ok) {
         const d = await res.json().catch(() => ({}))
