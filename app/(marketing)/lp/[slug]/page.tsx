@@ -4,6 +4,7 @@ import LandingHero from '@/components/marketing/LandingHero'
 import LandingTrust from '@/components/marketing/LandingTrust'
 import LandingFAQ from '@/components/marketing/LandingFAQ'
 import LandingCTABanner from '@/components/marketing/LandingCTA'
+import LandingTestimonial from '@/components/marketing/LandingTestimonial'
 import Script from 'next/script'
 import { initPixelScript } from '@/lib/marketing/pixel'
 import { extractUTM, appendUTM } from '@/lib/marketing/utm'
@@ -79,6 +80,10 @@ export default async function LandingPage({
 
         {content.trust_elements && content.trust_elements.length > 0 && (
           <LandingTrust elements={content.trust_elements} />
+        )}
+
+        {content.testimonials && content.testimonials.length > 0 && (
+          <LandingTestimonial testimonials={content.testimonials} />
         )}
 
         {content.faq && content.faq.length > 0 && (
