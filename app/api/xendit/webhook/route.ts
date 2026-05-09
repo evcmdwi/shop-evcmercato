@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { emitOrderPaid, emitOrderExpired } from '@/lib/events/order-events'
+import { emitOrderExpired } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
 
-// Initialize listeners
+// Initialize listeners (needed for EXPIRED/FAILED paths)
 setupEventListeners()
 
 export async function POST(req: NextRequest) {
+  const t0 = Date.now()
+
   // 1. Verify webhook signature
   const callbackToken = req.headers.get('x-callback-token')
   if (callbackToken !== process.env.XENDIT_WEBHOOK_TOKEN) {
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
     return new Response('Bad Request', { status: 400 })
   }
 
-  const { external_id, status, payment_method, paid_at, amount } = payload as {
+  const { external_id, status, payment_method, paid_at } = payload as {
     external_id: string
     status: string
     payment_method: string
@@ -31,17 +33,14 @@ export async function POST(req: NextRequest) {
 
   console.log('[webhook] Received + token OK:', { external_id, status })
 
-  // Process SYNCHRONOUSLY before returning — Vercel serverless terminates the
-  // function immediately after response, so fire-and-forget never completes.
-  // Xendit webhook timeout is ~30s — plenty of time to await processWebhook.
   try {
-    await processWebhook(external_id, status, payment_method, paid_at, amount)
+    await processWebhook(external_id, status, payment_method, paid_at)
   } catch (err) {
-    // Log error but still return 200 — Xendit does NOT retry on 200, so
-    // returning non-200 would cause unwanted duplicate processing on retry.
+    // Log error but still return 200 — Xendit does NOT retry on 200
     console.error('[webhook] processWebhook error:', err)
   }
 
+  console.log('[webhook] done', { orderId: external_id, status, ms: Date.now() - t0 })
   return NextResponse.json({ received: true })
 }
 
@@ -50,7 +49,6 @@ async function processWebhook(
   status: string,
   paymentMethod: string,
   paidAt: string,
-  amount: number
 ) {
   const admin = getSupabaseAdmin()
 
@@ -59,13 +57,7 @@ async function processWebhook(
   // Get current order (for idempotency check)
   const { data: order, error } = await admin
     .from('orders')
-    .select(`
-      id, status, paid_at, user_id, total_amount, subtotal,
-      shipping_cost, shipping_cost_discount, service_fee, service_fee_discount,
-      shipping_recipient_name, shipping_phone, shipping_full_address,
-      shipping_city, shipping_province, shipping_postal_code,
-      points_earned, shipping_method
-    `)
+    .select('id, status, paid_at')
     .eq('id', orderId)
     .single()
 
@@ -74,18 +66,14 @@ async function processWebhook(
     return
   }
 
-  console.log('[webhook] Order found:', { id: order.id, currentStatus: order.status })
-
   if (status === 'PAID') {
-    // IDEMPOTENCY: skip jika sudah paid
+    // IDEMPOTENCY: skip if already paid
     if (order.status === 'paid' && order.paid_at) {
       console.log('[webhook] Already paid, skipping:', orderId)
       return
     }
 
-    console.log('[webhook] Updating status to paid:', orderId)
-
-    // Update order status
+    // Update order status only — worker handles points/notifications/commission
     const { error: updateError } = await admin
       .from('orders')
       .update({
@@ -100,181 +88,7 @@ async function processWebhook(
       throw updateError
     }
 
-    console.log('[webhook] Status updated to paid:', orderId)
-
-    // Check purchase_bonus promo for any product in order
-    const { data: orderItems } = await admin
-      .from('order_items')
-      .select('product_id, variant_id')
-      .eq('order_id', orderId)
-    let multiplier = 1.0
-
-    if (orderItems && orderItems.length > 0) {
-      const productIds = orderItems.map((i: { product_id: string; variant_id: string | null }) => i.product_id)
-      const { data: bonusPromo } = await admin
-        .from('point_promos')
-        .select('points_multiplier')
-        .eq('promo_type', 'purchase_bonus')
-        .eq('is_active', true)
-        .or(`active_until.is.null,active_until.gt.${new Date().toISOString()}`)
-        .in('product_id', productIds)
-        .order('points_multiplier', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      if (bonusPromo?.points_multiplier) {
-        multiplier = bonusPromo.points_multiplier
-      }
-    }
-
-    // Kredit EVC Points ke user saat PAID
-    // base_points: dari order, digunakan untuk tier calculation
-    const basePoints = order.points_earned || Math.floor(order.subtotal / 1000)
-    // Apply purchase_bonus promo multiplier (existing logic) to base points
-    const pointsWithBonus = Math.floor(basePoints * multiplier)
-
-    let newTotal = 0
-    if (order.user_id) {
-      const { data: currentUser } = await admin
-        .from('users')
-        .select('total_points')
-        .eq('id', order.user_id)
-        .single()
-
-      const currentPoints = currentUser?.total_points ?? 0
-
-      // Check active Extra Point Khusus promo for this user
-      const now = new Date().toISOString()
-      const { data: extraPromo } = await admin
-        .from('user_extra_point_promos')
-        .select('multiplier')
-        .eq('user_id', order.user_id)
-        .eq('is_active', true)
-        .lte('starts_at', now)
-        .gte('ends_at', now)
-        .order('multiplier', { ascending: false })
-        .limit(1)
-        .maybeSingle()
-
-      // extra_points = floor(basePoints * (extraMultiplier - 1)), does NOT count toward tier
-      const extraPoints = extraPromo
-        ? Math.floor(basePoints * (Number(extraPromo.multiplier) - 1))
-        : 0
-
-      const totalNewPoints = pointsWithBonus + extraPoints
-
-      // tier hanya dari base+bonus points (bukan extra)
-      const tierPoints = currentPoints + pointsWithBonus
-      const newTier = tierPoints >= 3001 ? 'platinum' : tierPoints >= 1001 ? 'gold' : 'silver'
-
-      newTotal = currentPoints + totalNewPoints
-
-      // Update user: total_points includes all, tier from base+bonus only
-      await admin
-        .from('users')
-        .update({ total_points: newTotal, tier: newTier })
-        .eq('id', order.user_id)
-
-      console.log(`[webhook] EVC Points base+bonus: +${pointsWithBonus} extra: +${extraPoints} → user ${order.user_id} total: ${newTotal}`)
-
-      // Record 1: base+bonus points (type='earned')
-      if (pointsWithBonus > 0) {
-        await admin.from('point_transactions').insert({
-          user_id: order.user_id,
-          type: 'earned',
-          amount: pointsWithBonus,
-          balance_after: currentPoints + pointsWithBonus,
-          related_order_id: orderId,
-          notes: `Pembelian Order #${orderId.slice(0, 8).toUpperCase()}`,
-        })
-      }
-
-      // Record 2: extra points (type='bonus') — only if Extra Point Khusus active
-      if (extraPoints > 0 && extraPromo) {
-        await admin.from('point_transactions').insert({
-          user_id: order.user_id,
-          type: 'bonus',
-          amount: extraPoints,
-          balance_after: currentPoints + pointsWithBonus + extraPoints,
-          related_order_id: orderId,
-          notes: `Extra Point Khusus (${extraPromo.multiplier}x)`,
-        })
-      }
-    }
-
-    // Get order items
-    const { data: items } = await admin
-      .from('order_items')
-      .select('product_name, variant_name, quantity, price')
-      .eq('order_id', orderId)
-
-    // Get user info
-    const { data: user } = await admin
-      .from('users')
-      .select('name, email, phone')
-      .eq('id', order.user_id)
-      .single()
-
-    const shipping_fee = Math.max(0,
-      (order.shipping_cost || 10000) - (order.shipping_cost_discount || 0)
-    )
-
-    // Emit event for E2 (email) dan E3 (WhatsApp)
-    await emitOrderPaid({
-      orderId: order.id,
-      orderShortId: order.id.slice(0, 8).toUpperCase(),
-      customerName: user?.name || 'Customer',
-      payerEmail: user?.email || '',
-      payerPhone: user?.phone || order.shipping_phone || '',
-      totalAmount: order.total_amount,
-      items: (items || []).map((item: { product_name: string; variant_name: string | null; quantity: number; price: number }) => ({
-        product_name: item.variant_name
-          ? `${item.product_name} (${item.variant_name})`
-          : item.product_name,
-        quantity: item.quantity,
-        unit_price: item.price,
-        subtotal: item.price * item.quantity,
-      })),
-      subtotal: order.subtotal,
-      shipping_fee,
-      shipping_address: {
-        name: order.shipping_recipient_name || '',
-        phone: order.shipping_phone || '',
-        address: order.shipping_full_address || '',
-        city: order.shipping_city || '',
-        province: order.shipping_province || '',
-        postal_code: order.shipping_postal_code || '',
-      },
-      evc_points_earned: pointsWithBonus,
-      total_points_after: newTotal,
-      paid_at: paidAt || new Date().toISOString(),
-      shipping_method: (order.shipping_method as 'reguler' | 'instan' | 'sameday') || 'reguler',
-    })
-
-    // Affiliate commission — buat commission SETELAH order PAID (bukan saat checkout)
-    try {
-      const { data: paidOrder } = await admin.from('orders').select('attributed_affiliate_code, commission_id, total_amount, user_id').eq('id', orderId).single()
-      if (paidOrder?.attributed_affiliate_code && !paidOrder?.commission_id) {
-        const { data: aff } = await admin.from('affiliates').select('id').eq('affiliate_code', paidOrder.attributed_affiliate_code).eq('status', 'approved').single()
-        if (aff) {
-          const { data: orderItemsFull } = await admin.from('order_items').select('variant_id, quantity, product_name, variant_name').eq('order_id', orderId)
-          let totalPV = 0
-          const lineItems: { product_variant_id: string; product_name: string; variant_name: string; quantity: number; pv_per_unit: number; total_pv: number }[] = []
-          for (const item of orderItemsFull || []) {
-            const { data: variant } = await admin.from('product_variants').select('affiliate_pv_value').eq('id', item.variant_id).single()
-            const pvPerUnit = variant?.affiliate_pv_value || 0
-            totalPV += pvPerUnit * item.quantity
-            lineItems.push({ product_variant_id: item.variant_id, product_name: item.product_name, variant_name: item.variant_name || '', quantity: item.quantity, pv_per_unit: pvPerUnit, total_pv: pvPerUnit * item.quantity })
-          }
-          const { data: commission } = await admin.from('commissions').insert({ affiliate_id: aff.id, affiliate_code: paidOrder.attributed_affiliate_code, order_id: orderId, user_id: paidOrder.user_id, order_total: paidOrder.total_amount || 0, pv_earned: totalPV, status: 'pending' }).select('id').single()
-          if (commission?.id) {
-            if (lineItems.length > 0) await admin.from('commission_line_items').insert(lineItems.map(li => ({ ...li, commission_id: commission.id })))
-            await admin.from('orders').update({ commission_id: commission.id }).eq('id', orderId)
-          }
-          console.log('[affiliate] commission created on paid:', orderId, '| code:', paidOrder.attributed_affiliate_code, '| PV:', totalPV)
-        }
-      }
-    } catch (e) { console.error('[affiliate] commission creation on paid failed:', e) }
+    console.log('[webhook] Status → paid:', orderId, '| worker will handle points/notif/commission')
 
   } else if (status === 'EXPIRED') {
     if (order.status === 'expired' || order.status === 'cancelled') return
@@ -287,7 +101,8 @@ async function processWebhook(
       })
       .eq('id', orderId)
 
-    await emitOrderExpired(orderId)
+    // EXPIRED still fires synchronously — low overhead, no blocking queries
+    emitOrderExpired(orderId).catch(e => console.error('[webhook] emitOrderExpired failed:', e))
 
   } else if (status === 'FAILED') {
     if (order.status === 'failed' || order.status === 'cancelled') return
