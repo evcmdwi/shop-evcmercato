@@ -92,6 +92,11 @@ export default async function DashboardPage() {
             </div>
           </Link>
 
+          {/* Logout */}
+          <div className="flex justify-center pt-2 pb-1">
+            <LogoutButton />
+          </div>
+
           {/* Evie Health Poster */}
           <a
             href="https://t.me/evie_evc_bot?start=6285820852908"
