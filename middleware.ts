@@ -2,6 +2,15 @@ import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Domain-based routing: apex domain → landing pages / redirect to shop
+  const hostname = request.headers.get('host') ?? ''
+  const isApex = hostname === 'evcmercato.com' || hostname === 'www.evcmercato.com'
+
+  if (isApex) {
+    if (request.nextUrl.pathname.startsWith('/lp/')) return NextResponse.next()
+    return NextResponse.redirect(new URL('https://shop.evcmercato.com' + request.nextUrl.pathname), 301)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
