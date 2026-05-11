@@ -53,7 +53,7 @@ export async function POST(
   }
 
   // Send WA + email + in-app notification (non-critical)
-  notifyAffiliateRejected(id, notes).catch(console.error)
+  await notifyAffiliateRejected(id, notes).catch(e => console.error("[reject affiliate] notify failed:", e))
 
   return NextResponse.json({ success: true })
 }

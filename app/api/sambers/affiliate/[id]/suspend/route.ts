@@ -60,7 +60,7 @@ export async function POST(
     .eq('affiliate_id', id)
 
   // Send WA + email + in-app notification (non-critical)
-  notifyAffiliateSuspended(id, reason).catch(console.error)
+  await notifyAffiliateSuspended(id, reason).catch(e => console.error("[suspend affiliate] notify failed:", e))
 
   return NextResponse.json({ success: true })
 }
