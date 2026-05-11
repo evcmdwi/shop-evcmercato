@@ -97,45 +97,71 @@ export default function HomePage() {
 
           {/* DESKTOP overlay */}
           <div className="hidden md:flex absolute inset-0 items-center px-10 lg:px-14">
-            <div className="max-w-md">
-              <p className="text-xs font-semibold tracking-widest text-[#7a6350] uppercase mb-2">
-                Belanja Resmi di EVC Mercato
-              </p>
-              <h1 className="text-3xl lg:text-4xl font-bold text-[#2c2416] leading-tight mb-3">
-                Produk Pilihan untuk Kesehatan, Wellness, dan Kebutuhan Harianmu
+            <div className="max-w-sm">
+              {/* Badge */}
+              <div className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-4 border border-[#7FB300]/20">
+                <span>🌿</span> Official Wellness Store
+              </div>
+              {/* Headline DM Serif */}
+              <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-3">
+                <span className="block text-3xl lg:text-4xl text-[#1a1a1a]">Belanja Nyaman,</span>
+                <span className="block text-3xl lg:text-4xl text-[#7FB300]">Terpercaya</span>
+                <span className="block text-3xl lg:text-4xl text-[#7FB300]">Sejak 2003</span>
               </h1>
-              <p className="text-sm text-[#5a4a3a] mb-6 leading-relaxed">
-                Temukan produk pilihan EVC Mercato dalam satu tempat yang praktis, rapi, dan mudah diakses — mulai dari wellness, feminine care, beauty, hingga kebutuhan harian.
+              {/* Subheadline */}
+              <p className="font-[family-name:var(--font-montserrat)] text-sm text-[#4a4a4a] mb-5 leading-relaxed max-w-xs">
+                Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC untuk pengalaman belanja yang lebih nyaman.
               </p>
-              <div className="flex gap-3">
-                <a
-                  href="/katalog"
-                  className="bg-[#7FB300] text-white px-7 py-3 rounded-xl font-bold hover:bg-[#6B9700] transition-colors text-sm"
-                >
-                  Mulai Belanja
+              {/* CTAs */}
+              <div className="flex flex-wrap gap-3 mb-6">
+                <a href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors text-sm">
+                  🛍️ Belanja Sekarang
                 </a>
+                <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-[#7FB300] text-[#5a7a3a] px-5 py-2.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors text-sm bg-white/70 backdrop-blur-sm">
+                  💬 Konsultasi Admin EVC
+                </a>
+              </div>
+              {/* Stats */}
+              <div className="flex gap-3 flex-wrap">
+                {[{n:'36.000+',l:'transaksi'},{n:'32.000+',l:'review marketplace'},{n:'Sejak 2003',l:''},{n:'30 hub',l:'pengiriman'}].map((s,i) => (
+                  <div key={i} className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-1.5 text-center">
+                    <p className="font-bold text-[#1a1a1a] text-xs">{s.n}</p>
+                    {s.l && <p className="text-[#666] text-[10px]">{s.l}</p>}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         </div>
 
-        {/* MOBILE copy — di bawah gambar, clean */}
+        {/* MOBILE copy — di bawah gambar */}
         <div className="block md:hidden px-5 py-6 bg-[#faf8f5]">
-          <p className="text-xs font-semibold tracking-widest text-[#7a6350] uppercase mb-2">
-            Belanja Resmi di EVC Mercato
-          </p>
-          <h1 className="text-2xl font-bold text-[#2c2416] leading-tight mb-2">
-            Produk Pilihan untuk Kesehatan, Wellness, dan Kebutuhan Harianmu
+          <div className="inline-flex items-center gap-1.5 bg-white text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-3 border border-[#7FB300]/20">
+            🌿 Official Wellness Store
+          </div>
+          <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-2">
+            <span className="block text-2xl text-[#1a1a1a]">Belanja Nyaman,</span>
+            <span className="block text-2xl text-[#7FB300]">Terpercaya Sejak 2003</span>
           </h1>
-          <p className="text-sm text-[#5a4a3a] mb-5 leading-relaxed">
-            Temukan produk pilihan EVC Mercato dalam satu tempat yang praktis, rapi, dan mudah diakses dari HP.
+          <p className="font-[family-name:var(--font-montserrat)] text-sm text-[#4a4a4a] mb-4 leading-relaxed">
+            Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC.
           </p>
-          <a
-            href="/katalog"
-            className="block w-full bg-[#7FB300] text-white py-3.5 rounded-xl font-bold text-center hover:bg-[#6B9700] transition-colors"
-          >
-            Mulai Belanja
-          </a>
+          <div className="flex gap-2 mb-4">
+            <a href="/katalog" className="flex-1 bg-[#7FB300] text-white py-3 rounded-xl font-bold text-center hover:bg-[#6B9700] transition-colors text-sm">
+              🛍️ Belanja Sekarang
+            </a>
+            <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex-1 border border-[#7FB300] text-[#5a7a3a] py-3 rounded-xl font-semibold text-center hover:bg-[#f8fce8] transition-colors text-sm">
+              💬 Konsultasi
+            </a>
+          </div>
+          <div className="grid grid-cols-4 gap-2">
+            {[{n:'36.000+',l:'transaksi'},{n:'32.000+',l:'review'},{n:'Sejak 2003',l:''},{n:'30 hub',l:'kirim'}].map((s,i) => (
+              <div key={i} className="bg-white rounded-lg p-2 text-center border border-gray-100">
+                <p className="font-bold text-[#1a1a1a] text-xs">{s.n}</p>
+                {s.l && <p className="text-[#888] text-[9px]">{s.l}</p>}
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
