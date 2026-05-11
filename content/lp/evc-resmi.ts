@@ -4,9 +4,9 @@ const content: LandingPageContent = {
   slug: 'evc-resmi',
   campaign_name: 'EVC Resmi — Meta Ads',
   meta: {
-    title: 'Produk KKI Resmi EVC Mercato — Terpercaya & Terdaftar KEMENKES',
+    title: 'EVC Mercato — Website Resmi Produk Kesehatan & Wellness Pilihan',
     description:
-      'Beli produk kesehatan KKI original dari EVC Mercato Balikpapan. Terdaftar KEMENKES, pengiriman cepat, konsultasi gratis. Pesan sekarang!',
+      'Temukan produk pilihan untuk kebutuhan harian, kesehatan, wellness, beauty, dan feminine care dalam satu tempat yang praktis, jelas, dan mudah diakses dari HP.',
   },
   hero: {
     headline: 'Produk KKI Original, Langsung dari Mitra Resmi',

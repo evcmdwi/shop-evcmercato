@@ -73,10 +73,8 @@ export default async function EVCResmiPage({
       <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
         <a href={shopLink} className="flex items-center gap-2">
           <span className="font-bold text-[#7FB300] text-lg">EVC Mercato</span>
-          <span className="text-xs bg-[#f8fce8] text-[#7FB300] px-2 py-0.5 rounded-full font-medium border border-[#7FB300]/20">Resmi</span>
         </a>
         <div className="flex items-center gap-2">
-          <a href={WA_ADMIN} target="_blank" rel="noopener noreferrer" className="hidden sm:block text-sm text-gray-600 hover:text-[#7FB300] transition-colors">Chat Admin</a>
           <a href={shopLink} className="text-sm bg-[#7FB300] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors">Belanja</a>
         </div>
       </header>
@@ -87,21 +85,15 @@ export default async function EVCResmiPage({
           <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
             {/* Copy — left on desktop, top on mobile (reversed) */}
             <div className="flex-1 text-center md:text-left">
-              <div className="inline-block bg-[#f8fce8] text-[#7FB300] text-xs font-semibold px-3 py-1 rounded-full mb-4 border border-[#7FB300]/20">
-                🏅 Distributor Resmi KKI Group
-              </div>
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                {content.hero.headline}
+                Belanja Produk Kesehatan &amp; Wellness Pilihan di EVC Mercato
               </h1>
               <p className="text-base text-gray-500 mb-8 max-w-lg mx-auto md:mx-0">
-                {content.hero.subheadline}
+                Temukan produk pilihan untuk kebutuhan harian, kesehatan, wellness, beauty, dan feminine care dalam satu tempat yang praktis, jelas, dan mudah diakses dari HP.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                 <a href={shopLink} className="bg-[#7FB300] text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-[#6B9700] transition-colors text-center">
-                  {content.hero.cta_primary.text}
-                </a>
-                <a href={katalogLink} className="border-2 border-gray-200 text-gray-700 px-7 py-3.5 rounded-2xl font-semibold hover:border-[#7FB300] hover:text-[#7FB300] transition-colors text-center">
-                  {content.hero.cta_secondary?.text}
+                  Belanja Sekarang
                 </a>
               </div>
             </div>
@@ -124,16 +116,24 @@ export default async function EVCResmiPage({
         {/* SECTION 2 — TRUST COPY */}
         <section className="py-12 px-4 bg-[#fafafa] border-y border-gray-100">
           <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Belanja Lebih Nyaman di Website Resmi</h2>
+            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Belanja Lebih Nyaman di EVC Mercato</h2>
             <p className="text-gray-600 text-base leading-relaxed mb-4">
-              Belanja di website resmi EVC memberi pengalaman yang lebih aman, praktis, dan jelas dari awal. Informasi produk, layanan, dan bantuan tersedia dalam satu tempat supaya customer bisa memilih dengan lebih nyaman.
+              Belanja di EVC Mercato memberi pengalaman yang lebih praktis dan jelas dari awal. Customer bisa melihat informasi produk, memilih kebutuhan, dan melanjutkan belanja dengan alur yang mudah dipahami dari mobile.
+            </p>
+            <p className="text-gray-600 text-base leading-relaxed mb-4">
+              EVC juga menghadirkan dukungan admin untuk membantu menjawab pertanyaan seputar produk, ketersediaan, proses belanja, hingga informasi pengiriman. Jadi, customer tidak perlu bingung sendiri saat ingin memilih produk yang sesuai.
             </p>
             <p className="text-gray-600 text-base leading-relaxed mb-6">
-              EVC juga menghadirkan dukungan admin dan Evie untuk membantu menjawab pertanyaan, memberi info produk, dan memandu customer menemukan pilihan yang sesuai. Jadi, customer tidak belanja sendirian — ada tim yang siap membantu saat dibutuhkan.
+              Evie Health by EVC adalah konsultan kesehatan digital EVC yang siap sedia membantu pelanggan 24 jam, 7 hari seminggu. Evie dibekali pengetahuan luas seputar keluhan umum, pilihan solusi, gaya hidup, dan kebutuhan wellness masa kini, sehingga pelanggan bisa mendapatkan arahan awal yang lebih personal sebelum memilih produk.
             </p>
-            <a href={shopLink} className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
-              Belanja di Website Resmi
-            </a>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center">
+              <a href={shopLink} className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
+                Belanja Sekarang
+              </a>
+              <a href={EVIE_LINK} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors">
+                Konsultasi dengan Evie Health by EVC
+              </a>
+            </div>
           </div>
         </section>
 
@@ -144,8 +144,8 @@ export default async function EVCResmiPage({
             <p className="text-center text-gray-500 text-sm mb-8">Kenapa customer percaya belanja langsung di website kami</p>
             <div className="grid grid-cols-2 gap-4">
               {TRUST_CARDS.map((card, i) => (
-                <div key={i} className="bg-[#fafafa] rounded-2xl border border-gray-100 p-4 text-center hover:border-[#7FB300]/30 hover:shadow-sm transition-all">
-                  <Image src={card.img} alt={card.title} width={120} height={120} className="w-24 h-24 object-contain mx-auto mb-3" />
+                <div key={i} className="bg-[#fafafa] rounded-2xl border border-gray-100 p-3 text-center hover:border-[#7FB300]/30 hover:shadow-sm transition-all">
+                  <Image src={card.img} alt={card.title} width={200} height={200} className="w-full h-32 object-contain mx-auto mb-3" />
                   <h3 className="font-bold text-sm text-gray-900 mb-1.5">{card.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{card.copy}</p>
                 </div>
@@ -180,7 +180,7 @@ export default async function EVCResmiPage({
                 </div>
               ))}
             </div>
-            <p className="text-center text-xs text-gray-400 mt-4">* Pengalaman pelanggan — placeholder untuk preview</p>
+
           </div>
         </section>
 
@@ -241,23 +241,15 @@ export default async function EVCResmiPage({
             </div>
           </div>
           <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p className="text-xs text-gray-500">© {new Date().getFullYear()} EVC Mercato. Semua hak dilindungi.</p>
-            <p className="text-xs text-gray-500">Mitra Resmi KKI Group · KEMENKES RI AKL 11104320676</p>
+            <div className="text-center">
+              <p className="font-semibold text-sm text-gray-400">EVC Mercato</p>
+              <p className="text-xs text-gray-500 mt-1">Mitra usaha resmi KKI Group — sejak 2003</p>
+            </div>
           </div>
         </div>
       </footer>
 
-      {/* STICKY BOTTOM CTA — mobile only */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 sm:hidden bg-white border-t border-gray-100 px-4 py-3 flex gap-2">
-        <a href={shopLink} className="flex-1 bg-[#7FB300] text-white py-3 rounded-xl font-bold text-sm text-center hover:bg-[#6B9700] transition-colors">
-          Mulai Belanja
-        </a>
-        <a href={EVIE_LINK} target="_blank" rel="noopener noreferrer" className="flex-1 border border-[#7FB300] text-[#7FB300] py-3 rounded-xl font-semibold text-sm text-center hover:bg-[#f8fce8] transition-colors">
-          Tanya Evie
-        </a>
-      </div>
-      {/* Spacer for sticky CTA mobile */}
-      <div className="sm:hidden h-16" />
+
     </>
   )
 }
