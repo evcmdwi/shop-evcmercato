@@ -83,17 +83,7 @@ export default function HomePage() {
               priority
             />
           </div>
-          {/* Mobile image (hidden on desktop) */}
-          <div className="block md:hidden w-full">
-            <Image
-              src="/assets/shop-hero-mobile.jpg"
-              alt="EVC Mercato — Produk Pilihan Kesehatan & Wellness"
-              width={960}
-              height={1280}
-              className="w-full h-auto object-cover"
-              priority
-            />
-          </div>
+
 
           {/* DESKTOP overlay */}
           <div className="hidden md:flex absolute inset-0 items-center px-10 lg:px-14">
@@ -134,31 +124,55 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* MOBILE copy — di bawah gambar */}
-        <div className="block md:hidden px-5 py-6 bg-[#faf8f5]">
-          <div className="inline-flex items-center gap-1.5 bg-white text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-3 border border-[#7FB300]/20">
-            🌿 Official Wellness Store
+        {/* MOBILE layout — copy atas, gambar bawah, stats grid */}
+        <div className="block md:hidden bg-[#faf8f5]">
+          {/* Copy section */}
+          <div className="px-5 pt-8 pb-5 text-center">
+            <div className="inline-flex items-center gap-1.5 bg-white text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-4 border border-[#7FB300]/20">
+              🌿 Official Wellness Store
+            </div>
+            <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-3">
+              <span className="block text-3xl text-[#1a1a1a]">Belanja Nyaman,</span>
+              <span className="block text-3xl text-[#7FB300]">Terpercaya</span>
+              <span className="block text-3xl text-[#7FB300]">Sejak 2003</span>
+            </h1>
+            <p className="font-[family-name:var(--font-montserrat)] text-sm text-[#4a4a4a] mb-5 leading-relaxed">
+              Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC untuk pengalaman belanja yang lebih nyaman.
+            </p>
+            <div className="flex flex-col gap-3 mb-0">
+              <a href="/katalog" className="flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3.5 rounded-xl font-bold hover:bg-[#6B9700] transition-colors">
+                🛍️ Belanja Sekarang
+              </a>
+              <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border border-[#7FB300] text-[#5a7a3a] py-3.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors bg-white">
+                💬 Konsultasi Admin EVC
+              </a>
+            </div>
           </div>
-          <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-2">
-            <span className="block text-2xl text-[#1a1a1a]">Belanja Nyaman,</span>
-            <span className="block text-2xl text-[#7FB300]">Terpercaya Sejak 2003</span>
-          </h1>
-          <p className="font-[family-name:var(--font-montserrat)] text-sm text-[#4a4a4a] mb-4 leading-relaxed">
-            Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC.
-          </p>
-          <div className="flex gap-2 mb-4">
-            <a href="/katalog" className="flex-1 bg-[#7FB300] text-white py-3 rounded-xl font-bold text-center hover:bg-[#6B9700] transition-colors text-sm">
-              🛍️ Belanja Sekarang
-            </a>
-            <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex-1 border border-[#7FB300] text-[#5a7a3a] py-3 rounded-xl font-semibold text-center hover:bg-[#f8fce8] transition-colors text-sm">
-              💬 Konsultasi
-            </a>
+          {/* Hero image below CTAs */}
+          <div className="w-full">
+            <Image
+              src="/assets/shop-hero-mobile.jpg"
+              alt="EVC Mercato — Produk Pilihan Kesehatan & Wellness"
+              width={960}
+              height={1280}
+              className="w-full h-auto object-cover"
+              priority
+            />
           </div>
-          <div className="grid grid-cols-4 gap-2">
-            {[{n:'36.000+',l:'transaksi'},{n:'32.000+',l:'review'},{n:'Sejak 2003',l:''},{n:'30 hub',l:'kirim'}].map((s,i) => (
-              <div key={i} className="bg-white rounded-lg p-2 text-center border border-gray-100">
-                <p className="font-bold text-[#1a1a1a] text-xs">{s.n}</p>
-                {s.l && <p className="text-[#888] text-[9px]">{s.l}</p>}
+          {/* Stats 2x2 grid */}
+          <div className="grid grid-cols-2 gap-3 px-5 py-5 bg-[#faf8f5]">
+            {[
+              {icon:'🛍️', n:'36.000+', l:'transaksi'},
+              {icon:'★', n:'32.000+', l:'review marketplace'},
+              {icon:'🛡️', n:'Sejak 2003', l:''},
+              {icon:'🚚', n:'30 hub', l:'pengiriman'},
+            ].map((s,i) => (
+              <div key={i} className="bg-white rounded-xl p-3 flex items-center gap-3 border border-gray-100 shadow-sm">
+                <span className="text-xl">{s.icon}</span>
+                <div>
+                  <p className="font-bold text-[#1a1a1a] text-sm">{s.n}</p>
+                  {s.l && <p className="text-[#888] text-xs">{s.l}</p>}
+                </div>
               </div>
             ))}
           </div>
