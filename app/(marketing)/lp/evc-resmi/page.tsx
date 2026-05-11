@@ -76,7 +76,7 @@ export default async function EVCResmiPage({
             {/* Copy — left on desktop, top on mobile (reversed) */}
             <div className="flex-1 text-center md:text-left">
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                Belanja Produk Kesehatan &amp; Wellness Pilihan di EVC Mercato
+                Belanja Produk Kesehatan KKI Group &amp; Wellness Pilihan di EVC Mercato
               </h1>
               <p className="text-base text-gray-500 mb-8 max-w-lg mx-auto md:mx-0">
                 Temukan produk pilihan untuk kebutuhan harian, kesehatan, wellness, beauty, dan feminine care dalam satu tempat yang praktis, jelas, dan mudah diakses dari HP.
