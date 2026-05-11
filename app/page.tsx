@@ -2,14 +2,6 @@ import Link from 'next/link'
 import Image from 'next/image'
 import FAQSection from '@/components/FAQSection'
 
-// Stats data
-const stats = [
-  { number: '36.000+', label: 'Transaksi Berhasil' },
-  { number: '32.000+', label: '★ Reviews Marketplace', starStat: true },
-  { number: '23 Tahun', label: 'Pengalaman Sejak 2003' },
-  { number: '30', label: 'Hub Pengiriman' },
-]
-
 // Trust cards
 const trustCards = [
   {
@@ -76,36 +68,75 @@ export default function HomePage() {
   return (
     <div className="min-h-screen">
 
-      {/* HERO */}
-      <section className="bg-gradient-to-b from-[#E8F4D1] to-[#F0FDF4] py-16 px-4 text-center">
-        <h1 className="font-display text-5xl md:text-6xl lg:text-7xl leading-[1.1] tracking-tight text-gray-900 mb-4">
-          Belanja Nyaman<br/>
-          <span className="text-[#7FB300]">
-            Terpercaya Sejak 2003
-          </span>
-          <br/>
-          <span className="font-sans font-medium text-2xl md:text-3xl tracking-[0.04em] text-gray-500 uppercase">
-            Kiriman Lebih Cepat Untuk Anda
-          </span>
-        </h1>
+      {/* HERO SECTION */}
+      <section className="relative w-full overflow-hidden">
+        {/* Background images — desktop vs mobile */}
+        <div className="relative w-full">
+          {/* Desktop image (hidden on mobile) */}
+          <div className="hidden md:block w-full">
+            <Image
+              src="/assets/shop-hero-desktop.jpg"
+              alt="EVC Mercato — Produk Pilihan Kesehatan & Wellness"
+              width={1280}
+              height={720}
+              className="w-full h-auto object-cover"
+              priority
+            />
+          </div>
+          {/* Mobile image (hidden on desktop) */}
+          <div className="block md:hidden w-full">
+            <Image
+              src="/assets/shop-hero-mobile.jpg"
+              alt="EVC Mercato — Produk Pilihan Kesehatan & Wellness"
+              width={960}
+              height={1280}
+              className="w-full h-auto object-cover"
+              priority
+            />
+          </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 max-w-4xl mx-auto mb-10">
-          {stats.map(s => (
-            <div key={s.label} className="bg-white rounded-xl shadow-sm p-4 sm:p-5">
-              <p className="font-display text-3xl sm:text-4xl text-[#7FB300]">{s.number}</p>
-              <p className="font-display text-xs sm:text-sm text-gray-500 mt-1">
-                {'starStat' in s && s.starStat ? (
-                  <>5 ⭐️ Review di Marketplace</>
-                ) : s.label}
+          {/* DESKTOP overlay */}
+          <div className="hidden md:flex absolute inset-0 items-end pb-12 px-12">
+            <div className="max-w-md">
+              <p className="text-xs font-semibold tracking-widest text-[#7a6350] uppercase mb-2">
+                Belanja Resmi di EVC Mercato
               </p>
+              <h1 className="text-3xl lg:text-4xl font-bold text-[#2c2416] leading-tight mb-3">
+                Produk Pilihan untuk Kesehatan, Wellness, dan Kebutuhan Harianmu
+              </h1>
+              <p className="text-sm text-[#5a4a3a] mb-6 leading-relaxed">
+                Temukan produk pilihan EVC Mercato dalam satu tempat yang praktis, rapi, dan mudah diakses — mulai dari wellness, feminine care, beauty, hingga kebutuhan harian.
+              </p>
+              <div className="flex gap-3">
+                <a
+                  href="/katalog"
+                  className="bg-[#7FB300] text-white px-7 py-3 rounded-xl font-bold hover:bg-[#6B9700] transition-colors text-sm"
+                >
+                  Mulai Belanja
+                </a>
+              </div>
             </div>
-          ))}
+          </div>
         </div>
 
-        <Link href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] hover:bg-[#6B9700] text-white font-display text-lg px-8 py-4 rounded-full transition-all hover:scale-105 hover:shadow-lg">
-          Mulai Belanja Sekarang
-        </Link>
+        {/* MOBILE copy — di bawah gambar, clean */}
+        <div className="block md:hidden px-5 py-6 bg-[#faf8f5]">
+          <p className="text-xs font-semibold tracking-widest text-[#7a6350] uppercase mb-2">
+            Belanja Resmi di EVC Mercato
+          </p>
+          <h1 className="text-2xl font-bold text-[#2c2416] leading-tight mb-2">
+            Produk Pilihan untuk Kesehatan, Wellness, dan Kebutuhan Harianmu
+          </h1>
+          <p className="text-sm text-[#5a4a3a] mb-5 leading-relaxed">
+            Temukan produk pilihan EVC Mercato dalam satu tempat yang praktis, rapi, dan mudah diakses dari HP.
+          </p>
+          <a
+            href="/katalog"
+            className="block w-full bg-[#7FB300] text-white py-3.5 rounded-xl font-bold text-center hover:bg-[#6B9700] transition-colors"
+          >
+            Mulai Belanja
+          </a>
+        </div>
       </section>
 
       {/* KENAPA EVC - 4 CARDS */}
