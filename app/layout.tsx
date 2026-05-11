@@ -3,8 +3,7 @@ import { Geist, Geist_Mono, Montserrat, DM_Serif_Display } from "next/font/googl
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { ToastContainer } from "@/components/Toast";
-import Navbar from "@/components/Navbar";
-import PromoBanner from "@/components/PromoBanner";
+import ShopShell from "@/components/ShopShell";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { createClient } from "@/lib/supabase-server";
 
@@ -58,8 +57,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col">
         <AuthProvider initialUser={user}>
           <CartProvider>
-            <PromoBanner />
-            <Navbar />
+            <ShopShell />
             {children}
             <ToastContainer />
           </CartProvider>

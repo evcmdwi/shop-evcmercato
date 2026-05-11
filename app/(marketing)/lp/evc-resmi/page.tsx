@@ -231,7 +231,8 @@ export default async function EVCResmiPage({
           <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-6">
             <div>
               <p className="font-bold text-lg text-[#7FB300] mb-1">EVC Mercato</p>
-              <p className="text-xs text-gray-400">Distributor Resmi KKI Group — Balikpapan, Kaltim</p>
+              <p className="text-xs text-gray-400">Online Channel #1 KKI Group</p>
+              <p className="text-xs text-gray-500">Mitra usaha resmi KKI Group</p>
             </div>
             <div className="flex flex-col gap-2 text-sm text-gray-400">
               <a href={katalogLink} className="hover:text-white transition-colors">Katalog Produk</a>
@@ -241,10 +242,7 @@ export default async function EVCResmiPage({
             </div>
           </div>
           <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <div className="text-center">
-              <p className="font-semibold text-sm text-gray-400">EVC Mercato</p>
-              <p className="text-xs text-gray-500 mt-1">Mitra usaha resmi KKI Group — sejak 2003</p>
-            </div>
+            <p className="text-xs text-gray-500">© {new Date().getFullYear()} EVC Mercato. All rights reserved.</p>
           </div>
         </div>
       </footer>
