@@ -111,15 +111,7 @@ export default function HomePage() {
                   💬 Konsultasi Admin EVC
                 </a>
               </div>
-              {/* Stats */}
-              <div className="flex gap-3 flex-wrap">
-                {[{n:'36.000+',l:'transaksi'},{n:'32.000+',l:'review marketplace'},{n:'Sejak 2003',l:''},{n:'30 hub',l:'pengiriman'}].map((s,i) => (
-                  <div key={i} className="bg-white/70 backdrop-blur-sm rounded-lg px-3 py-1.5 text-center">
-                    <p className="font-bold text-[#1a1a1a] text-xs">{s.n}</p>
-                    {s.l && <p className="text-[#666] text-[10px]">{s.l}</p>}
-                  </div>
-                ))}
-              </div>
+
             </div>
           </div>
         </div>
@@ -159,23 +151,7 @@ export default function HomePage() {
               priority
             />
           </div>
-          {/* Stats 2x2 grid */}
-          <div className="grid grid-cols-2 gap-3 px-5 py-5 bg-[#faf8f5]">
-            {[
-              {icon:'🛍️', n:'36.000+', l:'transaksi'},
-              {icon:'★', n:'32.000+', l:'review marketplace'},
-              {icon:'🛡️', n:'Sejak 2003', l:''},
-              {icon:'🚚', n:'30 hub', l:'pengiriman'},
-            ].map((s,i) => (
-              <div key={i} className="bg-white rounded-xl p-3 flex items-center gap-3 border border-gray-100 shadow-sm">
-                <span className="text-xl">{s.icon}</span>
-                <div>
-                  <p className="font-bold text-[#1a1a1a] text-sm">{s.n}</p>
-                  {s.l && <p className="text-[#888] text-xs">{s.l}</p>}
-                </div>
-              </div>
-            ))}
-          </div>
+
         </div>
       </section>
 
