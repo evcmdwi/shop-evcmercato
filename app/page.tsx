@@ -96,7 +96,7 @@ export default function HomePage() {
           </div>
 
           {/* DESKTOP overlay */}
-          <div className="hidden md:flex absolute inset-0 items-end pb-12 px-12">
+          <div className="hidden md:flex absolute inset-0 items-center px-10 lg:px-14">
             <div className="max-w-md">
               <p className="text-xs font-semibold tracking-widest text-[#7a6350] uppercase mb-2">
                 Belanja Resmi di EVC Mercato
