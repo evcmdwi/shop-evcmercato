@@ -128,19 +128,12 @@ export default function HomePage() {
               className="w-full h-auto object-cover"
               priority
             />
-            {/* Overlay teks di atas gambar — bagian atas */}
-            <div className="absolute inset-0 flex flex-col items-center justify-start pt-6 px-5">
-              <div className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-3 border border-[#7FB300]/20">
-                🌿 Official Wellness Store
-              </div>
-              <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight text-center">
-                <span className="block text-3xl text-[#1a1a1a] drop-shadow-sm">Belanja Nyaman,</span>
-                <span className="block text-3xl text-[#7FB300] drop-shadow-sm">Terpercaya</span>
-                <span className="block text-3xl text-[#7FB300] drop-shadow-sm">Sejak 2003</span>
+            {/* Overlay teks di atas gambar — compact, tidak tutup produk */}
+            <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 px-4">
+              <h1 className="font-[family-name:var(--font-dm-serif)] leading-snug text-center">
+                <span className="block text-xl text-[#1a1a1a]">Belanja Nyaman,</span>
+                <span className="block text-xl text-[#7FB300]">Terpercaya Sejak 2003</span>
               </h1>
-              <p className="font-[family-name:var(--font-montserrat)] text-xs text-[#3a3a3a] mt-2 leading-relaxed text-center max-w-xs">
-                Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC.
-              </p>
             </div>
           </div>
           {/* CTA di bawah gambar */}
