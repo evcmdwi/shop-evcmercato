@@ -116,32 +116,10 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* MOBILE layout — copy atas, gambar bawah, stats grid */}
-        <div className="block md:hidden bg-[#faf8f5]">
-          {/* Copy section */}
-          <div className="px-5 pt-8 pb-5 text-center">
-            <div className="inline-flex items-center gap-1.5 bg-white text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-4 border border-[#7FB300]/20">
-              🌿 Official Wellness Store
-            </div>
-            <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-3">
-              <span className="block text-3xl text-[#1a1a1a]">Belanja Nyaman,</span>
-              <span className="block text-3xl text-[#7FB300]">Terpercaya</span>
-              <span className="block text-3xl text-[#7FB300]">Sejak 2003</span>
-            </h1>
-            <p className="font-[family-name:var(--font-montserrat)] text-sm text-[#4a4a4a] mb-5 leading-relaxed">
-              Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC untuk pengalaman belanja yang lebih nyaman.
-            </p>
-            <div className="flex flex-col gap-3 mb-0">
-              <a href="/katalog" className="flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3.5 rounded-xl font-bold hover:bg-[#6B9700] transition-colors">
-                🛍️ Belanja Sekarang
-              </a>
-              <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border border-[#7FB300] text-[#5a7a3a] py-3.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors bg-white">
-                💬 Konsultasi Admin EVC
-              </a>
-            </div>
-          </div>
-          {/* Hero image below CTAs */}
-          <div className="w-full">
+        {/* MOBILE layout — gambar dengan overlay headline di atas, CTA di bawah gambar */}
+        <div className="block md:hidden">
+          {/* Gambar + overlay headline */}
+          <div className="relative w-full">
             <Image
               src="/assets/shop-hero-mobile.jpg"
               alt="EVC Mercato — Produk Pilihan Kesehatan & Wellness"
@@ -150,8 +128,30 @@ export default function HomePage() {
               className="w-full h-auto object-cover"
               priority
             />
+            {/* Overlay teks di atas gambar — bagian atas */}
+            <div className="absolute inset-0 flex flex-col items-center justify-start pt-6 px-5">
+              <div className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-3 border border-[#7FB300]/20">
+                🌿 Official Wellness Store
+              </div>
+              <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight text-center">
+                <span className="block text-3xl text-[#1a1a1a] drop-shadow-sm">Belanja Nyaman,</span>
+                <span className="block text-3xl text-[#7FB300] drop-shadow-sm">Terpercaya</span>
+                <span className="block text-3xl text-[#7FB300] drop-shadow-sm">Sejak 2003</span>
+              </h1>
+              <p className="font-[family-name:var(--font-montserrat)] text-xs text-[#3a3a3a] mt-2 leading-relaxed text-center max-w-xs">
+                Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC.
+              </p>
+            </div>
           </div>
-
+          {/* CTA di bawah gambar */}
+          <div className="flex flex-col gap-3 px-5 py-4 bg-[#faf8f5]">
+            <a href="/katalog" className="flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3.5 rounded-xl font-bold hover:bg-[#6B9700] transition-colors">
+              🛍️ Belanja Sekarang
+            </a>
+            <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border border-[#7FB300] text-[#5a7a3a] py-3.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors bg-white">
+              💬 Konsultasi Admin EVC
+            </a>
+          </div>
         </div>
       </section>
 
