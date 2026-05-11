@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
+import Image from 'next/image'
 import { initPixelScript } from '@/lib/marketing/pixel'
 import { extractUTM, appendUTM } from '@/lib/marketing/utm'
 import content from '@/content/lp/evc-resmi'
@@ -22,55 +23,22 @@ const TRUST_CARDS = [
   {
     title: 'Pembayaran Terpercaya',
     copy: 'Checkout lebih tenang dengan alur pembayaran yang jelas.',
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto mb-3">
-        <rect x="4" y="10" width="40" height="28" rx="4" stroke="#7FB300" strokeWidth="2.5" fill="#f8fce8"/>
-        <rect x="4" y="18" width="40" height="6" fill="#7FB300" opacity="0.3"/>
-        <rect x="10" y="28" width="12" height="3" rx="1.5" fill="#7FB300"/>
-        <circle cx="36" cy="29.5" r="4" fill="#7FB300"/>
-        <path d="M34 29.5l1.5 1.5 3-3" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
+    img: '/assets/evc-trust-box-pembayaran-terpercaya.png',
   },
   {
     title: 'Produk Pilihan Resmi',
     copy: 'Produk pilihan tersedia melalui website resmi EVC Mercato.',
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto mb-3">
-        <path d="M8 8h32l-4 20H12L8 8z" stroke="#7FB300" strokeWidth="2.5" fill="#f8fce8"/>
-        <circle cx="18" cy="40" r="3" fill="#7FB300"/>
-        <circle cx="32" cy="40" r="3" fill="#7FB300"/>
-        <path d="M14 16h20M14 22h16" stroke="#7FB300" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-        <circle cx="38" cy="12" r="8" fill="#7FB300"/>
-        <path d="M35 12l2 2 4-4" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-      </svg>
-    ),
+    img: '/assets/evc-trust-box-official-store.png',
   },
   {
     title: 'Pengiriman Cepat',
     copy: 'Pesanan diproses tim EVC dan dikirim ke alamat customer.',
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto mb-3">
-        <path d="M4 20h28v14H4V20z" stroke="#7FB300" strokeWidth="2.5" fill="#f8fce8"/>
-        <path d="M32 24h8l4 8v2h-12V24z" stroke="#7FB300" strokeWidth="2.5" fill="#f8fce8"/>
-        <circle cx="12" cy="38" r="3" fill="#7FB300"/>
-        <circle cx="36" cy="38" r="3" fill="#7FB300"/>
-        <path d="M4 26h18" stroke="#7FB300" strokeWidth="1.5" strokeLinecap="round" opacity="0.4"/>
-        <path d="M6 14l6-6M10 14l6-6" stroke="#7FB300" strokeWidth="2" strokeLinecap="round" opacity="0.5"/>
-      </svg>
-    ),
+    img: '/assets/evc-trust-box-pengiriman-cepat.png',
   },
   {
     title: 'Admin & Evie Siap Membantu',
     copy: 'Customer bisa tanya dulu sebelum belanja agar lebih yakin memilih produk.',
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" className="w-12 h-12 mx-auto mb-3">
-        <circle cx="24" cy="16" r="8" stroke="#7FB300" strokeWidth="2.5" fill="#f8fce8"/>
-        <path d="M8 40c0-8.837 7.163-16 16-16s16 7.163 16 16" stroke="#7FB300" strokeWidth="2.5" strokeLinecap="round" fill="none"/>
-        <circle cx="38" cy="22" r="7" fill="#7FB300"/>
-        <path d="M35 22h6M38 19v6" stroke="white" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
+    img: '/assets/evc-trust-box-cs-evie-support.jpg',
   },
 ]
 
@@ -139,13 +107,15 @@ export default async function EVCResmiPage({
             </div>
             {/* Hero image — right on desktop, bottom on mobile */}
             <div className="flex-1 flex justify-center">
-              <div className="w-full max-w-sm rounded-3xl overflow-hidden bg-gradient-to-br from-[#f8fce8] to-[#e8f5cc] aspect-square flex items-center justify-center">
-                {/* TODO: ganti dengan <Image src="/assets/evc-trust-hero.png" ... /> setelah asset tersedia */}
-                <div className="text-center p-8">
-                  <div className="text-6xl mb-4">🌿</div>
-                  <p className="text-[#7FB300] font-semibold text-lg">EVC Mercato</p>
-                  <p className="text-gray-500 text-sm mt-1">Produk Pilihan KKI Group</p>
-                </div>
+              <div className="w-full max-w-sm rounded-3xl overflow-hidden">
+                <Image
+                  src="/assets/evc-trust-hero.jpg"
+                  alt="Produk pilihan EVC Mercato — Natesh, Vitayang, Fitsol dan lebih banyak lagi"
+                  width={480}
+                  height={480}
+                  className="w-full h-auto object-cover"
+                  priority
+                />
               </div>
             </div>
           </div>
@@ -174,8 +144,8 @@ export default async function EVCResmiPage({
             <p className="text-center text-gray-500 text-sm mb-8">Kenapa customer percaya belanja langsung di website kami</p>
             <div className="grid grid-cols-2 gap-4">
               {TRUST_CARDS.map((card, i) => (
-                <div key={i} className="bg-[#fafafa] rounded-2xl border border-gray-100 p-5 text-center hover:border-[#7FB300]/30 hover:shadow-sm transition-all">
-                  {card.icon}
+                <div key={i} className="bg-[#fafafa] rounded-2xl border border-gray-100 p-4 text-center hover:border-[#7FB300]/30 hover:shadow-sm transition-all">
+                  <Image src={card.img} alt={card.title} width={120} height={120} className="w-24 h-24 object-contain mx-auto mb-3" />
                   <h3 className="font-bold text-sm text-gray-900 mb-1.5">{card.title}</h3>
                   <p className="text-xs text-gray-500 leading-relaxed">{card.copy}</p>
                 </div>
@@ -240,8 +210,8 @@ export default async function EVCResmiPage({
               </div>
               {/* Evie Card */}
               <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center shadow-sm">
-                <div className="w-16 h-16 rounded-full bg-[#e8f5cc] flex items-center justify-center mx-auto mb-4">
-                  <span className="text-3xl">🌿</span>
+                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2 border-[#e8f5cc]">
+                  <Image src="/assets/evc-trust-box-cs-evie-support.jpg" alt="Evie Health Advisor" width={80} height={80} className="w-full h-full object-cover object-top" />
                 </div>
                 <h3 className="font-bold text-gray-900 mb-2">Evie Health by EVC</h3>
                 <p className="text-sm text-gray-600 mb-4 leading-relaxed">Konsultan wellness yang siap membantu memahami kebutuhan dan mengarahkan pilihan produk yang sesuai — 24 jam.</p>
