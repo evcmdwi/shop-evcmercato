@@ -131,8 +131,8 @@ export default function HomePage() {
             {/* Overlay teks di atas gambar — compact, tidak tutup produk */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 px-4">
               <h1 className="font-[family-name:var(--font-dm-serif)] leading-snug text-center">
-                <span className="block text-xl text-[#1a1a1a]">Belanja Nyaman,</span>
-                <span className="block text-xl text-[#7FB300]">Terpercaya Sejak 2003</span>
+                <span className="block text-base text-[#1a1a1a]">Belanja Nyaman,</span>
+                <span className="block text-base text-[#7FB300]">Terpercaya Sejak 2003</span>
               </h1>
             </div>
           </div>
