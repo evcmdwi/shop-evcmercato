@@ -56,8 +56,8 @@ export async function POST(
     return NextResponse.json({ error: updateErr.message }, { status: 500 })
   }
 
-  // Send WA + email + in-app notification (non-critical)
-  notifyAffiliateApproved(id, notes ?? undefined).catch(console.error)
+  // Send WA + email + in-app notification — await agar tidak ter-kill oleh Vercel sebelum selesai
+  await notifyAffiliateApproved(id, notes ?? undefined).catch(e => console.error('[approve affiliate] notify failed:', e))
 
   return NextResponse.json({ success: true, affiliate_code: affiliateCode })
 }
