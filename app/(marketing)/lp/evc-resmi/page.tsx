@@ -69,16 +69,6 @@ export default async function EVCResmiPage({
         </Script>
       )}
 
-      {/* NAVBAR */}
-      <header className="bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between sticky top-0 z-50 shadow-sm">
-        <a href={shopLink} className="flex items-center gap-2">
-          <span className="font-bold text-[#7FB300] text-lg">EVC Mercato</span>
-        </a>
-        <div className="flex items-center gap-2">
-          <a href={shopLink} className="text-sm bg-[#7FB300] text-white px-4 py-2 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors">Belanja</a>
-        </div>
-      </header>
-
       <main>
         {/* SECTION 1 — HERO */}
         <section className="bg-white py-12 md:py-20 px-4">
