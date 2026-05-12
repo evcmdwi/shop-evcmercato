@@ -703,7 +703,6 @@ interface PVProduct {
 function PVTab() {
   const [products, setProducts] = useState<PVProduct[]>([])
   const [loading, setLoading] = useState(true)
-  const [search, setSearch] = useState('')
 
   useEffect(() => {
     fetch('/api/affiliate/pv-list')
@@ -715,32 +714,21 @@ function PVTab() {
       .catch(() => setLoading(false))
   }, [])
 
-  const filtered = products.filter((p) =>
-    p.name.toLowerCase().includes(search.toLowerCase()),
-  )
-
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       <div>
         <h2 className="font-semibold text-gray-900 mb-1">PV Produk Affiliate</h2>
         <p className="text-xs text-gray-400 mb-3">
           Nilai PV setiap produk yang akan dihitung sebagai komisi kamu. View only.
         </p>
-        <input
-          type="text"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="Cari nama produk..."
-          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm mb-4"
-        />
       </div>
 
       {loading ? (
         <p className="text-sm text-gray-400 text-center py-8">Memuat...</p>
-      ) : filtered.length === 0 ? (
-        <p className="text-sm text-gray-400 text-center py-8">Tidak ada produk ditemukan.</p>
+      ) : products.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-8">Belum ada data produk.</p>
       ) : (
-        filtered.map((product) => (
+        products.map((product) => (
           <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4">
             <p className="font-semibold text-sm text-gray-900 mb-2">{product.name}</p>
             {product.product_variants.map((variant) => (
@@ -960,10 +948,12 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
   }
 
   // ── APPROVED ───────────────────────────────────────────────────────────────
-  const tabs: { key: ApprovedTab; label: string }[] = [
+  const tabsRow1: { key: ApprovedTab; label: string }[] = [
     { key: 'generate', label: 'Generate Link' },
     { key: 'performance', label: 'Performa' },
     { key: 'members', label: 'Member Saya' },
+  ]
+  const tabsRow2: { key: ApprovedTab; label: string }[] = [
     { key: 'settlement', label: 'Settlement' },
     { key: 'pv', label: '📋 PV Produk' },
   ]
@@ -991,12 +981,29 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
 
       {/* Tabs */}
       <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="flex border-b border-gray-100 overflow-x-auto">
-          {tabs.map((t) => (
+        {/* Tab row 1 */}
+        <div className="flex border-b border-gray-100">
+          {tabsRow1.map((t) => (
             <button type="button"
               key={t.key}
               onClick={() => setActiveTab(t.key)}
-              className={`flex-1 min-w-max px-4 py-3 text-sm font-medium transition-colors ${
+              className={`flex-1 px-3 py-3 text-xs font-medium transition-colors ${
+                activeTab === t.key
+                  ? 'text-[#7FB300] border-b-2 border-[#7FB300] bg-[#f8fce8]/50'
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              {t.label}
+            </button>
+          ))}
+        </div>
+        {/* Tab row 2 */}
+        <div className="flex border-b border-gray-100 bg-gray-50/50">
+          {tabsRow2.map((t) => (
+            <button type="button"
+              key={t.key}
+              onClick={() => setActiveTab(t.key)}
+              className={`flex-1 px-3 py-2.5 text-xs font-medium transition-colors ${
                 activeTab === t.key
                   ? 'text-[#7FB300] border-b-2 border-[#7FB300] bg-[#f8fce8]/50'
                   : 'text-gray-500 hover:text-gray-700'
