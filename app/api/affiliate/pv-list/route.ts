@@ -22,7 +22,7 @@ export async function GET() {
   const { data: products } = await admin
     .from('products')
     .select(
-      'id, name, has_variants, product_variants(id, variant_name, price, affiliate_pv_value, is_default)',
+      'id, name, has_variants, product_variants(id, name, price, affiliate_pv_value, is_default)',
     )
     .eq('is_active', true)
     .order('sort_order', { ascending: true })

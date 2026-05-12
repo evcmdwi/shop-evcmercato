@@ -693,7 +693,7 @@ interface PVProduct {
   has_variants: boolean
   product_variants: {
     id: string
-    variant_name: string | null
+    name: string | null
     price: number
     affiliate_pv_value: number
     is_default: boolean
@@ -737,7 +737,7 @@ function PVTab() {
                 className="flex items-center justify-between py-2 border-t border-gray-50"
               >
                 <span className="text-sm text-gray-500 flex-1">
-                  {product.has_variants ? variant.variant_name || 'Default' : 'Default'}
+                  {product.has_variants ? variant.name || 'Default' : 'Default'}
                   <span className="text-xs text-gray-400 ml-2">
                     Rp{variant.price.toLocaleString('id-ID')}
                   </span>
