@@ -55,7 +55,7 @@ type ViewState =
   | 'rejected'
   | 'suspended'
 
-type ApprovedTab = 'generate' | 'performance' | 'members' | 'settlement'
+type ApprovedTab = 'generate' | 'performance' | 'members' | 'settlement' | 'pv'
 
 type LinkTarget = 'homepage' | 'product' | 'category'
 
@@ -685,6 +685,96 @@ function SettlementTab() {
   )
 }
 
+// ─── PV Tab ─────────────────────────────────────────────────────────────────
+
+interface PVProduct {
+  id: string
+  name: string
+  has_variants: boolean
+  product_variants: {
+    id: string
+    variant_name: string | null
+    price: number
+    affiliate_pv_value: number
+    is_default: boolean
+  }[]
+}
+
+function PVTab() {
+  const [products, setProducts] = useState<PVProduct[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+
+  useEffect(() => {
+    fetch('/api/affiliate/pv-list')
+      .then((r) => r.json())
+      .then((d) => {
+        setProducts(d.products ?? [])
+        setLoading(false)
+      })
+      .catch(() => setLoading(false))
+  }, [])
+
+  const filtered = products.filter((p) =>
+    p.name.toLowerCase().includes(search.toLowerCase()),
+  )
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h2 className="font-semibold text-gray-900 mb-1">PV Produk Affiliate</h2>
+        <p className="text-xs text-gray-400 mb-3">
+          Nilai PV setiap produk yang akan dihitung sebagai komisi kamu. View only.
+        </p>
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Cari nama produk..."
+          className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm mb-4"
+        />
+      </div>
+
+      {loading ? (
+        <p className="text-sm text-gray-400 text-center py-8">Memuat...</p>
+      ) : filtered.length === 0 ? (
+        <p className="text-sm text-gray-400 text-center py-8">Tidak ada produk ditemukan.</p>
+      ) : (
+        filtered.map((product) => (
+          <div key={product.id} className="bg-white rounded-xl border border-gray-100 p-4">
+            <p className="font-semibold text-sm text-gray-900 mb-2">{product.name}</p>
+            {product.product_variants.map((variant) => (
+              <div
+                key={variant.id}
+                className="flex items-center justify-between py-2 border-t border-gray-50"
+              >
+                <span className="text-sm text-gray-500 flex-1">
+                  {product.has_variants ? variant.variant_name || 'Default' : 'Default'}
+                  <span className="text-xs text-gray-400 ml-2">
+                    Rp{variant.price.toLocaleString('id-ID')}
+                  </span>
+                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs text-gray-400">PV:</span>
+                  <span
+                    className={`font-bold text-sm ${
+                      variant.affiliate_pv_value > 0 ? 'text-[#7FB300]' : 'text-gray-300'
+                    }`}
+                  >
+                    {variant.affiliate_pv_value > 0
+                      ? variant.affiliate_pv_value.toLocaleString('id-ID')
+                      : '—'}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+        ))
+      )}
+    </div>
+  )
+}
+
 // ─── Main Component ───────────────────────────────────────────────────────────
 
 interface Props {
@@ -875,6 +965,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
     { key: 'performance', label: 'Performa' },
     { key: 'members', label: 'Member Saya' },
     { key: 'settlement', label: 'Settlement' },
+    { key: 'pv', label: '📋 PV Produk' },
   ]
 
   return (
@@ -923,6 +1014,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
           {activeTab === 'performance' && <PerformanceTab />}
           {activeTab === 'members' && <MembersTab />}
           {activeTab === 'settlement' && <SettlementTab />}
+          {activeTab === 'pv' && <PVTab />}
         </div>
       </div>
     </div>
