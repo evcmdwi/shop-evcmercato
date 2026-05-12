@@ -88,10 +88,6 @@ export default function HomePage() {
           {/* DESKTOP overlay */}
           <div className="hidden md:flex absolute inset-0 items-center px-10 lg:px-14">
             <div className="max-w-sm">
-              {/* Badge */}
-              <div className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-[#5a7a3a] text-xs font-semibold px-3 py-1.5 rounded-full mb-4 border border-[#7FB300]/20">
-                <span>🌿</span> Official Wellness Store
-              </div>
               {/* Headline DM Serif */}
               <h1 className="font-[family-name:var(--font-dm-serif)] leading-tight mb-3">
                 <span className="block text-3xl lg:text-4xl text-[#1a1a1a]">Belanja Nyaman,</span>
@@ -131,8 +127,8 @@ export default function HomePage() {
             {/* Overlay teks di atas gambar — compact, tidak tutup produk */}
             <div className="absolute inset-0 flex flex-col items-center justify-start pt-10 px-4">
               <h1 className="font-[family-name:var(--font-dm-serif)] leading-snug text-center">
-                <span className="block text-base text-[#1a1a1a]">Belanja Nyaman,</span>
-                <span className="block text-base text-[#7FB300]">Terpercaya Sejak 2003</span>
+                <span className="block text-lg text-[#1a1a1a]">Belanja Nyaman,</span>
+                <span className="block text-lg text-[#7FB300]">Terpercaya Sejak 2003</span>
               </h1>
             </div>
           </div>
