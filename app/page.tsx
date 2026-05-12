@@ -130,6 +130,9 @@ export default function HomePage() {
                 <span className="block text-lg text-[#1a1a1a]">Belanja Nyaman,</span>
                 <span className="block text-lg text-[#7FB300]">Terpercaya Sejak 2003</span>
               </h1>
+              <p className="font-[family-name:var(--font-montserrat)] text-xs text-[#3a3a3a] mt-2 leading-relaxed text-center max-w-[260px]">
+                Produk wellness resmi dengan pembayaran aman, pengiriman lebih cepat, dan dukungan admin EVC.
+              </p>
             </div>
           </div>
           {/* CTA di bawah gambar */}
