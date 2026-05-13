@@ -206,9 +206,9 @@ export default function HomePage() {
           {/* Row 1: Natesh | Fitsol | Kesehatan */}
           <div className="flex justify-center gap-3 sm:gap-4 mb-4">
             {[
-              { src: '/assets/badge-feminine-care.jpg', alt: 'Feminine Care', href: '/katalog?category=natesh' },
-              { src: '/assets/badge-fitsol.jpg', alt: 'Fitsol', href: '/katalog?category=fitsol' },
-              { src: '/assets/badge-kesehatan.jpg', alt: 'Kesehatan', href: '/katalog?category=suplemen' },
+              { src: '/assets/badge-feminine-care.png', alt: 'Feminine Care', href: '/katalog?category=natesh' },
+              { src: '/assets/badge-fitsol.png', alt: 'Fitsol', href: '/katalog?category=fitsol' },
+              { src: '/assets/badge-kesehatan.png', alt: 'Kesehatan', href: '/katalog?category=suplemen' },
             ].map(btn => (
               <Link key={btn.alt} href={btn.href} className="group flex-1 max-w-[120px] sm:max-w-[140px]">
                 <Image
@@ -225,8 +225,8 @@ export default function HomePage() {
           {/* Row 2: Kecantikan | Lihat Semua — centered */}
           <div className="flex justify-center gap-3 sm:gap-4">
             {[
-              { src: '/assets/badge-kecantikan.jpg', alt: 'Kecantikan', href: '/katalog?category=kecantikan' },
-              { src: '/assets/badge-lihat-semua.jpg', alt: 'Lihat Semua', href: '/katalog' },
+              { src: '/assets/badge-kecantikan.png', alt: 'Kecantikan', href: '/katalog?category=kecantikan' },
+              { src: '/assets/badge-lihat-semua.png', alt: 'Lihat Semua', href: '/katalog' },
             ].map(btn => (
               <Link key={btn.alt} href={btn.href} className="group w-[120px] sm:w-[140px]">
                 <Image
