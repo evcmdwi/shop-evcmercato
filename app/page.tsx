@@ -198,7 +198,7 @@ export default function HomePage() {
       </section>
 
       {/* JELAJAHI PRODUK */}
-      <section className="py-14 px-4 bg-[#F9FAFB]">
+      <section className="py-14 px-4 bg-white">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="font-display text-3xl text-gray-900 mb-2">Jelajahi Produk</h2>
           <p className="text-sm text-gray-400 mb-8 tracking-widest uppercase">Pilih Kategori</p>
