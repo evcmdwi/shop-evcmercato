@@ -198,23 +198,44 @@ export default function HomePage() {
       </section>
 
       {/* JELAJAHI PRODUK */}
-      <section className="py-16 px-4 bg-[#F9FAFB]">
+      <section className="py-14 px-4 bg-[#F9FAFB]">
         <div className="max-w-2xl mx-auto text-center">
-          <h2 className="font-display text-3xl text-gray-900 mb-2">
-            Jelajahi Produk
-          </h2>
-          <p className="text-sm text-gray-400 mb-10 tracking-widest uppercase">Pilih Kategori</p>
-          <div className="flex flex-wrap justify-center gap-8">
-            {categories.map(cat => (
-              <Link
-                key={cat.name}
-                href={cat.slug ? `/katalog?category=${cat.slug}` : '/katalog'}
-                className="flex flex-col items-center group"
-              >
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-[#E8F4D1] border-4 border-[#7FB300] flex items-center justify-center group-hover:scale-105 group-hover:shadow-lg transition-all">
-                  <span className="text-xs sm:text-sm font-bold text-[#5B8400] text-center px-1 leading-tight">{cat.name}</span>
-                </div>
+          <h2 className="font-display text-3xl text-gray-900 mb-2">Jelajahi Produk</h2>
+          <p className="text-sm text-gray-400 mb-8 tracking-widest uppercase">Pilih Kategori</p>
 
+          {/* Row 1: Natesh | Fitsol | Kesehatan */}
+          <div className="flex justify-center gap-3 sm:gap-4 mb-4">
+            {[
+              { src: '/assets/badge-feminine-care.jpg', alt: 'Feminine Care', href: '/katalog?category=natesh' },
+              { src: '/assets/badge-fitsol.jpg', alt: 'Fitsol', href: '/katalog?category=fitsol' },
+              { src: '/assets/badge-kesehatan.jpg', alt: 'Kesehatan', href: '/katalog?category=suplemen' },
+            ].map(btn => (
+              <Link key={btn.alt} href={btn.href} className="group flex-1 max-w-[120px] sm:max-w-[140px]">
+                <Image
+                  src={btn.src}
+                  alt={btn.alt}
+                  width={280}
+                  height={110}
+                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm"
+                />
+              </Link>
+            ))}
+          </div>
+
+          {/* Row 2: Kecantikan | Lihat Semua — centered */}
+          <div className="flex justify-center gap-3 sm:gap-4">
+            {[
+              { src: '/assets/badge-kecantikan.jpg', alt: 'Kecantikan', href: '/katalog?category=kecantikan' },
+              { src: '/assets/badge-lihat-semua.jpg', alt: 'Lihat Semua', href: '/katalog' },
+            ].map(btn => (
+              <Link key={btn.alt} href={btn.href} className="group w-[120px] sm:w-[140px]">
+                <Image
+                  src={btn.src}
+                  alt={btn.alt}
+                  width={280}
+                  height={110}
+                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm"
+                />
               </Link>
             ))}
           </div>
