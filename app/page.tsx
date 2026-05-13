@@ -216,7 +216,7 @@ export default function HomePage() {
                   alt={btn.alt}
                   width={280}
                   height={110}
-                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm"
+                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform [mix-blend-mode:multiply]"
                 />
               </Link>
             ))}
@@ -234,7 +234,7 @@ export default function HomePage() {
                   alt={btn.alt}
                   width={280}
                   height={110}
-                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform drop-shadow-sm"
+                  className="w-full h-auto object-contain group-hover:scale-105 transition-transform [mix-blend-mode:multiply]"
                 />
               </Link>
             ))}
