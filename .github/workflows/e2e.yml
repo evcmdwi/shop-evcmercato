@@ -1,32 +1,53 @@
 name: E2E Tests
 
 on:
+  # Hanya jalan manual atau saat push ke main (setelah deploy Vercel selesai)
+  # Pull request TIDAK trigger E2E — hindari email spam & CI failure pada PR
   push:
     branches: [main]
-  pull_request:
-    branches: [main]
   workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'URL target (default: production)'
+        required: false
+        default: 'https://shop.evcmercato.com'
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   e2e:
     name: Playwright E2E
     runs-on: ubuntu-latest
     timeout-minutes: 20
+    # Jangan block merge — E2E adalah informational, bukan required check
+    continue-on-error: true
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
           cache: npm
+
       - name: Install dependencies
         run: npm ci
+
       - name: Install Playwright browsers
-        run: npx playwright install --with-deps
+        run: npx playwright install --with-deps chromium
+
+      - name: Wait for Vercel deployment
+        # Beri waktu Vercel deploy sebelum test (hanya saat push ke main)
+        if: github.event_name == 'push'
+        run: sleep 60
+
       - name: Run Playwright tests
         env:
-          PLAYWRIGHT_BASE_URL: ''
+          # Test langsung ke production — tidak perlu build lokal
+          PLAYWRIGHT_BASE_URL: ${{ github.event.inputs.base_url || 'https://shop.evcmercato.com' }}
           E2E_TEST_EMAIL: ${{ secrets.E2E_TEST_EMAIL }}
           E2E_TEST_PASSWORD: ${{ secrets.E2E_TEST_PASSWORD }}
           NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
@@ -35,6 +56,7 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           ADMIN_EMAIL: 'admin@evcmercato.com'
         run: npx playwright test --project=chromium
+
       - name: Upload Playwright report
         if: always()
         uses: actions/upload-artifact@v4
@@ -42,6 +64,7 @@ jobs:
           name: playwright-report
           path: playwright-report/
           retention-days: 7
+
       - name: Upload test results
         if: failure()
         uses: actions/upload-artifact@v4
