@@ -1,45 +1,43 @@
 import { MetadataRoute } from 'next'
 import { createClient } from '@supabase/supabase-js'
 
+const BASE = 'https://shop.evcmercato.com'
+
+function slugify(text: string) {
+  return text.toLowerCase().trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+}
+
+const staticPages: MetadataRoute.Sitemap = [
+  { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
+  { url: `${BASE}/katalog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
+  { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
+  { url: `${BASE}/faq`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+  { url: `${BASE}/refund-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE}/shipping-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE}/terms`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE}/privacy-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
+  { url: `${BASE}/affiliate`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
+]
+
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-  const BASE = 'https://shop.evcmercato.com'
+  // Fallback kalau env vars tidak ada (local dev)
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    // Fallback untuk local dev tanpa env vars
-    return getStaticPages(BASE)
+    return staticPages
   }
+
   const admin = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
     process.env.SUPABASE_SERVICE_ROLE_KEY
   )
 
-  const BASE = 'https://shop.evcmercato.com'
-
-  // Static pages
-  const staticPages: MetadataRoute.Sitemap = [
-    { url: BASE, lastModified: new Date(), changeFrequency: 'daily', priority: 1.0 },
-    { url: `${BASE}/katalog`, lastModified: new Date(), changeFrequency: 'daily', priority: 0.9 },
-    { url: `${BASE}/about`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/contact`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
-    { url: `${BASE}/faq`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
-    { url: `${BASE}/refund-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/shipping-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/terms`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/privacy-policy`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.5 },
-    { url: `${BASE}/affiliate`, lastModified: new Date(), changeFrequency: 'monthly', priority: 0.4 },
-  ]
-
-  // Dynamic: product pages
   const { data: products } = await admin
     .from('products')
     .select('name, created_at')
     .eq('is_active', true)
-
-  function slugify(text: string) {
-    return text.toLowerCase().trim()
-      .replace(/[^\w\s-]/g, '')
-      .replace(/[\s_-]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-  }
 
   const productPages: MetadataRoute.Sitemap = (products ?? []).map(p => ({
     url: `${BASE}/katalog/${slugify(p.name)}`,
