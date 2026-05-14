@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import Image from 'next/image'
+import Script from 'next/script'
 import FAQSection from '@/components/FAQSection'
 
 // Trust cards
@@ -65,8 +66,31 @@ const paymentMethods = ['BCA', 'Mandiri', 'BNI', 'BRI', 'BSI', 'Permata', 'GoPay
 // Shipping logos defined inline below
 
 export default function HomePage() {
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'EVC Mercato',
+    url: 'https://shop.evcmercato.com',
+    logo: 'https://shop.evcmercato.com/logo-evcmercato.jpg',
+    description: 'Distributor resmi produk KKI Group — kesehatan, wellness, kecantikan, feminine care sejak 2003.',
+    contactPoint: {
+      '@type': 'ContactPoint',
+      telephone: '+62-858-2085-2908',
+      contactType: 'customer service',
+      availableLanguage: 'Indonesian',
+    },
+    sameAs: ['https://shop.evcmercato.com'],
+    address: {
+      '@type': 'PostalAddress',
+      addressLocality: 'Balikpapan',
+      addressRegion: 'Kalimantan Timur',
+      addressCountry: 'ID',
+    },
+  }
+
   return (
     <div className="min-h-screen">
+      <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
 
       {/* HERO SECTION */}
       <section className="relative w-full overflow-hidden">
@@ -323,7 +347,7 @@ export default function HomePage() {
                   Untuk menjadi member KKI, daftar langsung ke KKI Group resmi.
                 </p>
                 <p className="mt-1.5">
-                  <Link href="/syarat-ketentuan" prefetch={false} className="text-[#7FB300] font-semibold hover:underline">
+                  <Link href="/terms" prefetch={false} className="text-[#7FB300] font-semibold hover:underline">
                     Baca selengkapnya di Syarat &amp; Ketentuan →
                   </Link>
                 </p>

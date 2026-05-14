@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Script from 'next/script'
 
 export const metadata: Metadata = {
   title: 'FAQ — Pertanyaan yang Sering Ditanyakan | EVC Mercato',
@@ -102,8 +103,22 @@ const faqData = [
 ]
 
 export default function FAQPage() {
+  // FAQPage JSON-LD schema
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faqData.flatMap(section =>
+      section.items.map(item => ({
+        '@type': 'Question',
+        name: item.q,
+        acceptedAnswer: { '@type': 'Answer', text: item.a },
+      }))
+    ),
+  }
+
   return (
     <div className="min-h-screen bg-white">
+      <Script id="faq-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <main className="max-w-3xl mx-auto px-4 py-12">
         <h1 className="font-display text-3xl text-gray-900 mb-2">Pertanyaan yang Sering Ditanyakan</h1>
         <p className="text-sm text-gray-400 mb-10">Temukan jawaban cepat atas pertanyaan umum Anda</p>
