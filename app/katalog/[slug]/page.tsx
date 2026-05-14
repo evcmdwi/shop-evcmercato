@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { createClient } from '@supabase/supabase-js'
 import { createClient as createServerClient } from '@/lib/supabase-server'
 import ProductDetailClient from './ProductDetailClient'
+import ProductReviews from '@/components/ProductReviews'
 import { slugify } from '@/lib/utils'
 import type { ProductWithCategory } from '@/types/product'
 
@@ -190,6 +191,7 @@ export default async function ProductDetailPage({ params }: Props) {
             </div>
           </div>
         )}
+        <ProductReviews productId={product.id} productName={product.name} />
       </div>
     </>
   )

@@ -87,18 +87,29 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">6. Cookies</h2>
-            <p className="mt-2">Website kami menggunakan cookies untuk menjaga sesi login dan meningkatkan pengalaman pengguna. Anda dapat menonaktifkan cookies melalui pengaturan browser, namun hal ini dapat mempengaruhi fungsionalitas website.</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">6. Cookies &amp; Persetujuan Pengguna</h2>
+            <p>Website shop.evcmercato.com menggunakan cookies untuk:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li><strong>Cookies Esensial</strong>: menjaga sesi login, menyimpan isi keranjang belanja, dan memastikan fungsionalitas dasar website</li>
+              <li><strong>Cookies Performa</strong>: mengumpulkan data anonim tentang cara pengunjung menggunakan website untuk meningkatkan layanan kami</li>
+              <li><strong>Cookies Preferensi</strong>: menyimpan preferensi tampilan dan pengaturan akun Anda</li>
+            </ul>
+            <p className="mt-3"><strong>Persetujuan Implisit</strong>: Dengan terus menggunakan website kami setelah membaca Kebijakan Privasi ini, Anda dianggap memberikan persetujuan atas penggunaan cookies sebagaimana dijelaskan di atas. Persetujuan ini diberikan atas dasar <strong>kepentingan yang sah (legitimate interest)</strong> sesuai UU PDP No. 27/2022 Pasal 20.</p>
+            <p className="mt-3"><strong>Pengelolaan Cookies</strong>: Anda dapat menonaktifkan atau menghapus cookies melalui pengaturan browser Anda. Menonaktifkan cookies esensial dapat mempengaruhi fungsionalitas seperti login, checkout, dan pemesanan.</p>
+            <p className="mt-3"><strong>Cookies Pihak Ketiga</strong>: Website kami tidak menggunakan cookies pihak ketiga untuk iklan tertarget atau profiling perilaku.</p>
+            <p className="mt-3">Untuk pertanyaan terkait cookies, hubungi cs@evcmercato.com.</p>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">7. Kontak Pertanyaan Data</h2>
             <p className="mt-2">Untuk pertanyaan terkait privasi data Anda:</p>
             <div className="bg-gray-50 rounded-xl p-4 mt-3 text-sm">
-              <p className="font-semibold text-gray-900">EVC Mercato — Data Privacy</p>
+              <p className="font-semibold text-gray-900">CV. EVC Nusantara Sukses — Data Privacy</p>
+              <p>Plaza Aminta Lantai 5/504, Jalan Letnan Jendral TB Simatupang Kav 10</p>
+              <p>Jakarta Selatan, DKI Jakarta 12310</p>
               <p>Email: <a href="mailto:cs@evcmercato.com" className="text-[#7FB300] hover:underline">cs@evcmercato.com</a></p>
               <p>WhatsApp: <a href="https://wa.me/6285820852908" className="text-[#7FB300] hover:underline">+62 858-2085-2908</a></p>
-              <p>Jam layanan: Senin–Sabtu, 08.00–17.00 WITA</p>
+              <p>Jam layanan: Senin–Sabtu, 09.00–17.00 WITA</p>
             </div>
           </section>
         </div>

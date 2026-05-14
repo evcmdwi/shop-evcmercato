@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Script from 'next/script'
 import FAQSection from '@/components/FAQSection'
+import FeaturedTestimonials from '@/components/FeaturedTestimonials'
 
 // Trust cards
 const trustCards = [
@@ -73,17 +74,28 @@ export default function HomePage() {
     url: 'https://shop.evcmercato.com',
     logo: 'https://shop.evcmercato.com/logo-evcmercato.jpg',
     description: 'Distributor resmi produk KKI Group — kesehatan, wellness, kecantikan, feminine care sejak 2003.',
+    legalName: 'CV. EVC Nusantara Sukses',
+    foundingDate: '2003',
     contactPoint: {
       '@type': 'ContactPoint',
       telephone: '+62-858-2085-2908',
+      email: 'cs@evcmercato.com',
       contactType: 'customer service',
       availableLanguage: 'Indonesian',
+      hoursAvailable: {
+        '@type': 'OpeningHoursSpecification',
+        dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'],
+        opens: '09:00',
+        closes: '17:00',
+      },
     },
     sameAs: ['https://shop.evcmercato.com'],
     address: {
       '@type': 'PostalAddress',
-      addressLocality: 'Balikpapan',
-      addressRegion: 'Kalimantan Timur',
+      streetAddress: 'Plaza Aminta Lantai 5/504, Jalan Letnan Jendral TB Simatupang Kav 10',
+      addressLocality: 'Jakarta Selatan',
+      addressRegion: 'DKI Jakarta',
+      postalCode: '12310',
       addressCountry: 'ID',
     },
   }
@@ -266,6 +278,15 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* CERITA PELANGGAN */}
+      <section className="py-14 px-4 bg-[#fafafa]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="font-display text-2xl text-gray-900 text-center mb-2">Cerita Pelanggan</h2>
+          <p className="text-sm text-gray-400 text-center mb-8">Apa kata mereka yang sudah berbelanja di EVC Mercato</p>
+          <FeaturedTestimonials />
+        </div>
+      </section>
+
       {/* FAQ */}
       <FAQSection faqs={faqs} />
 
@@ -282,6 +303,7 @@ export default function HomePage() {
               <a href="mailto:cs@evcmercato.com" className="flex items-center gap-2 text-gray-600 hover:text-[#7FB300]">
                 ✉️ cs@evcmercato.com
               </a>
+              <p className="text-xs text-gray-400 mt-1">Senin–Sabtu, 09.00–17.00 WITA</p>
             </div>
           </div>
 
@@ -339,7 +361,7 @@ export default function HomePage() {
               <div className="text-xs text-amber-800">
                 <p className="font-semibold mb-1">INFORMASI PENTING</p>
                 <p>
-                  shop.evcmercato.com dikelola secara independen oleh <strong>Mitra Usaha Resmi KKI Group (KKD 12081020)</strong>.
+                  shop.evcmercato.com dikelola oleh <strong>CV. EVC Nusantara Sukses (KKD 12081020)</strong> sebagai Mitra Usaha Resmi KKI Group.
                   Website ini <strong>BUKAN</strong> merupakan official store KKI Group.
                 </p>
                 <p className="mt-1">

@@ -44,7 +44,7 @@ export default function ContactPage() {
           <div className="space-y-3 text-sm text-gray-600">
             <div className="flex gap-3">
               <span className="text-gray-400 w-32 flex-shrink-0">Alamat</span>
-              <span>Balikpapan, Kalimantan Timur, Indonesia</span>
+              <span>Plaza Aminta Lantai 5/504, Jalan Letnan Jendral TB Simatupang Kav 10, Pondok Pinang, Kebayoran Lama, Jakarta Selatan, DKI Jakarta 12310</span>
             </div>
             <div className="flex gap-3">
               <span className="text-gray-400 w-32 flex-shrink-0">Telepon</span>
@@ -56,7 +56,7 @@ export default function ContactPage() {
             </div>
             <div className="flex gap-3">
               <span className="text-gray-400 w-32 flex-shrink-0">Jam Layanan</span>
-              <span>Senin–Sabtu, 08.00–17.00 WITA</span>
+              <span>Senin–Sabtu, 09.00–17.00 WITA</span>
             </div>
           </div>
         </div>
