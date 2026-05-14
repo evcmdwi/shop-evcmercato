@@ -6,6 +6,7 @@ import { FormField, Input, Textarea, Select, Toggle } from '@/components/admin/A
 import { toast } from '@/components/admin/Toast'
 import ImageUploader from '@/components/admin/ImageUploader'
 import VariantImageUploader from '@/components/admin/VariantImageUploader'
+import CertificationManager from '@/components/admin/CertificationManager'
 
 interface Category {
   id: string
@@ -44,6 +45,12 @@ export default function EditProdukPage() {
     stock: '',
     category_id: '',
     is_active: true,
+    // Merchant Center fields
+    gtin: '',
+    mpn: '',
+    google_product_category_id: '',
+    product_type: '',
+    material: '',
   })
 
   const [images, setImages] = useState<string[]>([])
@@ -66,6 +73,11 @@ export default function EditProdukPage() {
           stock: String(product.stock ?? ''),
           category_id: product.category_id ?? '',
           is_active: product.is_active ?? true,
+          gtin: product.gtin ?? '',
+          mpn: product.mpn ?? '',
+          google_product_category_id: product.google_product_category_id != null ? String(product.google_product_category_id) : '',
+          product_type: product.product_type ?? '',
+          material: product.material ?? '',
         })
         const imgs: string[] =
           Array.isArray(product.images) && product.images.length > 0
@@ -145,6 +157,12 @@ export default function EditProdukPage() {
           variants: hasVariants
             ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
             : [],
+          // Merchant Center fields
+          gtin: form.gtin || null,
+          mpn: form.mpn || null,
+          google_product_category_id: form.google_product_category_id ? Number(form.google_product_category_id) : null,
+          product_type: form.product_type || null,
+          material: form.material || null,
         }),
       })
       if (!res.ok) {
@@ -296,6 +314,93 @@ export default function EditProdukPage() {
         <FormField label="Status">
           <Toggle checked={form.is_active} onChange={(v) => setForm({ ...form, is_active: v })} label={form.is_active ? 'Aktif' : 'Nonaktif'} />
         </FormField>
+
+        {/* === GOOGLE MERCHANT CENTER SECTION === */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Google Merchant Center</h2>
+          <p className="text-xs text-gray-400 mb-5">Data untuk Google Shopping — pastikan akurat sesuai packaging produk.</p>
+          <div className="space-y-4">
+            {/* GTIN */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">GTIN (Barcode/Nomor Produk)</label>
+              <input
+                name="gtin"
+                type="text"
+                value={form.gtin}
+                onChange={e => setForm({ ...form, gtin: e.target.value })}
+                placeholder="Contoh: 8997007430959"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+              />
+              <p className="text-xs text-gray-400 mt-1">Kosongkan jika produk tidak punya barcode</p>
+            </div>
+            {/* MPN */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">MPN (Manufacturer Part Number)</label>
+              <input
+                name="mpn"
+                type="text"
+                value={form.mpn}
+                onChange={e => setForm({ ...form, mpn: e.target.value })}
+                placeholder="Nomor part dari produsen"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+              />
+            </div>
+            {/* Google Product Category ID */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Google Product Category ID</label>
+              <input
+                name="google_product_category_id"
+                type="number"
+                value={form.google_product_category_id}
+                onChange={e => setForm({ ...form, google_product_category_id: e.target.value })}
+                placeholder="Contoh: 2880 (Nutrition & Wellness)"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+              />
+              <p className="text-xs text-gray-400 mt-1">
+                Cek ID di:{' '}
+                <a
+                  href="https://www.google.com/basepages/producttype/taxonomy-with-ids.en-US.txt"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-[#7FB300] underline"
+                >
+                  Google Taxonomy
+                </a>
+              </p>
+            </div>
+            {/* Product Type */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Product Type (Taxonomy Internal)</label>
+              <input
+                name="product_type"
+                type="text"
+                value={form.product_type}
+                onChange={e => setForm({ ...form, product_type: e.target.value })}
+                placeholder="Contoh: Suplemen > Vitamin > Vitamin C"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50"
+              />
+            </div>
+            {/* Material/Komposisi */}
+            <div>
+              <label className="block text-sm text-gray-600 mb-1">Bahan / Komposisi (Material)</label>
+              <textarea
+                name="material"
+                rows={3}
+                value={form.material}
+                onChange={e => setForm({ ...form, material: e.target.value })}
+                placeholder="Contoh: Vitamin C 500mg, Zinc 5mg, Vitamin D3 200 IU"
+                className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50 resize-none"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* === SERTIFIKASI === */}
+        <div className="bg-white rounded-2xl border border-gray-100 p-6">
+          <h2 className="font-semibold text-gray-900 mb-1">Sertifikasi Produk</h2>
+          <p className="text-xs text-gray-400 mb-5">BPOM, Halal, dan sertifikasi lain untuk Google Merchant Center.</p>
+          <CertificationManager productId={id} />
+        </div>
 
         <div className="flex gap-3 pt-2">
           <button type="button" onClick={() => router.back()} className="px-4 py-2 rounded-lg border border-slate-200 text-slate-600 text-sm hover:bg-slate-50">Batal</button>

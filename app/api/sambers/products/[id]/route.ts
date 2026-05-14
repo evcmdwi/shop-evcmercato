@@ -23,6 +23,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       .select(`
         id, name, description, price, stock, is_active, images, image_url,
         has_variants, initial_sold_count, category_id, created_at,
+        gtin, mpn, google_product_category_id, google_product_category_path, product_type, material,
         categories (id, name, slug),
         product_variants (id, name, price, stock, sku, is_active, image_url, sort_order)
       `)
