@@ -19,7 +19,7 @@ export default function RefundPolicyPage() {
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Produk cacat/rusak saat diterima (dengan foto bukti)</li>
               <li>Produk tidak sesuai dengan pesanan</li>
-              <li>Pengajuan dalam 3 hari kerja sejak produk diterima</li>
+              <li>Pengajuan dalam 7 hari kerja sejak produk diterima</li>
               <li>Produk belum dibuka / masih dalam kondisi original</li>
             </ul>
           </section>

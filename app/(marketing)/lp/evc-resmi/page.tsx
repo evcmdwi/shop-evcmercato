@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   },
 }
 
-const WA_ADMIN = 'https://wa.me/6281386295426?text=Halo%20EVC%20Mercato%2C%20saya%20ingin%20tanya%20tentang%20produk'
+const WA_ADMIN = 'https://wa.me/6285820852908?text=Halo%20EVC%20Mercato%2C%20saya%20ingin%20tanya%20tentang%20produk'
 const EVIE_LINK = 'https://t.me/evie_evc_bot?start=6285820852908'
 
 const TRUST_CARDS = [

@@ -16,7 +16,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">1. Definisi</h2>
             <ul className="list-disc pl-5 space-y-1 mt-2">
-              <li><strong>&quot;EVC Mercato&quot;</strong> mengacu pada usaha milik Dwi Cahyadi, Mitra Usaha Resmi KKI Group (KKD 12081020), beroperasi di Balikpapan, Kalimantan Timur.</li>
+              <li><strong>&quot;EVC Mercato&quot;</strong> mengacu pada CV. EVC Nusantara Sukses, Mitra Usaha Resmi KKI Group (KKD 12081020). Pengelola: CV. EVC Nusantara Sukses, Alamat Legal: Plaza Aminta Lantai 5/504, Jalan Letnan Jendral TB Simatupang Kav 10, Pondok Pinang, Kebayoran Lama, Jakarta Selatan, DKI Jakarta 12310. Status: Mitra Usaha Resmi KKI Group (KKD 12081020). Domisili Operasional: Indonesia (4 hub gudang).</li>
               <li><strong>&quot;Website&quot;</strong> mengacu pada shop.evcmercato.com dan seluruh layanan yang tersedia di dalamnya.</li>
               <li><strong>&quot;Pelanggan&quot;</strong> atau <strong>&quot;Anda&quot;</strong> mengacu pada setiap pengguna yang mengakses atau melakukan pembelian di Website.</li>
               <li><strong>&quot;Produk&quot;</strong> mengacu pada barang yang dijual melalui Website, dipasok oleh KKI Group.</li>
