@@ -12,14 +12,6 @@ function slugify(text: string): string {
     .trim()
 }
 
-const CATEGORY_MAP: Record<string, string> = {
-  'natesh': 'Health & Beauty > Personal Care',
-  'fitsol': 'Health & Beauty > Health Care > Fitness & Nutrition',
-  'suplemen': 'Health & Beauty > Health Care > Vitamins & Supplements',
-  'kecantikan': 'Health & Beauty > Personal Care > Cosmetics',
-  'others': 'Health & Beauty',
-}
-
 const BRAND_MAP: Record<string, string> = {
   'natesh': 'Natesh',
   'fitsol': 'FITSOL',
@@ -36,16 +28,58 @@ function escapeXml(str: string): string {
     .replace(/"/g, '&quot;')
 }
 
+interface ProductCertification {
+  authority: string
+  cert_name: string
+  cert_code: string
+}
+
+interface ProductVariant {
+  id: string
+  name: string
+  price: number
+  stock: number
+  sku: string
+  affiliate_pv_value: number
+  is_default: boolean
+}
+
+interface Product {
+  id: string
+  name: string
+  description: string
+  price: number
+  stock: number
+  is_active: boolean
+  has_variants: boolean
+  images: string[] | null
+  image_url: string | null
+  sku: string | null
+  gtin: string | null
+  mpn: string | null
+  identifier_exists: boolean | null
+  google_category: string | null
+  google_product_category_id: number | null
+  google_product_category_path: string | null
+  product_type: string | null
+  material: string | null
+  age_group: string | null
+  gender: string | null
+  categories: { name: string; slug: string } | null
+  product_variants: ProductVariant[]
+  product_certifications: ProductCertification[]
+}
+
 export async function GET() {
   const admin = getSupabaseAdmin()
 
   const { data: products, error } = await admin
     .from('products')
     .select(`
-      id, name, description, price, stock, is_active, has_variants,
-      images, image_url, sku,
-      categories!inner ( name ),
-      product_variants ( price, stock )
+      *,
+      categories(name, slug),
+      product_variants(id, name, price, stock, sku, affiliate_pv_value, is_default),
+      product_certifications(authority, cert_name, cert_code)
     `)
     .eq('is_active', true)
     .order('sort_order', { ascending: true })
@@ -54,27 +88,26 @@ export async function GET() {
     return new NextResponse('Feed generation error', { status: 500 })
   }
 
-  const items = (products ?? []).filter((p: any) => {
-    // Include product if it has stock (own or via variants)
-    const variantStock = (p.product_variants || []).reduce((sum: number, v: any) => sum + (v.stock || 0), 0)
+  const items = ((products ?? []) as unknown as Product[]).filter((p) => {
+    const variantStock = (p.product_variants || []).reduce((sum, v) => sum + (v.stock || 0), 0)
     return p.stock > 0 || variantStock > 0
-  }).map((p: any) => {
+  }).map((p) => {
     const slug = slugify(p.name)
     const categoryName = (p.categories?.name || 'others').toLowerCase()
     const brand = BRAND_MAP[categoryName] || 'EVC Mercato'
-    const googleCategory = CATEGORY_MAP[categoryName] || 'Health & Beauty'
     const sku = p.sku || `EVC-${p.id.slice(0, 8).toUpperCase()}`
     const productUrl = `${BASE_URL}/katalog/${slug}`
-    // Use lowest variant price if product has variants with price=0
-    const variantPrices = (p.product_variants || []).map((v: any) => v.price).filter((price: number) => price > 0)
+
+    // Effective price
+    const variantPrices = (p.product_variants || []).map((v) => v.price).filter((price) => price > 0)
     const effectivePrice = (p.has_variants && p.price === 0 && variantPrices.length > 0)
       ? Math.min(...variantPrices)
       : p.price
 
-    // Get images
+    // Images
     const imageList: string[] = []
     if (Array.isArray(p.images)) {
-      p.images.filter(Boolean).forEach((img: string) => {
+      p.images.filter(Boolean).forEach((img) => {
         imageList.push(img.startsWith('http') ? img : `${BASE_URL}${img}`)
       })
     } else if (p.image_url) {
@@ -82,7 +115,38 @@ export async function GET() {
     }
 
     const mainImage = imageList[0] || ''
-    const additionalImages = imageList.slice(1, 11)
+    const additionalImages = imageList
+      .slice(1, 10) // max 9 additional (10 total)
+      .map((img) => `<g:additional_image_link>${escapeXml(img)}</g:additional_image_link>`)
+      .join('\n      ')
+
+    // GTIN / identifier_exists
+    const gtinFields = p.gtin
+      ? `<g:gtin>${escapeXml(p.gtin)}</g:gtin>\n      <g:identifier_exists>yes</g:identifier_exists>`
+      : p.mpn
+      ? `<g:mpn>${escapeXml(p.mpn)}</g:mpn>\n      <g:identifier_exists>yes</g:identifier_exists>`
+      : `<g:identifier_exists>no</g:identifier_exists>`
+
+    // Google Product Category — prefer numeric ID
+    const categoryField = p.google_product_category_id
+      ? `<g:google_product_category>${p.google_product_category_id}</g:google_product_category>`
+      : p.google_category
+      ? `<g:google_product_category>${escapeXml(p.google_category)}</g:google_product_category>`
+      : ''
+
+    // Certifications
+    const certFields = (p.product_certifications || []).map((cert) => `
+      <g:certification>
+        <g:certification_authority>${escapeXml(cert.authority)}</g:certification_authority>
+        <g:certification_name>${escapeXml(cert.cert_name)}</g:certification_name>
+        <g:certification_code>${escapeXml(cert.cert_code)}</g:certification_code>
+      </g:certification>`).join('')
+
+    // Optional fields
+    const materialField = p.material ? `<g:material>${escapeXml(p.material)}</g:material>` : ''
+    const productTypeField = p.product_type ? `<g:product_type>${escapeXml(p.product_type)}</g:product_type>` : ''
+    const ageGroupField = `<g:age_group>${p.age_group || 'adult'}</g:age_group>`
+    const genderField = `<g:gender>${p.gender || 'unisex'}</g:gender>`
 
     return `    <item>
       <g:id>${escapeXml(sku)}</g:id>
@@ -90,13 +154,17 @@ export async function GET() {
       <g:description><![CDATA[${p.description || p.name}]]></g:description>
       <g:link>${productUrl}</g:link>
       <g:image_link>${escapeXml(mainImage)}</g:image_link>
-      ${additionalImages.map((img: string) => `<g:additional_image_link>${escapeXml(img)}</g:additional_image_link>`).join('\n      ')}
+      ${additionalImages}
+      <g:brand><![CDATA[${brand}]]></g:brand>
+      ${gtinFields}
+      <g:condition>new</g:condition>
       <g:availability>in_stock</g:availability>
       <g:price>${effectivePrice} IDR</g:price>
-      <g:condition>new</g:condition>
-      <g:brand><![CDATA[${brand}]]></g:brand>
-      <g:google_product_category>${escapeXml(googleCategory)}</g:google_product_category>
-      <g:identifier_exists>no</g:identifier_exists>
+      ${categoryField}
+      ${productTypeField}
+      ${materialField}${certFields}
+      ${ageGroupField}
+      ${genderField}
       <g:shipping>
         <g:country>ID</g:country>
         <g:service>Reguler JNT</g:service>
