@@ -6,14 +6,13 @@ interface Certification {
   authority: string
   cert_name: string
   cert_code: string
-  expired_date: string | null
   is_verified: boolean
 }
 
 export default function CertificationManager({ productId }: { productId: string }) {
   const [certs, setCerts] = useState<Certification[]>([])
   const [adding, setAdding] = useState(false)
-  const [form, setForm] = useState({ authority: 'BPOM', cert_name: '', cert_code: '', expired_date: '' })
+  const [form, setForm] = useState({ authority: 'BPOM', cert_name: '', cert_code: '' })
 
   const load = () => {
     fetch(`/api/sambers/products/${productId}/certifications`)
@@ -31,7 +30,7 @@ export default function CertificationManager({ productId }: { productId: string 
       body: JSON.stringify(form),
     })
     if (res.ok) {
-      setForm({ authority: 'BPOM', cert_name: '', cert_code: '', expired_date: '' })
+      setForm({ authority: 'BPOM', cert_name: '', cert_code: '' })
       setAdding(false)
       load()
     }
@@ -54,7 +53,6 @@ export default function CertificationManager({ productId }: { productId: string 
               <span className="text-xs font-semibold text-[#7FB300]">{cert.authority}</span>
               <span className="text-xs text-gray-500 ml-2">{cert.cert_name}</span>
               <span className="text-xs text-gray-400 ml-2">· {cert.cert_code}</span>
-              {cert.expired_date && <span className="text-xs text-gray-400 ml-2">exp: {cert.expired_date}</span>}
             </div>
             <button
               type="button"
@@ -101,15 +99,6 @@ export default function CertificationManager({ productId }: { productId: string 
                 value={form.cert_code}
                 onChange={e => setForm(p => ({ ...p, cert_code: e.target.value }))}
                 placeholder="SD245055771"
-                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
-              />
-            </div>
-            <div>
-              <label className="block text-xs text-gray-500 mb-1">Exp. Date (opsional)</label>
-              <input
-                type="date"
-                value={form.expired_date}
-                onChange={e => setForm(p => ({ ...p, expired_date: e.target.value }))}
                 className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm"
               />
             </div>

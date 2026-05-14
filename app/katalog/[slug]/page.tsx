@@ -172,7 +172,7 @@ export default async function ProductDetailPage({ params }: Props) {
                     </span>
                     <span className="text-gray-600">{cert.cert_name}</span>
                     <span className="text-gray-400 font-mono text-xs">{cert.cert_code}</span>
-                    {cert.expired_date && <span className="text-gray-300 text-xs">exp: {cert.expired_date}</span>}
+                    
                   </div>
                 ))}
               </div>
