@@ -2,6 +2,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import Script from 'next/script'
 import FAQSection from '@/components/FAQSection'
+import FeaturedTestimonials from '@/components/FeaturedTestimonials'
 
 // Trust cards
 const trustCards = [
@@ -274,6 +275,15 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+        </div>
+      </section>
+
+      {/* CERITA PELANGGAN */}
+      <section className="py-14 px-4 bg-[#fafafa]">
+        <div className="max-w-4xl mx-auto">
+          <h2 className="font-display text-2xl text-gray-900 text-center mb-2">Cerita Pelanggan</h2>
+          <p className="text-sm text-gray-400 text-center mb-8">Apa kata mereka yang sudah berbelanja di EVC Mercato</p>
+          <FeaturedTestimonials />
         </div>
       </section>
 
