@@ -95,6 +95,17 @@ export default async function ProductDetailPage({ params }: Props) {
     ? [product.image_url]
     : []
 
+  // Compute effective price: use min variant price if product has variants
+  const effectivePrice = product.has_variants
+    ? Math.min(...(product.product_variants?.map((v: any) => v.price) ?? [0]))
+    : (product.price ?? 0)
+
+  // Compute availability accounting for variants
+  const isInStock =
+    (product.stock ?? 0) > 0 ||
+    (product.has_variants &&
+      (product.product_variants?.some((v: any) => (v.stock ?? 0) > 0) ?? false))
+
   const jsonLd = {
     '@context': 'https://schema.org/',
     '@type': 'Product',
@@ -102,6 +113,7 @@ export default async function ProductDetailPage({ params }: Props) {
     description: product.description || product.name,
     image: productImages,
     sku: product.sku || `EVC-${product.id.slice(0, 8).toUpperCase()}`,
+    ...((product as any).gtin ? { gtin: (product as any).gtin } : {}),
     brand: {
       '@type': 'Brand',
       name: getBrandFromCategory(product.categories?.name ?? ''),
@@ -110,11 +122,10 @@ export default async function ProductDetailPage({ params }: Props) {
       '@type': 'Offer',
       url: productUrl,
       itemCondition: 'https://schema.org/NewCondition',
-      availability:
-        product.stock > 0
-          ? 'https://schema.org/InStock'
-          : 'https://schema.org/OutOfStock',
-      price: product.price,
+      availability: isInStock
+        ? 'https://schema.org/InStock'
+        : 'https://schema.org/OutOfStock',
+      price: effectivePrice,
       priceCurrency: 'IDR',
       seller: {
         '@type': 'Organization',
