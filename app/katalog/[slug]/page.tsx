@@ -55,7 +55,8 @@ export default async function ProductDetailPage({ params }: Props) {
     .select(`
       *,
       categories(*),
-      product_variants (*)
+      product_variants (*),
+      product_certifications (authority, cert_name, cert_code, expired_date)
     `)
     .eq('is_active', true)
 
@@ -158,6 +159,26 @@ export default async function ProductDetailPage({ params }: Props) {
       />
       <div className="min-h-screen bg-gray-50">
         <ProductDetailClient product={product} />
+        {/* Sertifikasi Produk — BPOM, Halal, dll */}
+        {Array.isArray((product as any).product_certifications) && (product as any).product_certifications.length > 0 && (
+          <div className="max-w-4xl mx-auto px-4 pb-8">
+            <div className="bg-white rounded-2xl border border-gray-100 p-5">
+              <h3 className="font-semibold text-sm text-gray-900 mb-3">Sertifikasi Produk</h3>
+              <div className="space-y-2">
+                {(product as any).product_certifications.map((cert: { authority: string; cert_name: string; cert_code: string; expired_date: string | null }, i: number) => (
+                  <div key={i} className="flex items-center gap-3 text-sm">
+                    <span className="inline-block bg-[#f8fce8] text-[#5a7a3a] text-xs font-semibold px-2.5 py-1 rounded-full border border-[#7FB300]/20 min-w-max">
+                      {cert.authority}
+                    </span>
+                    <span className="text-gray-600">{cert.cert_name}</span>
+                    <span className="text-gray-400 font-mono text-xs">{cert.cert_code}</span>
+                    {cert.expired_date && <span className="text-gray-300 text-xs">exp: {cert.expired_date}</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </>
   )
