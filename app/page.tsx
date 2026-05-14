@@ -127,7 +127,7 @@ export default function HomePage() {
                 <a href="/katalog" className="inline-flex items-center gap-2 bg-[#7FB300] text-white px-5 py-2.5 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors text-sm">
                   🛍️ Belanja Sekarang
                 </a>
-                <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-[#7FB300] text-[#5a7a3a] px-5 py-2.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors text-sm bg-white/70 backdrop-blur-sm">
+                <a href="https://wa.me/6285820852908" target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 border border-[#7FB300] text-[#5a7a3a] px-5 py-2.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors text-sm bg-white/70 backdrop-blur-sm">
                   💬 Konsultasi Admin EVC
                 </a>
               </div>
@@ -164,7 +164,7 @@ export default function HomePage() {
             <a href="/katalog" className="flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3.5 rounded-xl font-bold hover:bg-[#6B9700] transition-colors">
               🛍️ Belanja Sekarang
             </a>
-            <a href="https://wa.me/6281386295426" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border border-[#7FB300] text-[#5a7a3a] py-3.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors bg-white">
+            <a href="https://wa.me/6285820852908" target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2 border border-[#7FB300] text-[#5a7a3a] py-3.5 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors bg-white">
               💬 Konsultasi Admin EVC
             </a>
           </div>
