@@ -238,10 +238,20 @@ export default async function NateshPage({
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-3">
               Kenapa Wanita Aktif Memilih Natesh?
             </h2>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
+            <p className="text-sm text-gray-600 mb-5 leading-relaxed">
               Natesh diposisikan sebagai feminine care premium untuk wanita yang ingin merasa lebih
               nyaman dan percaya diri sepanjang hari.
             </p>
+            {/* Foto wanita aktif */}
+            <div className="rounded-2xl overflow-hidden mb-6">
+              <Image
+                src="/assets/natesh-wanita-aktif-office.jpg"
+                alt="Wanita aktif profesional yang percaya diri"
+                width={600}
+                height={600}
+                className="w-full h-auto object-cover"
+              />
+            </div>
             <div className="grid grid-cols-2 gap-3 mb-6">
               {NATESH_BENEFITS.map((b, i) => (
                 <div
