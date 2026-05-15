@@ -181,7 +181,7 @@ export default async function NateshPage({
             <div className="flex gap-3">
               <a
                 href={shopLink}
-                className="flex-1 flex items-center justify-center gap-2 bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
+                className="flex-1 block text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
               >
                 {content.hero.cta_primary.text}
               </a>
@@ -189,7 +189,7 @@ export default async function NateshPage({
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors"
+                className="flex-1 block text-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors"
               >
                 {content.hero.cta_secondary?.text}
               </a>
