@@ -166,24 +166,8 @@ export default async function NateshPage({
             <p className="text-gray-500 text-base mb-6 leading-relaxed">
               {content.hero.subheadline}
             </p>
-            <div className="flex flex-col gap-3 mb-6">
-              <a
-                href={shopLink}
-                className="flex items-center justify-center gap-2 bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
-              >
-                🛍️ {content.hero.cta_primary.text}
-              </a>
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center justify-center gap-2 border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold hover:bg-[#F9E4E8] transition-colors"
-              >
-                💬 {content.hero.cta_secondary?.text}
-              </a>
-            </div>
             {/* Hero image */}
-            <div className="rounded-3xl overflow-hidden bg-[#F9E4E8]">
+            <div className="rounded-3xl overflow-hidden bg-[#F9E4E8] mb-5">
               <Image
                 src="/assets/natesh-hero-wanita-aktif.jpg"
                 alt="Natesh untuk wanita aktif"
@@ -192,6 +176,23 @@ export default async function NateshPage({
                 className="w-full h-auto object-cover"
                 priority
               />
+            </div>
+            {/* CTA di bawah gambar, horizontal */}
+            <div className="flex gap-3">
+              <a
+                href={shopLink}
+                className="flex-1 flex items-center justify-center gap-2 bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-sm hover:bg-[#B93A5B] transition-colors"
+              >
+                🛍️ {content.hero.cta_primary.text}
+              </a>
+              <a
+                href={waLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-sm hover:bg-[#F9E4E8] transition-colors"
+              >
+                💬 {content.hero.cta_secondary?.text}
+              </a>
             </div>
           </div>
         </section>
