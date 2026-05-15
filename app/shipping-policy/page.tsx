@@ -22,19 +22,19 @@ export default function ShippingPolicyPage() {
               </div>
               <div className="bg-gray-50 rounded-xl p-4">
                 <p className="font-semibold text-gray-900 mb-1">Grab Express</p>
-                <p className="text-xs text-gray-500">Sameday delivery khusus area Balikpapan dan sekitarnya.</p>
+                <p className="text-xs text-gray-500">Instan / Sameday delivery khusus 30 kota pilihan yang tersedia.</p>
               </div>
             </div>
           </section>
 
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">Area Pengiriman</h2>
-            <p>EVC Mercato melayani pengiriman ke seluruh wilayah Indonesia. Pengiriman dilakukan dari Balikpapan, Kalimantan Timur.</p>
+            <p>EVC Mercato melayani pengiriman ke seluruh wilayah Indonesia. Pengiriman dilakukan dari Hub EVC / cabang KKI yang terdekat dan produk tersedia.</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Jawa, Bali, Madura: 1–3 hari kerja</li>
               <li>Sumatera, Kalimantan, Sulawesi: 2–4 hari kerja</li>
               <li>Papua, Maluku, NTT/NTB: 4–7 hari kerja</li>
-              <li>Area Balikpapan (sameday): hari yang sama untuk order sebelum 12.00 WITA</li>
+              <li>Instan dan sameday hari yang sama untuk order sebelum 15.30 waktu setempat</li>
             </ul>
           </section>
 
