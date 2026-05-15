@@ -189,7 +189,7 @@ export default async function NateshPage({
                 href={waLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex-1 block text-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors"
+                className="flex-1 flex items-center justify-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors"
               >
                 {content.hero.cta_secondary?.text}
               </a>
