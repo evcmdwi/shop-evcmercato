@@ -15,8 +15,8 @@ export default function AboutPage() {
         <div className="space-y-8 text-gray-700 text-sm leading-relaxed">
           <section>
             <h2 className="text-xl font-semibold text-gray-900 mb-3">Siapa Kami</h2>
-            <p>EVC Mercato adalah distributor resmi dan mitra usaha KKI Group yang beroperasi sejak tahun 2003 di bawah badan usaha <strong>CV. EVC Nusantara Sukses</strong>. Kami hadir untuk memudahkan akses masyarakat Indonesia terhadap produk-produk pilihan di bidang kesehatan, wellness, kecantikan, feminine care, dan kebutuhan harian berkualitas tinggi.</p>
-            <p className="mt-2">Dengan pengalaman lebih dari dua dekade melayani pelanggan setia dari berbagai penjuru Indonesia, EVC Mercato berkomitmen menghadirkan pengalaman belanja yang aman, praktis, dan terpercaya langsung melalui website resmi kami.</p>
+            <p>EVC Mercato hadir sejak 2018 di platform Tokopedia, dan 2023 di platform Shopee, dikelola secara mandiri oleh distributor / Mitra usaha resmi KKI Group dengan nomor KKD 12081020 dengan membership D.C. Chandra. Selama 8 tahun kami berkiprah di marketplace, kami telah melayani lebih dari <strong>36.000 pelanggan</strong> dari seluruh Indonesia dengan review positif bintang 5 sebanyak <strong>32.000 lebih</strong> (22.000 review di Shopee EVC Mercato, dan 10.000 review di Tokopedia EVC Mercato).</p>
+            <p className="mt-3">Tentunya kami sangat senang dapat melayani Anda dengan produk berkualitas KKI Group selama ini, sehingga demi meningkatkan kepercayaan dan operasional pelayanan kami, dibentuklah <strong>CV. EVC Nusantara Sukses</strong> yang mengelola operasional bisnis, logistik, financing, dan servicing secara profesional. Dengan pengalaman bisnis KKI Group lebih dari 2 dekade, kami menghadirkan website evcmercato.com sebagai sebuah nilai tambah untuk konsumen agar benefit yang diterima lebih fair, pengiriman cepat, dan lebih dekat dengan Anda. Website ini bertujuan untuk memudahkan akses masyarakat Indonesia terhadap produk-produk pilihan di bidang kesehatan, wellness, kecantikan, feminine care, dan kebutuhan harian berkualitas tinggi.</p>
           </section>
 
           <section>
@@ -29,7 +29,7 @@ export default function AboutPage() {
               </div>
               <div>
                 <p className="font-semibold text-gray-900 text-sm">🏭 Hub Operasional &amp; Gudang</p>
-                <p className="mt-1">4 lokasi strategis di Indonesia untuk memastikan pengiriman cepat ke seluruh nusantara. Model ini memungkinkan kami menghadirkan pengiriman <strong>1–3 hari kerja</strong> untuk mayoritas wilayah Indonesia.</p>
+                <p className="mt-1">4 lokasi strategis Warehouse EVC di Indonesia dan 26 Cabang KKI Nusantara, untuk memastikan pengiriman cepat ke seluruh nusantara. Model ini memungkinkan kami menghadirkan pengiriman <strong>1–3 hari kerja</strong> untuk mayoritas wilayah Indonesia.</p>
               </div>
               <div>
                 <p className="font-semibold text-gray-900 text-sm">📞 Kontak</p>
