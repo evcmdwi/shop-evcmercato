@@ -245,6 +245,8 @@ interface KonfirmasiKirimModalProps {
 }
 
 function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModalProps) {
+  // instan/sameday = Grab, tidak perlu resi JNT
+  const isGrab = order.shipping_method === 'instan' || order.shipping_method === 'sameday' || order.courier_type === 'grab'
   const [resiNumber, setResiNumber] = useState(order.tracking_number || '')
   const [grabTrackingUrl, setGrabTrackingUrl] = useState('')
   const [shipLoading, setShipLoading] = useState(false)
@@ -279,26 +281,27 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
         </div>
 
         <div className="bg-gray-50 rounded-xl p-4 mb-6 text-sm">
-          <div><span className="font-semibold">Ekspedisi:</span> {order.courier_type === 'grab' ? 'Grab Express' : 'JNT'}</div>
+          <div><span className="font-semibold">Ekspedisi:</span> {isGrab ? 'Grab Express' : 'JNT'}</div>
           <div><span className="font-semibold">Resi Generated:</span> {order.resi_generated_at ? new Date(order.resi_generated_at).toLocaleString('id-ID') : '—'}</div>
         </div>
 
+        {/* JNT Resi — hanya untuk reguler/JNT */}
+        {!isGrab && (
         <div className="mb-6">
-          <label className="block text-sm font-semibold mb-2">
-            {order.courier_type === 'grab' ? 'Grab Order ID *' : 'No. Resi JNT *'}
-          </label>
+          <label className="block text-sm font-semibold mb-2">No. Resi JNT *</label>
           <input
             type="text"
             value={resiNumber}
             onChange={(e) => setResiNumber(e.target.value)}
-            placeholder={order.courier_type === 'grab' ? 'GRAB-XYZ-12345' : 'JD1234567890123'}
+            placeholder="JD1234567890123"
             className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
           <p className="text-xs text-gray-400 mt-1">Minimal 8 karakter</p>
         </div>
+        )}
 
-        {/* Grab Tracking Link (opsional untuk Grab) */}
-        {(order.courier_type === 'grab' || order.shipping_method === 'instan' || order.shipping_method === 'sameday') && (
+        {/* Grab Tracking Link — untuk instan/sameday */}
+        {isGrab && (
           <div className="mb-6">
             <label className="block text-sm font-semibold mb-2">
               Grab Tracking Link <span className="text-gray-400 font-normal">(opsional)</span>
@@ -323,7 +326,7 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
           </button>
           <button
             onClick={handleConfirmShipment}
-            disabled={resiNumber.trim().length < 8 || shipLoading}
+            disabled={(isGrab ? false : resiNumber.trim().length < 8) || shipLoading}
             className="flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {shipLoading ? 'Memproses...' : 'Konfirmasi Kirim →'}
