@@ -267,6 +267,16 @@ export default async function NateshPage({
                 </div>
               ))}
             </div>
+            {/* Product packshot */}
+            <div className="rounded-2xl overflow-hidden mb-5">
+              <Image
+                src="/assets/natesh-packshot.png"
+                alt="Natesh Sanitary Pads — Produk Pilihan Halal"
+                width={600}
+                height={600}
+                className="w-full h-auto object-cover"
+              />
+            </div>
             <a
               href={shopLink}
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold hover:bg-[#B93A5B] transition-colors"
