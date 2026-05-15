@@ -223,7 +223,7 @@ export default async function NateshPage({
                   <span className="text-2xl flex-shrink-0">{p.icon}</span>
                   <div>
                     <p className="font-semibold text-sm text-gray-900 mb-1">{p.title}</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">{p.desc}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{p.desc}</p>
                   </div>
                 </div>
               ))}
@@ -263,7 +263,7 @@ export default async function NateshPage({
                 >
                   <span className="text-2xl block mb-2">{b.icon}</span>
                   <p className="font-semibold text-xs text-gray-900 mb-1 leading-snug">{b.title}</p>
-                  <p className="text-xs text-gray-500 leading-relaxed">{b.desc}</p>
+                  <p className="text-sm text-gray-500 leading-relaxed">{b.desc}</p>
                 </div>
               ))}
             </div>
@@ -299,7 +299,7 @@ export default async function NateshPage({
                   className="flex items-center gap-2 bg-white/80 rounded-xl px-3 py-2.5"
                 >
                   <span className="text-base">{u.icon}</span>
-                  <span className="text-xs text-gray-700 font-medium leading-snug">{u.text}</span>
+                  <span className="text-sm text-gray-700 font-medium leading-snug">{u.text}</span>
                 </div>
               ))}
             </div>
@@ -331,7 +331,7 @@ export default async function NateshPage({
                   <span className="text-xl flex-shrink-0">{t.icon}</span>
                   <div>
                     <p className="font-semibold text-sm text-gray-900 mb-1">{t.title}</p>
-                    <p className="text-xs text-gray-500 leading-relaxed">{t.desc}</p>
+                    <p className="text-sm text-gray-500 leading-relaxed">{t.desc}</p>
                   </div>
                 </div>
               ))}
@@ -363,7 +363,7 @@ export default async function NateshPage({
               <p className="text-sm text-gray-700 leading-relaxed font-medium">
                 Belanja Produk Personal Care Lebih Nyaman di EVC
               </p>
-              <p className="text-xs text-gray-500 mt-2 leading-relaxed">
+              <p className="text-sm text-gray-500 mt-2 leading-relaxed">
                 Dengan admin profesional, pengiriman cepat, dan packaging discreet, EVC membantu
                 proses belanja produk personal care terasa lebih aman dan praktis.
               </p>
