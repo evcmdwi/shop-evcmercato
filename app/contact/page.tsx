@@ -70,7 +70,7 @@ export default function ContactPage() {
             </details>
             <details className="bg-gray-50 rounded-xl p-4">
               <summary className="cursor-pointer font-medium text-gray-900">Berapa lama proses pengiriman?</summary>
-              <p className="mt-2">Pengiriman reguler 1–3 hari kerja, sameday tersedia untuk area Balikpapan dan sekitarnya.</p>
+              <p className="mt-2">Pengiriman reguler 1-3 hari kerja, Layanan Instan dan Sameday tersedia untuk 30 kota pilihan.</p>
             </details>
             <details className="bg-gray-50 rounded-xl p-4">
               <summary className="cursor-pointer font-medium text-gray-900">Apakah produk EVC Mercato original?</summary>
