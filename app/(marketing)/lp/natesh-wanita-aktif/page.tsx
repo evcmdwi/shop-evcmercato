@@ -137,19 +137,22 @@ export default async function NateshPage({
 
       {/* NAVBAR MINIMAL */}
       <header className="bg-white/95 backdrop-blur-sm sticky top-0 z-50 border-b border-pink-100 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="font-bold text-gray-900">Natesh</span>
-          <span className="text-xs bg-[#F9E4E8] text-pink-600 px-2 py-0.5 rounded-full font-medium">
-            by EVC Mercato
-          </span>
+        <div>
+          <p className="font-bold text-gray-900 text-sm leading-tight">Natesh</p>
+          <p className="text-xs text-gray-500">Sanitary Pads &amp; Pantyliner</p>
         </div>
         <a
-          href={waLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-sm border border-pink-300 text-pink-600 px-3 py-1.5 rounded-xl font-semibold hover:bg-[#F9E4E8] transition-colors"
+          href={shopLink}
+          className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-[#F9E4E8] hover:border-[#D4456B] transition-colors flex-shrink-0"
+          aria-label="EVC Mercato"
         >
-          Chat Admin
+          <Image
+            src="/logo-evcmercato.jpg"
+            alt="EVC Mercato"
+            width={40}
+            height={40}
+            className="w-full h-full object-cover"
+          />
         </a>
       </header>
 
