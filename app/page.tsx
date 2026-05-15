@@ -352,12 +352,10 @@ export default function HomePage() {
               <div className="text-xs text-amber-800">
                 <p className="font-semibold mb-1">INFORMASI PENTING</p>
                 <p>
-                  shop.evcmercato.com dikelola oleh <strong>CV. EVC Nusantara Sukses (KKD 12081020)</strong> sebagai Mitra Usaha Resmi KKI Group.
-                  Website ini <strong>BUKAN</strong> merupakan official store KKI Group.
+                  shop.evcmercato.com dikelola oleh <strong>CV EVC Nusantara Sukses</strong> melalui <strong>D. C. Chandra (KKD 12081020)</strong> Mitra Usaha Resmi KKI Group. Website ini <strong>BUKAN</strong> merupakan official store KKI Group.
                 </p>
                 <p className="mt-1">
-                  Pembelian di sini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi).
-                  Untuk menjadi member KKI, daftar langsung ke KKI Group resmi.
+                  Pembelian di sini tidak memberikan fasilitas member KKI (PV, BV, PR, komisi). Untuk menjadi member KKI, daftar langsung ke KKI Group resmi.
                 </p>
                 <p className="mt-1.5">
                   <Link href="/terms" prefetch={false} className="text-[#7FB300] font-semibold hover:underline">
