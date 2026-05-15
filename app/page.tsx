@@ -331,15 +331,6 @@ export default function HomePage() {
           </div>
 
           <div>
-            <h3 className="font-display text-lg text-gray-900 mb-4">Legal</h3>
-            <div className="space-y-2 text-sm">
-              <Link href="/privacy-policy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Privasi</Link>
-              <Link href="/terms" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Syarat & Ketentuan</Link>
-              <Link href="/refund-policy" prefetch={false} className="block text-gray-600 hover:text-[#7FB300]">Kebijakan Pengembalian</Link>
-            </div>
-          </div>
-
-          <div>
             <h3 className="font-display text-lg text-gray-900 mb-4">Informasi</h3>
             <div className="space-y-2 text-sm">
               <Link href="/about" prefetch={false} className="block text-gray-500 hover:text-[#7FB300]">Tentang Kami</Link>
