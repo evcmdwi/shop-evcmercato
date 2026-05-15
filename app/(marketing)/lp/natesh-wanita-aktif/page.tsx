@@ -336,6 +336,16 @@ export default async function NateshPage({
                 </div>
               ))}
             </div>
+            {/* EVC trust poster */}
+            <div className="rounded-2xl overflow-hidden mb-5">
+              <Image
+                src="/assets/natesh-evc-trust.jpg"
+                alt="Tetap Aman. Tetap Resmi. Tetap EVC Mercato."
+                width={600}
+                height={800}
+                className="w-full h-auto"
+              />
+            </div>
             <a
               href={shopLink}
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold hover:bg-[#B93A5B] transition-colors mb-3"
