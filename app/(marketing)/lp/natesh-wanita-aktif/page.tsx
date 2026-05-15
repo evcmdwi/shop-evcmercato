@@ -371,7 +371,7 @@ export default async function NateshPage({
             </h2>
             <div className="bg-white/80 rounded-2xl p-5 border border-pink-100">
               <p className="text-sm text-gray-700 leading-relaxed font-medium">
-                Belanja Produk Personal Care Lebih Nyaman di EVC
+                Belanja NATESH lebih cepat dan nyaman di EVC
               </p>
               <p className="text-sm text-gray-500 mt-2 leading-relaxed">
                 Dengan admin profesional, pengiriman cepat, dan packaging discreet, EVC membantu
