@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-white">
       <main className="max-w-3xl mx-auto px-4 py-12">
         <h1 className="font-display text-3xl text-gray-900 mb-2">Kebijakan Privasi</h1>
-        <p className="text-sm text-gray-400 mb-8">Terakhir diperbarui: Mei 2026 · Sesuai UU PDP No. 27/2022</p>
+        <p className="text-sm text-gray-400 mb-8">Terakhir diperbarui: 15 Mei 2026 · Sesuai UU PDP No. 27/2022</p>
 
         <div className="space-y-6 text-gray-700 text-sm leading-relaxed">
           <section>
@@ -19,7 +19,7 @@ export default function PrivacyPolicyPage() {
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong>Data Identitas:</strong> nama lengkap, nomor telepon, alamat email</li>
               <li><strong>Data Alamat:</strong> alamat pengiriman, kota, provinsi, kode pos</li>
-              <li><strong>Data Transaksi:</strong> riwayat pesanan, metode pembayaran (tidak termasuk nomor kartu)</li>
+              <li><strong>Data Transaksi:</strong> riwayat pesanan dan status pembayaran (pembayaran diproses oleh payment gateway terdaftar)</li>
               <li><strong>Data Teknis:</strong> alamat IP, tipe browser, halaman yang dikunjungi, waktu akses</li>
               <li><strong>Data Komunikasi:</strong> pesan yang Anda kirim ke tim CS kami</li>
             </ul>
@@ -42,35 +42,41 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-lg font-semibold text-gray-900 mb-2">3. Keamanan Data</h2>
             <p className="mt-2">Kami menerapkan langkah-langkah keamanan teknis dan organisasi yang memadai untuk melindungi data pribadi Anda, termasuk:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
-              <li>Enkripsi data dalam transit menggunakan HTTPS/TLS</li>
-              <li>Row Level Security (RLS) pada database Supabase untuk isolasi data pengguna</li>
-              <li>Akses data terbatas hanya pada personel yang berwenang</li>
-              <li>Password disimpan dalam bentuk hash yang tidak dapat dibalik</li>
+              <li>Enkripsi data dalam transit menggunakan protokol keamanan industri standar (HTTPS/TLS)</li>
+              <li>Sistem isolasi data multi-tenant untuk memastikan data Anda tidak dapat diakses oleh pengguna lain</li>
+              <li>Kontrol akses berbasis peran (role-based access control) — data hanya dapat diakses oleh personel yang berwenang sesuai kebutuhan operasional</li>
+              <li>Password disimpan menggunakan algoritma hashing satu arah yang tidak dapat dibalik</li>
+              <li>Audit log untuk aktivitas sensitif terkait data pribadi</li>
+              <li>Review keamanan berkala terhadap infrastruktur dan proses kami</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Pihak Ketiga yang Menerima Data</h2>
-            <p className="mt-2">Kami berbagi data yang diperlukan dengan pihak ketiga terpercaya berikut:</p>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Pihak Ketiga Pemroses Data</h2>
+            <p className="mt-2">Untuk menjalankan layanan kami, kami bekerja sama dengan pihak ketiga terpercaya yang memenuhi standar keamanan dan compliance. Data Anda dapat dibagikan dengan pihak ketiga berikut sesuai kebutuhan layanan:</p>
             <div className="space-y-3 mt-3">
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="font-semibold text-gray-900">Xendit (Payment Gateway)</p>
-                <p className="text-xs text-gray-500 mt-1">Menerima data transaksi untuk memproses pembayaran. Xendit terdaftar dan diawasi oleh Bank Indonesia.</p>
+                <p className="font-semibold text-gray-900 text-sm">Payment Gateway</p>
+                <p className="text-xs text-gray-500 mt-1">Kami menggunakan layanan payment gateway resmi yang <strong>terdaftar dan diawasi oleh Bank Indonesia</strong> untuk memproses pembayaran Anda. Data pembayaran diproses langsung oleh payment gateway dan tidak disimpan di sistem kami.</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="font-semibold text-gray-900">Supabase (Database &amp; Auth)</p>
-                <p className="text-xs text-gray-500 mt-1">Menyimpan data akun dan pesanan. Server berlokasi di region Asia Tenggara dengan enkripsi at-rest.</p>
+                <p className="font-semibold text-gray-900 text-sm">Penyedia Infrastruktur Cloud</p>
+                <p className="text-xs text-gray-500 mt-1">Data akun, transaksi, dan informasi terkait operasional kami disimpan menggunakan layanan infrastruktur cloud terpercaya dengan compliance internasional (ISO 27001, SOC 2). Server berlokasi di region Asia Tenggara untuk memastikan kepatuhan dengan regulasi data lokal.</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="font-semibold text-gray-900">Fonnte (WhatsApp Notification)</p>
-                <p className="text-xs text-gray-500 mt-1">Menerima nomor telepon untuk pengiriman notifikasi WhatsApp terkait pesanan.</p>
+                <p className="font-semibold text-gray-900 text-sm">Penyedia Notifikasi & Komunikasi</p>
+                <p className="text-xs text-gray-500 mt-1">Nomor telepon dan alamat email Anda dibagikan dengan penyedia layanan notifikasi terverifikasi untuk pengiriman pemberitahuan terkait pesanan (konfirmasi pesanan, status pengiriman, notifikasi penting).</p>
               </div>
               <div className="bg-gray-50 rounded-xl p-4">
-                <p className="font-semibold text-gray-900">Resend (Email Service)</p>
-                <p className="text-xs text-gray-500 mt-1">Menerima alamat email untuk pengiriman konfirmasi pesanan dan notifikasi transaksional.</p>
+                <p className="font-semibold text-gray-900 text-sm">Mitra Logistik & Pengiriman</p>
+                <p className="text-xs text-gray-500 mt-1">Data pengiriman (nama, alamat, nomor telepon) dibagikan dengan mitra logistik resmi (JNT Express, GrabExpress, dan kurir berafiliasi) untuk pengiriman pesanan Anda.</p>
               </div>
             </div>
-            <p className="mt-3">Kami tidak menjual data pribadi Anda kepada pihak ketiga manapun.</p>
+            <div className="bg-[#f8fce8] rounded-xl p-4 mt-3 space-y-1 text-xs text-gray-600">
+              <p>• Kami <strong>tidak menjual</strong> data pribadi Anda kepada pihak ketiga manapun</p>
+              <p>• Semua pihak ketiga terikat perjanjian kerahasiaan dan compliance data</p>
+              <p>• Kami secara berkala melakukan review terhadap mitra pihak ketiga kami</p>
+            </div>
           </section>
 
           <section>

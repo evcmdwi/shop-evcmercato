@@ -54,7 +54,7 @@ export default function AboutPage() {
             <ul className="list-disc pl-5 space-y-1">
               <li>Menyediakan produk original langsung dari KKI Group</li>
               <li>Pelayanan pelanggan yang responsif Senin–Sabtu</li>
-              <li>Pembayaran aman via Xendit (payment gateway terpercaya)</li>
+              <li>Pembayaran aman via payment gateway terpercaya terdaftar Bank Indonesia</li>
               <li>Pengiriman cepat dan andal ke seluruh Indonesia</li>
               <li>Transparansi penuh dalam setiap transaksi</li>
             </ul>

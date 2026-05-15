@@ -46,7 +46,7 @@ export default function TermsPage() {
 
           <section>
             <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Pembayaran</h2>
-            <p className="mt-2">Semua transaksi menggunakan mata uang Rupiah (IDR). Pembayaran diproses melalui Xendit, penyedia layanan pembayaran yang tersertifikasi Bank Indonesia. Pesanan akan diproses setelah konfirmasi pembayaran diterima. Link pembayaran berlaku selama 24 jam. Pesanan yang tidak dibayar dalam batas waktu akan otomatis dibatalkan.</p>
+            <p className="mt-2">Semua transaksi menggunakan mata uang Rupiah (IDR). Pembayaran diproses melalui payment gateway yang tersertifikasi dan diawasi oleh Bank Indonesia. Pesanan akan diproses setelah konfirmasi pembayaran diterima. Link pembayaran berlaku selama 24 jam. Pesanan yang tidak dibayar dalam batas waktu akan otomatis dibatalkan.</p>
           </section>
 
           <section>
