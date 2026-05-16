@@ -352,10 +352,16 @@ export default function AdminLandingPagesPage() {
     setLoading(true)
     try {
       const res = await fetch('/api/sambers/landing-pages?status=all')
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}))
+        setMessage({ text: `❌ Error ${res.status}: ${err.error ?? 'Unknown'}`, ok: false })
+        return
+      }
       const data = await res.json()
-      setPages(data.data ?? data.pages ?? data.landing_pages ?? [])
-    } catch {
-      setMessage({ text: '❌ Gagal memuat data landing pages.', ok: false })
+      const list = data.data ?? data.pages ?? data.landing_pages ?? []
+      setPages(list)
+    } catch (e) {
+      setMessage({ text: `❌ Fetch error: ${e instanceof Error ? e.message : String(e)}`, ok: false })
     } finally {
       setLoading(false)
     }
