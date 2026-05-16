@@ -231,10 +231,10 @@ export default async function EVCResmiPage({
               <p className="text-xs text-gray-500">Mitra usaha resmi KKI Group</p>
             </div>
             <div className="flex flex-col gap-2 text-sm text-gray-400">
-              <a href={katalogLink} className="hover:text-white transition-colors">Katalog Produk</a>
-              <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Chat Admin</a>
-              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Evie Health</a>
-              <a href="https://shop.evcmercato.com/syarat-ketentuan" className="hover:text-white transition-colors">Syarat &amp; Ketentuan</a>
+              <a href={katalogLink} className="hover:text-white transition-colors py-3 inline-block">Katalog Produk</a>
+              <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors py-3 inline-block">Chat Admin</a>
+              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors py-3 inline-block">Evie Health</a>
+              <a href={appendRef('https://shop.evcmercato.com/syarat-ketentuan', ref)} className="hover:text-white transition-colors py-3 inline-block">Syarat &amp; Ketentuan</a>
             </div>
           </div>
           <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2">

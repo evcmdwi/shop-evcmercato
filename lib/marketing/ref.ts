@@ -6,13 +6,22 @@ export function getRefFromUrl(searchParams: URLSearchParams): string | null {
 
 export function appendRef(url: string, ref: string | null | undefined): string {
   if (!ref) return url;
+
+  // Only append ref to internal EVC domains
+  const internalDomains = ['shop.evcmercato.com', 'evcmercato.com'];
   try {
-    const u = new URL(url, 'https://evcmercato.com');
+    const u = new URL(url);
+    const isInternal = internalDomains.some(d => u.hostname === d || u.hostname.endsWith('.' + d));
+    if (!isInternal) return url; // external URL: don't append ref
     u.searchParams.set('ref', ref);
     return u.toString();
   } catch {
-    const separator = url.includes('?') ? '&' : '?';
-    return `${url}${separator}ref=${encodeURIComponent(ref)}`;
+    // Relative URL (starts with /) — treat as internal
+    if (url.startsWith('/')) {
+      const separator = url.includes('?') ? '&' : '?';
+      return `${url}${separator}ref=${encodeURIComponent(ref)}`;
+    }
+    return url; // Can't parse, don't modify
   }
 }
 

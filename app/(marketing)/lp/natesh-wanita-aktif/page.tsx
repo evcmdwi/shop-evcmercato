@@ -147,7 +147,7 @@ export default async function NateshPage({
         </div>
         <a
           href={shopLink}
-          className="flex items-center justify-center w-10 h-10 rounded-full overflow-hidden border-2 border-[#F9E4E8] hover:border-[#D4456B] transition-colors flex-shrink-0"
+          className="flex items-center justify-center w-11 h-11 rounded-full overflow-hidden border-2 border-[#F9E4E8] hover:border-[#D4456B] transition-colors flex-shrink-0"
           aria-label="EVC Mercato"
         >
           <Image
@@ -446,8 +446,8 @@ export default async function NateshPage({
         </p>
         <div className="flex justify-center gap-4 mt-3 text-xs text-gray-500">
           <a
-            href="https://shop.evcmercato.com/katalog?category=natesh"
-            className="hover:text-white"
+            href={appendRef('https://shop.evcmercato.com/katalog?category=natesh', ref)}
+            className="hover:text-white py-3 inline-block"
           >
             Katalog Natesh
           </a>
@@ -455,11 +455,11 @@ export default async function NateshPage({
             href={waLink}
             target="_blank"
             rel="noopener noreferrer"
-            className="hover:text-white"
+            className="hover:text-white py-3 inline-block"
           >
             Chat Admin
           </a>
-          <a href="https://shop.evcmercato.com/privacy-policy" className="hover:text-white">
+          <a href={appendRef('https://shop.evcmercato.com/privacy-policy', ref)} className="hover:text-white py-3 inline-block">
             Kebijakan Privasi
           </a>
         </div>
