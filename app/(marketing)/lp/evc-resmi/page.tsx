@@ -3,6 +3,8 @@ import Script from 'next/script'
 import Image from 'next/image'
 import { initPixelScript } from '@/lib/marketing/pixel'
 import { extractUTM, appendUTM } from '@/lib/marketing/utm'
+import { appendRef } from '@/lib/marketing/ref'
+import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 import content from '@/content/lp/evc-resmi'
 
 export const metadata: Metadata = {
@@ -57,9 +59,12 @@ export default async function EVCResmiPage({
   const sp = await searchParams
   const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
   const utm = extractUTM(new URLSearchParams(Object.entries(sp).map(([k, v]) => [k, v])))
+  const ref = sp['ref'] ?? null
 
-  const shopLink = appendUTM('https://shop.evcmercato.com', utm)
-  const katalogLink = appendUTM('https://shop.evcmercato.com/katalog', utm)
+  const shopLink = appendRef(appendUTM('https://shop.evcmercato.com', utm), ref)
+  const katalogLink = appendRef(appendUTM('https://shop.evcmercato.com/katalog', utm), ref)
+  const waLink = appendRef(WA_ADMIN, ref)
+  const evieLink = appendRef(EVIE_LINK, ref)
 
   return (
     <>
@@ -68,6 +73,7 @@ export default async function EVCResmiPage({
           {initPixelScript(pixelId)}
         </Script>
       )}
+      <AffiliateRefSetter refCode={ref} />
 
       <main>
         {/* SECTION 1 — HERO */}
@@ -120,7 +126,7 @@ export default async function EVCResmiPage({
               <a href={shopLink} className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
                 Belanja Sekarang
               </a>
-              <a href={EVIE_LINK} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors">
+              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors">
                 Konsultasi dengan Evie Health by EVC
               </a>
             </div>
@@ -193,7 +199,7 @@ export default async function EVCResmiPage({
                 </div>
                 <h3 className="font-bold text-gray-900 mb-2">Chat Admin EVC</h3>
                 <p className="text-sm text-gray-600 mb-4 leading-relaxed">Tanya ketersediaan produk, info pengiriman, atau panduan belanja langsung via WhatsApp.</p>
-                <a href={WA_ADMIN} target="_blank" rel="noopener noreferrer"
+                <a href={waLink} target="_blank" rel="noopener noreferrer"
                   className="block w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors">
                   Chat Admin Sekarang
                 </a>
@@ -205,7 +211,7 @@ export default async function EVCResmiPage({
                 </div>
                 <h3 className="font-bold text-gray-900 mb-2">Evie Health by EVC</h3>
                 <p className="text-sm text-gray-600 mb-4 leading-relaxed">Konsultan wellness yang siap membantu memahami kebutuhan dan mengarahkan pilihan produk yang sesuai — 24 jam.</p>
-                <a href={EVIE_LINK} target="_blank" rel="noopener noreferrer"
+                <a href={evieLink} target="_blank" rel="noopener noreferrer"
                   className="block w-full border-2 border-[#7FB300] text-[#7FB300] py-3 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors">
                   Tanya Evie Sekarang
                 </a>
@@ -226,8 +232,8 @@ export default async function EVCResmiPage({
             </div>
             <div className="flex flex-col gap-2 text-sm text-gray-400">
               <a href={katalogLink} className="hover:text-white transition-colors">Katalog Produk</a>
-              <a href={WA_ADMIN} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Chat Admin</a>
-              <a href={EVIE_LINK} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Evie Health</a>
+              <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Chat Admin</a>
+              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">Evie Health</a>
               <a href="https://shop.evcmercato.com/syarat-ketentuan" className="hover:text-white transition-colors">Syarat &amp; Ketentuan</a>
             </div>
           </div>

@@ -3,6 +3,8 @@ import Script from 'next/script'
 import Image from 'next/image'
 import { initPixelScript } from '@/lib/marketing/pixel'
 import { extractUTM, appendUTM } from '@/lib/marketing/utm'
+import { appendRef } from '@/lib/marketing/ref'
+import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 import content from '@/content/lp/natesh-wanita-aktif'
 
 export const metadata: Metadata = {
@@ -123,9 +125,10 @@ export default async function NateshPage({
   const utm = extractUTM(
     new URLSearchParams(Object.entries(sp).map(([k, v]) => [k, v]))
   )
+  const ref = sp['ref'] ?? null
 
-  const shopLink = appendUTM(SHOP_NATESH, utm)
-  const waLink = appendUTM(WA_ADMIN, utm)
+  const shopLink = appendRef(appendUTM(SHOP_NATESH, utm), ref)
+  const waLink = appendRef(appendUTM(WA_ADMIN, utm), ref)
 
   return (
     <>
@@ -134,6 +137,7 @@ export default async function NateshPage({
           {initPixelScript(pixelId)}
         </Script>
       )}
+      <AffiliateRefSetter refCode={ref} />
 
       {/* NAVBAR MINIMAL */}
       <header className="bg-white/95 backdrop-blur-sm sticky top-0 z-50 border-b border-pink-100 px-4 py-3 flex items-center justify-between">
