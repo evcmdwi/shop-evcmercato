@@ -25,14 +25,17 @@ export async function GET(_req: NextRequest) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }
 
-  // ── 2. Verify affiliate ──────────────────────────────────────────────────────
-  const { data: affiliate, error: affiliateError } = await supabase
+  // ── 2. Verify affiliate (use admin to bypass RLS) ───────────────────────────
+  const adminSupabase = getSupabaseAdmin()
+
+  const { data: affiliate, error: affiliateError } = await adminSupabase
     .from('affiliates')
     .select('id, affiliate_code, status')
     .eq('user_id', user.id)
     .maybeSingle()
 
   if (affiliateError || !affiliate) {
+    console.error('[landing-pages] affiliate lookup failed:', affiliateError, 'user_id:', user.id)
     return NextResponse.json({ error: 'Affiliate tidak ditemukan' }, { status: 404 })
   }
 
@@ -41,7 +44,6 @@ export async function GET(_req: NextRequest) {
   }
 
   // ── 3. Fetch active landing pages ────────────────────────────────────────────
-  const adminSupabase = getSupabaseAdmin()
 
   const { data: landingPages, error: lpError } = await adminSupabase
     .from('landing_pages')
