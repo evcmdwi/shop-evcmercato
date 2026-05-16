@@ -40,8 +40,8 @@ type Tab = 'pengajuan' | 'aktif' | 'settlement' | 'pengaturan-pv'
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
-function formatRupiah(n: number) {
-  return n.toLocaleString('id-ID')
+function formatRupiah(n: number | null | undefined) {
+  return (n ?? 0).toLocaleString('id-ID')
 }
 
 function formatDate(d: string | null) {
@@ -501,7 +501,7 @@ function AktifTab({ isSuperAdmin }: { isSuperAdmin: boolean }) {
                   <td className="px-4 py-3 font-mono font-medium text-[#7FB300]">{aff.affiliate_code ?? '—'}</td>
                   <td className="px-4 py-3 font-medium text-gray-800">{aff.full_name_kkd}</td>
                   <td className="px-4 py-3 text-gray-600">{aff.kki_member_id}</td>
-                  <td className="px-4 py-3 text-right text-gray-700">{aff.lifetime_pv.toLocaleString('id-ID')}</td>
+                  <td className="px-4 py-3 text-right text-gray-700">{((aff.lifetime_pv ?? 0).toLocaleString('id-ID'))}</td>
                   <td className="px-4 py-3 text-right text-gray-700">{aff.lifetime_orders}</td>
                   <td className="px-4 py-3 text-center"><StatusBadge status={aff.status} /></td>
                   {isSuperAdmin && (
@@ -656,8 +656,8 @@ interface SettlementRecord {
 
 // ─── Helper ─────────────────────────────────────────────────────────
 
-function formatNumber(n: number) {
-  return n.toLocaleString('id-ID')
+function formatNumber(n: number | null | undefined) {
+  return (n ?? 0).toLocaleString('id-ID')
 }
 
 // ─── Tab: Pengaturan PV ────────────────────────────────────────────────
