@@ -696,17 +696,17 @@ function SettlementTab() {
           <p className="text-sm font-medium text-gray-700">Transaksi</p>
           {settlement.orders.map((o) => (
             <div
-              key={o.id}
+              key={o.order_id ?? o.id}
               className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-center text-sm"
             >
               <div>
-                <p className="text-xs text-gray-500">#{o.id.slice(-8)}</p>
+                <p className="text-xs text-gray-500">#{(o.order_id ?? o.id ?? '').slice(-8)}</p>
                 <p className="text-xs text-gray-400">
-                  Rp {o.amount.toLocaleString('id-ID')}
+                  Rp {(o.order_total ?? o.amount ?? 0).toLocaleString('id-ID')}
                 </p>
               </div>
               <div className="text-right">
-                <p className="font-semibold text-[#7FB300]">+{o.pv} PV</p>
+                <p className="font-semibold text-[#7FB300]">+{o.pv_earned ?? o.pv} PV</p>
                 <p className="text-xs text-gray-400">{o.status}</p>
               </div>
             </div>

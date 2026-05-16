@@ -37,7 +37,10 @@ export async function GET() {
 
   if (error) {
     console.error('[settlement/current-period] error:', error)
-    return NextResponse.json({ error: 'Failed to fetch commissions' }, { status: 500 })
+    return NextResponse.json({
+      error: 'Failed to fetch commissions',
+      _debug: { message: error.message, code: error.code, hint: error.hint, details: error.details }
+    }, { status: 500 })
   }
 
   // Group by affiliate
