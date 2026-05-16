@@ -12,14 +12,14 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
   const statusFilter = searchParams.get('status') || 'all'
 
+  // Query landing_pages WITHOUT join (LEFT JOIN not supported in TS types)
   let query = admin
     .from('landing_pages')
     .select(`
       id, slug, title, description, status,
       preview_image_url, target_audience, conversion_benchmark_pct,
       approved_for_affiliate_at, approved_by_admin_id,
-      archived_at, created_at, updated_at,
-      short_links!landing_page_id!left(id, status)
+      archived_at, created_at
     `)
     .order('created_at', { ascending: false })
 
@@ -33,15 +33,32 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  // Map to include active_short_link_count
-  const rows = (data ?? []).map((lp) => {
-    const links = Array.isArray(lp.short_links) ? lp.short_links : []
-    const activeCount = links.filter((l: { status: string }) => l.status === 'active').length
-    const { short_links: _sl, ...rest } = lp
-    return { ...rest, active_short_link_count: activeCount }
-  })
+  const rows = data ?? []
 
-  return NextResponse.json({ data: rows })
+  // Get active short_link counts per LP (separate query to avoid INNER JOIN issue)
+  const lpIds = rows.map((lp) => lp.id)
+  let shortLinkCounts: Record<string, number> = {}
+
+  if (lpIds.length > 0) {
+    const { data: slData } = await admin
+      .from('short_links')
+      .select('landing_page_id, status')
+      .in('landing_page_id', lpIds)
+      .eq('link_type', 'landing_page')
+
+    for (const sl of slData ?? []) {
+      if (sl.status === 'active' && sl.landing_page_id) {
+        shortLinkCounts[sl.landing_page_id] = (shortLinkCounts[sl.landing_page_id] ?? 0) + 1
+      }
+    }
+  }
+
+  const result = rows.map((lp) => ({
+    ...lp,
+    active_short_link_count: shortLinkCounts[lp.id] ?? 0,
+  }))
+
+  return NextResponse.json({ data: result })
 }
 
 export async function POST(req: NextRequest) {
