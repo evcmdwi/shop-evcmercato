@@ -655,6 +655,7 @@ function MembersTab() {
 function SettlementTab() {
   const [settlement, setSettlement] = useState<Settlement | null>(null)
   const [loading, setLoading] = useState(true)
+  const [pvFilter, setPvFilter] = useState<'all' | 'valid' | 'pending'>('all')
 
   useEffect(() => {
     fetch('/api/affiliate/settlement/current')

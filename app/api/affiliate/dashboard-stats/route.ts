@@ -95,9 +95,9 @@ export async function GET(req: NextRequest) {
     .filter((c: { status: string }) => c.status === 'pending')
     .reduce((sum: number, c: { pv_earned: number }) => sum + (c.pv_earned ?? 0), 0)
 
-  // Total referred members
+  // Total referred members (query users table, bukan profiles)
   let membersQuery = adminClient
-    .from('profiles')
+    .from('users')
     .select('id', { count: 'exact', head: true })
     .eq('referred_by_affiliate_code', affiliate.affiliate_code)
 

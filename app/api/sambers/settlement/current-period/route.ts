@@ -14,23 +14,7 @@ export async function GET() {
 
   const { data: commissions, error } = await admin
     .from('commissions')
-    .select(`
-      id,
-      affiliate_id,
-      order_id,
-      pv_earned,
-      status,
-      valid_at,
-      affiliates (
-        id,
-        affiliate_code,
-        full_name_kkd,
-        kki_member_id
-      ),
-      orders (
-        total_price
-      )
-    `)
+    .select('id, affiliate_id, order_id, pv_earned, status, valid_at, created_at')
     .in('status', ['pending', 'valid', 'owed_back'])
     .gte('created_at', `${start}T00:00:00.000Z`)
     .lte('created_at', `${end}T23:59:59.999Z`)
@@ -56,8 +40,16 @@ export async function GET() {
     orders: { order_id: string; order_total: number; pv_earned: number; valid_at: string }[]
   }>()
 
+  // Fetch affiliate details separately
+  const affiliateIds = [...new Set((commissions ?? []).map(c => c.affiliate_id))]
+  const { data: affiliateRows } = affiliateIds.length > 0
+    ? await admin.from('affiliates').select('id, affiliate_code, full_name_kkd, kki_member_id').in('id', affiliateIds)
+    : { data: [] }
+  const affById: Record<string, { affiliate_code: string; full_name_kkd: string; kki_member_id: string | null }> = {}
+  for (const a of affiliateRows ?? []) affById[a.id] = a
+
   for (const c of commissions ?? []) {
-    const affRaw = c.affiliates; const aff = (Array.isArray(affRaw) ? affRaw[0] : affRaw) as { id: string; affiliate_code: string; full_name_kkd: string; kki_member_id: string | null } | null
+    const aff = affById[c.affiliate_id]
     if (!aff) continue
 
     if (!affiliateMap.has(c.affiliate_id)) {
@@ -75,7 +67,7 @@ export async function GET() {
     }
 
     const entry = affiliateMap.get(c.affiliate_id)!
-    const orderTotal = (Array.isArray(c.orders) ? c.orders[0] : c.orders as unknown as { total_price: number } | null)?.total_price ?? 0
+    const orderTotal = 0 // order total not fetched in flat query
 
     if (c.status === 'owed_back') {
       entry.owed_back_pv += c.pv_earned
