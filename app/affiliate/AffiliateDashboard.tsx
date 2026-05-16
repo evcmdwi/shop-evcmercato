@@ -35,7 +35,7 @@ interface Settlement {
   period_label: string
   valid_pv: number
   pending_pv: number
-  orders: Array<{ id: string; amount: number; pv: number; status: string }>
+  orders: Array<{ order_id?: string; id?: string; order_total?: number; amount?: number; pv_earned?: number; pv?: number; status: string; valid_at?: string | null }>
 }
 
 interface Product {
