@@ -84,8 +84,8 @@ export async function GET() {
     .from('commissions')
     .select('order_id, pv_earned, status, valid_at, order_total, created_at')
     .eq('affiliate_id', affiliate.id)
-    .gte('created_at', `${period.start}T00:00:00.000Z`)
-    .lte('created_at', `${period.end}T23:59:59.999Z`)
+    
+    
     .order('created_at', { ascending: false })
 
   if (commError) {

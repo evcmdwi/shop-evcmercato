@@ -1002,7 +1002,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Total PV" value={stats.lifetime_pv} />
+        <StatCard label="Total PV" value={(stats.valid_pv ?? 0) + (stats.pending_pv ?? 0)} />
         <StatCard label="Pending PV" value={stats.pending_pv} />
         <StatCard label="Total Klik" value={stats.total_clicks} />
         <StatCard label="Total Member" value={stats.total_members} />
