@@ -353,7 +353,7 @@ export default function AdminLandingPagesPage() {
     try {
       const res = await fetch('/api/sambers/landing-pages?status=all')
       const data = await res.json()
-      setPages(data.pages ?? data.landing_pages ?? [])
+      setPages(data.data ?? data.pages ?? data.landing_pages ?? [])
     } catch {
       setMessage({ text: '❌ Gagal memuat data landing pages.', ok: false })
     } finally {
