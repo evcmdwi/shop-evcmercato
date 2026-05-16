@@ -75,11 +75,17 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     }
 
     if (variants && Array.isArray(variants)) {
-      // Step 1: Get existing variant IDs
+      // Step 1: Get existing variants (preserve affiliate_pv_value by name)
       const { data: existingVariants } = await admin
         .from('product_variants')
-        .select('id')
+        .select('id, name, affiliate_pv_value')
         .eq('product_id', id)
+
+      // Build pv map by name to restore after re-insert
+      const pvByName: Record<string, number> = {}
+      for (const ev of existingVariants ?? []) {
+        if (ev.affiliate_pv_value) pvByName[ev.name] = ev.affiliate_pv_value
+      }
 
       const existingIds = (existingVariants ?? []).map((v: any) => v.id)
 
@@ -113,6 +119,8 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
           image_url: v.image_url || null,
           sort_order: i,
           is_active: true,
+          // Preserve affiliate_pv_value from existing variant with same name
+          affiliate_pv_value: pvByName[v.name] ?? v.affiliate_pv_value ?? 0,
         }))
 
         const { error: insError } = await admin
