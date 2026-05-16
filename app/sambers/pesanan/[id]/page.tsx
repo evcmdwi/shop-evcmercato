@@ -300,21 +300,34 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
         </div>
         )}
 
-        {/* Grab Tracking Link — untuk instan/sameday */}
+        {/* Grab: No Order ID (wajib) + Tracking Link (opsional) */}
         {isGrab && (
-          <div className="mb-6">
-            <label className="block text-sm font-semibold mb-2">
-              Grab Tracking Link <span className="text-gray-400 font-normal">(opsional)</span>
-            </label>
-            <input
-              type="url"
-              value={grabTrackingUrl}
-              onChange={(e) => setGrabTrackingUrl(e.target.value)}
-              placeholder="https://express.grab.com/track/..."
-              className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-xs"
-            />
-            <p className="text-xs text-gray-400 mt-1">Salin link tracking dari Grab Driver app</p>
-          </div>
+          <>
+            <div className="mb-4">
+              <label className="block text-sm font-semibold mb-2">No. Order ID Grab *</label>
+              <input
+                type="text"
+                value={resiNumber}
+                onChange={(e) => setResiNumber(e.target.value)}
+                placeholder="Contoh: GR-1234567890"
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              />
+              <p className="text-xs text-gray-400 mt-1">Order ID dari Grab Driver app (wajib, min. 8 karakter)</p>
+            </div>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold mb-2">
+                Grab Tracking Link <span className="text-gray-400 font-normal">(opsional)</span>
+              </label>
+              <input
+                type="url"
+                value={grabTrackingUrl}
+                onChange={(e) => setGrabTrackingUrl(e.target.value)}
+                placeholder="https://express.grab.com/track/..."
+                className="w-full border border-gray-200 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-xs"
+              />
+              <p className="text-xs text-gray-400 mt-1">Salin link tracking dari Grab Driver app</p>
+            </div>
+          </>
         )}
 
         <div className="flex gap-3">
@@ -326,7 +339,7 @@ function KonfirmasiKirimModal({ order, onClose, onSuccess }: KonfirmasiKirimModa
           </button>
           <button
             onClick={handleConfirmShipment}
-            disabled={(isGrab ? false : resiNumber.trim().length < 8) || shipLoading}
+            disabled={resiNumber.trim().length < 8 || shipLoading}
             className="flex-1 bg-blue-600 text-white rounded-xl py-3 text-sm font-bold disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {shipLoading ? 'Memproses...' : 'Konfirmasi Kirim →'}

@@ -20,9 +20,9 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     const { data: orderCheck } = await admin.from('orders').select('courier_type, shipping_method').eq('id', id).single()
     const isGrab = orderCheck?.courier_type === 'grab' || orderCheck?.shipping_method === 'instan' || orderCheck?.shipping_method === 'sameday'
 
-    // For Grab orders, resi is optional — auto-generate if missing
-    const finalResi = resi_number?.trim() || (isGrab ? `GRAB-${id.slice(0,8).toUpperCase()}-${Date.now()}` : '')
-    if (!isGrab && finalResi.length < 8) {
+    // Grab Order ID wajib diisi oleh admin (min 8 karakter)
+    const finalResi = resi_number?.trim() || ''
+    if (finalResi.length < 8) {
       return NextResponse.json({ error: 'No. resi/order ID minimal 8 karakter' }, { status: 400 })
     }
 
