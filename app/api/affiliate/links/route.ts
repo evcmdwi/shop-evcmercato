@@ -42,7 +42,7 @@ export async function GET(req: NextRequest) {
 
   const result = (links ?? []).map((link) => ({
     ...link,
-    short_url: `https://shop.evcmercato.com/r/${link.short_code}`,
+    short_url: `https://evcmercato.com/s/${link.short_code}`,
   }))
 
   return NextResponse.json({ links: result })

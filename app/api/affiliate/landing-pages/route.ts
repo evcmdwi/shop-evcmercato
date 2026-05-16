@@ -115,7 +115,7 @@ export async function GET(_req: NextRequest) {
         approved_for_affiliate_at: lp.approved_for_affiliate_at,
         short_code:               shortLink?.short_code ?? null,
         short_url:                shortLink
-          ? `https://shop.evcmercato.com/r/${shortLink.short_code}`
+          ? `https://evcmercato.com/s/${shortLink.short_code}`
           : null,
         target_url:               shortLink?.url ?? null,
         stats_7d: {

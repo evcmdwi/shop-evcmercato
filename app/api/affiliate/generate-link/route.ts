@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
 
   const shortCode = await generateShortCode(adminClient)
   const targetUrl = buildTargetUrl(link_type as ShortLinkType, affiliate.affiliate_code!, slug)
-  const shortUrl = `https://shop.evcmercato.com/r/${shortCode}`
+  const shortUrl = `https://evcmercato.com/s/${shortCode}`
 
   const { error: insertError } = await adminClient
     .from('short_links')
