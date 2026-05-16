@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
       preview_image_url, target_audience, conversion_benchmark_pct,
       approved_for_affiliate_at, approved_by_admin_id,
       archived_at, created_at, updated_at,
-      short_links!landing_page_id(id, status)
+      short_links!landing_page_id!left(id, status)
     `)
     .order('created_at', { ascending: false })
 
