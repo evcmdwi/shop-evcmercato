@@ -19,6 +19,7 @@ interface AffiliateData {
 
 interface AffiliateStats {
   lifetime_pv: number
+  valid_pv?: number
   pending_pv: number
   total_clicks: number
   total_members: number
@@ -71,11 +72,12 @@ function formatDate(iso: string | null): string {
   })
 }
 
-function StatCard({ label, value }: { label: string; value: number }) {
+function StatCard({ label, value, subLabel }: { label: string; value: number; subLabel?: string }) {
   return (
     <div className="bg-white rounded-2xl p-4 shadow-sm border border-gray-100 text-center">
       <p className="text-2xl font-bold text-gray-900">{value}</p>
       <p className="text-xs text-gray-500 mt-1">{label}</p>
+      {subLabel && <p className="text-xs text-gray-400 mt-0.5">{subLabel}</p>}
     </div>
   )
 }
@@ -652,63 +654,299 @@ function MembersTab() {
 
 // ─── Settlement Tab ───────────────────────────────────────────────────────────
 
+interface HistoryCommission {
+  order_id?: string
+  id?: string
+  amount?: number
+  order_total?: number
+  pv_earned?: number
+  pv?: number
+  status: string
+  valid_at?: string | null
+  delivered_at?: string | null
+}
+
+interface HistoryItem {
+  period_label: string
+  period_start: string
+  period_end: string
+  settlement_date: string
+  total_valid_pv: number
+  total_transactions: number
+  processing_status: string
+  processed_at?: string | null
+  commissions: HistoryCommission[]
+}
+
+function computeCurrentPeriodInfo() {
+  const today = new Date()
+  const day = today.getDate()
+  const month = today.getMonth()
+  const year = today.getFullYear()
+  const mn = ['Jan', 'Feb', 'Mar', 'Apr', 'Mei', 'Jun', 'Jul', 'Agu', 'Sep', 'Okt', 'Nov', 'Des']
+
+  let periodName: string
+  let startDate: Date
+  let endDate: Date
+  let settlementDate: Date
+
+  if (day >= 15 && day <= 26) {
+    periodName = 'Periode B'
+    startDate = new Date(year, month, 15)
+    endDate = new Date(year, month, 26)
+    settlementDate = new Date(year, month, 27)
+  } else if (day >= 27) {
+    periodName = 'Periode A'
+    startDate = new Date(year, month, 27)
+    endDate = new Date(year, month + 1, 14)
+    settlementDate = new Date(year, month + 1, 15)
+  } else {
+    periodName = 'Periode A'
+    startDate = new Date(year, month - 1, 27)
+    endDate = new Date(year, month, 14)
+    settlementDate = new Date(year, month, 15)
+  }
+
+  const fmtShort = (d: Date) => `${d.getDate()} ${mn[d.getMonth()]}`
+  const fmtFull = (d: Date) => `${d.getDate()} ${mn[d.getMonth()]} ${d.getFullYear()}`
+  const todayMs = new Date(year, month, day).getTime()
+  const daysUntil = Math.ceil((settlementDate.getTime() - todayMs) / 86400000)
+
+  return {
+    label: periodName,
+    periodStr: `${fmtShort(startDate)} — ${fmtFull(endDate)}`,
+    settlementStr: fmtShort(settlementDate),
+    daysUntil,
+  }
+}
+
 function SettlementTab() {
   const [settlement, setSettlement] = useState<Settlement | null>(null)
-  const [loading, setLoading] = useState(true)
+  const [loadingCurrent, setLoadingCurrent] = useState(true)
   const [pvFilter, setPvFilter] = useState<'all' | 'valid' | 'pending'>('all')
+  const [history, setHistory] = useState<HistoryItem[]>([])
+  const [expandedPeriod, setExpandedPeriod] = useState<string | null>(null)
 
   useEffect(() => {
     fetch('/api/affiliate/settlement/current')
       .then((r) => r.json())
       .then((d) => setSettlement(d?.settlement ?? d ?? null))
       .catch(() => {})
-      .finally(() => setLoading(false))
+      .finally(() => setLoadingCurrent(false))
+
+    fetch('/api/affiliate/settlement/history')
+      .then((r) => r.json())
+      .then((d) => setHistory(d?.history ?? []))
+      .catch(() => setHistory([]))
   }, [])
 
-  if (loading)
-    return <div className="text-center py-8 text-gray-400 text-sm">Memuat data settlement...</div>
-
-  if (!settlement)
-    return (
-      <div className="text-center py-8 text-gray-500">
-        <div className="text-4xl mb-3">📊</div>
-        <p>Belum ada data settlement</p>
-      </div>
-    )
+  const periodInfo = computeCurrentPeriodInfo()
+  const orders = settlement?.orders ?? []
+  const filteredOrders = orders.filter(o =>
+    pvFilter === 'all' || o.status === pvFilter
+  )
+  const validPv = settlement?.valid_pv ?? 0
+  const pendingPv = settlement?.pending_pv ?? 0
 
   return (
-    <div className="space-y-4">
-      <div className="bg-[#f8fce8] rounded-xl p-4">
-        <p className="text-sm text-gray-500">{settlement.period_label}</p>
-        <div className="flex gap-2 mt-3">
-          <button onClick={() => setPvFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'all' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Semua ({(settlement.orders?.length ?? 0)})</button>
-          <button onClick={() => setPvFilter('valid')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'valid' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Valid PV ({settlement.valid_pv ?? 0})</button>
-          <button onClick={() => setPvFilter('pending')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Pending PV ({settlement.pending_pv ?? 0})</button>
-        </div>
-      </div>
+    <div className="space-y-6">
+      {/* ── Section 1: Periode Berjalan ── */}
+      <div>
+        <h3 className="font-semibold text-gray-800 mb-3">📅 Periode Berjalan</h3>
 
-      {settlement.orders?.length > 0 && (
-        <div className="space-y-2">
-          <p className="text-sm font-medium text-gray-700">Transaksi</p>
-          {settlement.orders.filter(o => pvFilter === 'all' || o.status === pvFilter).map((o) => (
-            <div
-              key={o.order_id ?? o.id}
-              className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-center text-sm"
-            >
-              <div>
-                <p className="text-xs text-gray-500">#{(o.order_id ?? o.id ?? '').slice(-8)}</p>
-                <p className="text-xs text-gray-400">
-                  Rp {(o.order_total ?? o.amount ?? 0).toLocaleString('id-ID')}
-                </p>
+        {/* Period header card */}
+        <div className="bg-[#f8fce8] rounded-xl p-4 mb-4">
+          <p className="text-sm font-semibold text-[#7FB300]">
+            {periodInfo.label}: {periodInfo.periodStr}
+          </p>
+          <p className="text-xs text-gray-500 mt-0.5">
+            Settlement: {periodInfo.settlementStr}
+            {periodInfo.daysUntil > 0 ? ` (${periodInfo.daysUntil} hari lagi)` : ' (hari ini)'}
+          </p>
+        </div>
+
+        {loadingCurrent ? (
+          <div className="text-center py-6 text-gray-400 text-sm">Memuat data...</div>
+        ) : !settlement ? (
+          <div className="text-center py-6 text-gray-500">
+            <div className="text-3xl mb-2">📊</div>
+            <p className="text-sm">Belum ada transaksi di periode ini</p>
+          </div>
+        ) : (
+          <>
+            {/* Stats bar */}
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+                <p className="text-lg font-bold text-[#7FB300]">{validPv}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Valid PV</p>
               </div>
-              <div className="text-right">
-                <p className="font-semibold text-[#7FB300]">+{o.pv_earned ?? o.pv} PV</p>
-                <p className="text-xs text-gray-400">{o.status}</p>
+              <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+                <p className="text-lg font-bold text-amber-500">{pendingPv}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Pending PV</p>
+              </div>
+              <div className="bg-white border border-gray-100 rounded-xl p-3 text-center">
+                <p className="text-lg font-bold text-gray-700">{orders.length}</p>
+                <p className="text-xs text-gray-500 mt-0.5">Total Order</p>
               </div>
             </div>
-          ))}
-        </div>
-      )}
+
+            {/* Filter tabs */}
+            <div className="flex gap-2 mb-4">
+              <button
+                onClick={() => setPvFilter('all')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  pvFilter === 'all' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'
+                }`}
+              >
+                Semua ({orders.length})
+              </button>
+              <button
+                onClick={() => setPvFilter('valid')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  pvFilter === 'valid' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'
+                }`}
+              >
+                Valid PV ({validPv})
+              </button>
+              <button
+                onClick={() => setPvFilter('pending')}
+                className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                  pvFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-white text-gray-600 border border-gray-200'
+                }`}
+              >
+                Pending PV ({pendingPv})
+              </button>
+            </div>
+
+            {/* Order cards */}
+            {filteredOrders.length === 0 ? (
+              <div className="text-center py-6 text-gray-400 text-sm">
+                Tidak ada transaksi untuk filter ini
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {filteredOrders.map((o) => {
+                  const isValid = o.status === 'valid'
+                  return (
+                    <div
+                      key={o.order_id ?? o.id}
+                      className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-start text-sm"
+                    >
+                      <div>
+                        <p className="text-xs text-gray-500 font-mono">#{(o.order_id ?? o.id ?? '').slice(-8)}</p>
+                        <p className="text-xs text-gray-400 mt-0.5">
+                          Rp {(o.order_total ?? o.amount ?? 0).toLocaleString('id-ID')}
+                        </p>
+                        {o.valid_at && (
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            Dikirim: {new Date(o.valid_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                          </p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className="font-semibold text-[#7FB300]">+{o.pv_earned ?? o.pv} PV</p>
+                        <span className={`inline-block text-xs px-2 py-0.5 rounded-full mt-1 font-medium ${
+                          isValid
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {isValid ? '🟢 Valid' : '🟡 Pending'}
+                        </span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* ── Section 2: Riwayat Settlement ── */}
+      <div>
+        <h3 className="font-semibold text-gray-800 mb-3">🗂️ Riwayat Settlement</h3>
+
+        {history.length === 0 ? (
+          <div className="bg-gray-50 rounded-xl p-5 text-center text-sm text-gray-500">
+            Belum ada riwayat settlement. Periode pertama akan settle 27 Mei 2026.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {history.map((item) => {
+              const isProcessed = item.processing_status === 'processed'
+              const isExpanded = expandedPeriod === item.period_label
+              return (
+                <div key={item.period_label} className="bg-white border border-gray-100 rounded-xl overflow-hidden">
+                  <div className="px-4 py-3">
+                    <div className="flex justify-between items-start gap-3">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-semibold text-sm text-gray-900">{item.period_label}</p>
+                        <p className="text-xs text-gray-500 mt-0.5">
+                          Settlement: {new Date(item.settlement_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {item.total_valid_pv} PV valid · {item.total_transactions} transaksi
+                        </p>
+                      </div>
+                      <div className="flex flex-col items-end gap-2 shrink-0">
+                        <span className={`inline-block text-xs px-2 py-0.5 rounded-full font-medium ${
+                          isProcessed
+                            ? 'bg-green-100 text-green-700'
+                            : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {isProcessed ? '🟢 Sudah diproses' : '🟡 Menunggu diproses'}
+                        </span>
+                        <button
+                          onClick={() => setExpandedPeriod(isExpanded ? null : item.period_label)}
+                          className="text-xs text-[#7FB300] font-medium hover:underline"
+                        >
+                          {isExpanded ? 'Tutup ▲' : 'Lihat detail ▼'}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {isExpanded && (
+                    <div className="border-t border-gray-100 px-4 py-3 bg-gray-50/50">
+                      {item.commissions.length === 0 ? (
+                        <p className="text-xs text-gray-400 text-center py-2">Tidak ada transaksi</p>
+                      ) : (
+                        <div className="space-y-2">
+                          {item.commissions.map((c, idx) => (
+                            <div key={c.order_id ?? c.id ?? idx} className="flex justify-between items-start text-sm">
+                              <div>
+                                <p className="text-xs text-gray-500 font-mono">#{(c.order_id ?? c.id ?? '').slice(-8)}</p>
+                                <p className="text-xs text-gray-400">
+                                  Rp {(c.order_total ?? c.amount ?? 0).toLocaleString('id-ID')}
+                                </p>
+                                {(c.delivered_at ?? c.valid_at) && (
+                                  <p className="text-xs text-gray-400">
+                                    Dikirim: {new Date((c.delivered_at ?? c.valid_at)!).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                                  </p>
+                                )}
+                              </div>
+                              <div className="text-right">
+                                <p className="font-semibold text-xs text-[#7FB300]">+{c.pv_earned ?? c.pv} PV</p>
+                                <span className={`inline-block text-xs px-1.5 py-0.5 rounded-full mt-0.5 ${
+                                  c.status === 'valid'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-amber-100 text-amber-700'
+                                }`}>
+                                  {c.status === 'valid' ? '🟢' : '🟡'} {c.status}
+                                </span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
@@ -1002,7 +1240,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
-        <StatCard label="Total PV" value={(stats.valid_pv ?? 0) + (stats.pending_pv ?? 0)} />
+        <StatCard label="Valid PV" value={stats.valid_pv ?? stats.lifetime_pv ?? 0} subLabel={computeCurrentPeriodInfo().periodStr} />
         <StatCard label="Pending PV" value={stats.pending_pv} />
         <StatCard label="Total Klik" value={stats.total_clicks} />
         <StatCard label="Total Member" value={stats.total_members} />
