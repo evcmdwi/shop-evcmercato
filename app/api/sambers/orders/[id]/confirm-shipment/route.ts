@@ -16,7 +16,13 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     const { id } = await params
     const { resi_number, tracking_url } = await req.json()
 
-    if (!resi_number || resi_number.trim().length < 8) {
+    // Get order to check courier type before validation
+    const { data: orderCheck } = await admin.from('orders').select('courier_type, shipping_method').eq('id', id).single()
+    const isGrab = orderCheck?.courier_type === 'grab' || orderCheck?.shipping_method === 'instan' || orderCheck?.shipping_method === 'sameday'
+
+    // For Grab orders, resi is optional — auto-generate if missing
+    const finalResi = resi_number?.trim() || (isGrab ? `GRAB-${id.slice(0,8).toUpperCase()}-${Date.now()}` : '')
+    if (!isGrab && finalResi.length < 8) {
       return NextResponse.json({ error: 'No. resi/order ID minimal 8 karakter' }, { status: 400 })
     }
 
@@ -45,7 +51,7 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     const { error } = await admin
       .from('orders')
       .update({
-        tracking_number: resi_number.trim(),
+        tracking_number: finalResi,
         tracking_url: tracking_url?.trim() || null,
         shipping_courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
         status: 'shipped',
@@ -70,12 +76,12 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       payerPhone: (userData as any)?.phone || order?.shipping_phone || '',
       status: 'shipped',
       courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
-      trackingNumber: resi_number.trim(),
+      trackingNumber: finalResi,
       trackingUrl: tracking_url?.trim() || undefined,
       shippingMethod: order?.shipping_method || undefined,
     }).catch(console.error)
 
-    return NextResponse.json({ data: { status: 'shipped', tracking_number: resi_number.trim() } })
+    return NextResponse.json({ data: { status: 'shipped', tracking_number: finalResi } })
   } catch (err) {
     console.error('[confirm-shipment] error:', err)
     return NextResponse.json({ error: 'Server error' }, { status: 500 })
