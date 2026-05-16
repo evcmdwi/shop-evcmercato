@@ -58,27 +58,10 @@ export async function GET(
 
   const admin = getSupabaseAdmin()
 
+  // Flat select — no embedded JOIN (avoids PostgREST FK lookup failures)
   const { data: link } = await admin
     .from('short_links')
-    .select(`
-      id,
-      short_code,
-      link_type,
-      target_url,
-      status,
-      landing_page_id,
-      affiliate_id,
-      affiliates:affiliate_id (
-        id,
-        code,
-        status
-      ),
-      landing_pages:landing_page_id (
-        id,
-        slug,
-        status
-      )
-    `)
+    .select('id, short_code, link_type, target_url, status, landing_page_id, affiliate_id')
     .eq('short_code', code)
     .eq('status', 'active')
     .maybeSingle()
@@ -87,31 +70,26 @@ export async function GET(
     return NextResponse.redirect(SHOP_HOME, { status: 302 })
   }
 
-  // Determine affiliate ref
-  const affiliate = Array.isArray(link.affiliates) ? link.affiliates[0] : link.affiliates
-  let attributeRef: string | null = affiliate?.code ?? null
-  if (affiliate?.status === 'suspended' || affiliate?.status === 'banned') {
-    attributeRef = null
-  }
+  // Use target_url directly (already has ?ref= embedded from getOrCreateAffiliateLPShortLink)
+  // For landing_page links: target_url = evcmercato.com/lp/slug?ref=CODE
+  // For other links: target_url = direct product/category URL
+  let target: string = link.target_url ?? SHOP_HOME
 
-  // Resolve target URL
-  const lp = Array.isArray(link.landing_pages) ? link.landing_pages[0] : link.landing_pages
-  let target: string
-
-  if (link.link_type === 'landing_page') {
-    if (!lp || lp.status === 'archived') {
-      target = SHOP_HOME
-    } else {
-      target = `${LP_BASE}${lp.slug}`
+  // Check affiliate status separately if needed (suspend check)
+  if (link.affiliate_id) {
+    const { data: aff } = await admin
+      .from('affiliates')
+      .select('status')
+      .eq('id', link.affiliate_id)
+      .single()
+    if (aff?.status === 'suspended' || aff?.status === 'banned') {
+      // Strip ref param from target
+      try {
+        const u = new URL(target)
+        u.searchParams.delete('ref')
+        target = u.toString()
+      } catch { /* ignore */ }
     }
-  } else {
-    target = link.target_url ?? SHOP_HOME
-  }
-
-  // Append ?ref= if applicable
-  if (attributeRef) {
-    const separator = target.includes('?') ? '&' : '?'
-    target = `${target}${separator}ref=${encodeURIComponent(attributeRef)}`
   }
 
   // Session cookie
