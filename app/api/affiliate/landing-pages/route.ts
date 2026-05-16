@@ -28,7 +28,7 @@ export async function GET(_req: NextRequest) {
   // ── 2. Verify affiliate ──────────────────────────────────────────────────────
   const { data: affiliate, error: affiliateError } = await supabase
     .from('affiliates')
-    .select('id, code, status')
+    .select('id, affiliate_code, status')
     .eq('user_id', user.id)
     .maybeSingle()
 
@@ -95,7 +95,7 @@ export async function GET(_req: NextRequest) {
         shortLink = await getOrCreateAffiliateLPShortLink(
           affiliate.id,
           lp.id,
-          affiliate.code,
+          affiliate.affiliate_code,
         )
       } catch (err) {
         console.error(`[affiliate/landing-pages] short-link error for LP ${lp.id}:`, err)
