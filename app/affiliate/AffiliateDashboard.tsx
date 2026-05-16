@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import Link from 'next/link'
+import LandingPagesTab from '@/components/affiliate/LandingPagesTab'
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -55,7 +56,7 @@ type ViewState =
   | 'rejected'
   | 'suspended'
 
-type ApprovedTab = 'generate' | 'performance' | 'members' | 'settlement' | 'pv'
+type ApprovedTab = 'generate' | 'performance' | 'members' | 'settlement' | 'pv' | 'lp'
 
 type LinkTarget = 'homepage' | 'product' | 'category'
 
@@ -956,6 +957,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
   const tabsRow2: { key: ApprovedTab; label: string }[] = [
     { key: 'settlement', label: 'Settlement' },
     { key: 'pv', label: '📋 PV Produk' },
+    { key: 'lp', label: '🔗 LP Promosi' },
   ]
 
   return (
@@ -1022,6 +1024,7 @@ export default function AffiliateDashboard({ userId: _userId, userEmail: _userEm
           {activeTab === 'members' && <MembersTab />}
           {activeTab === 'settlement' && <SettlementTab />}
           {activeTab === 'pv' && <PVTab />}
+          {activeTab === 'lp' && <LandingPagesTab />}
         </div>
       </div>
     </div>
