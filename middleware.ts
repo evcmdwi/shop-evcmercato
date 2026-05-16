@@ -7,8 +7,9 @@ export async function middleware(request: NextRequest) {
   const isApex = hostname === 'evcmercato.com' || hostname === 'www.evcmercato.com'
 
   if (isApex) {
-    if (request.nextUrl.pathname.startsWith('/lp/')) return NextResponse.next()
-    return NextResponse.redirect(new URL('https://shop.evcmercato.com' + request.nextUrl.pathname), 301)
+    // Allow /lp/* and /s/* (short links) to be served from apex domain
+    if (request.nextUrl.pathname.startsWith('/lp/') || request.nextUrl.pathname.startsWith('/s/')) return NextResponse.next()
+    return NextResponse.redirect(new URL('https://shop.evcmercato.com' + request.nextUrl.pathname + request.nextUrl.search), 301)
   }
 
   // shop.evcmercato.com/lp/* → 301 redirect ke apex evcmercato.com/lp/*
