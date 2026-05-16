@@ -31,9 +31,9 @@ export async function GET() {
         total_price
       )
     `)
-    .in('status', ['valid', 'owed_back'])
-    .gte('valid_at', `${start}T00:00:00.000Z`)
-    .lte('valid_at', `${end}T23:59:59.999Z`)
+    .in('status', ['pending', 'valid', 'owed_back'])
+    .gte('created_at', `${start}T00:00:00.000Z`)
+    .lte('created_at', `${end}T23:59:59.999Z`)
 
   if (error) {
     console.error('[settlement/current-period] error:', error)
