@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { emitOrderPaid } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
-import { notifyAffiliateOrderValid } from '@/lib/affiliate/notifications'
+import { notifyCommissionValid } from '@/lib/affiliate/notifications'
 
 // Initialize listeners
 setupEventListeners()
@@ -289,7 +289,7 @@ export async function GET(req: NextRequest) {
 
           // Send WA notif to affiliate about new valid order
           if (commission?.id) {
-            notifyAffiliateOrderValid(commission.id).catch(e =>
+            notifyCommissionValid(commission.id).catch(e =>
               console.error('[process-paid-orders] affiliate notif error:', e)
             )
           }
