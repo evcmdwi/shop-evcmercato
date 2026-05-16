@@ -611,10 +611,41 @@ function PerformanceTab() {
 // ─── Members Tab ──────────────────────────────────────────────────────────────
 
 function MembersTab() {
-  return (
+  const [members, setMembers] = useState<{ id: string; name: string; email: string; joined_at: string; total_points: number }[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetch('/api/affiliate/members')
+      .then(r => r.json())
+      .then(d => setMembers(d.members ?? []))
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  if (loading) return <div className="text-center py-8 text-gray-400 text-sm">Memuat data member...</div>
+
+  if (members.length === 0) return (
     <div className="text-center py-8 text-gray-500">
       <div className="text-4xl mb-3">👥</div>
       <p>Belum ada member yang mendaftar via link Anda</p>
+    </div>
+  )
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm text-gray-500">{members.length} member bergabung via link Anda</p>
+      {members.map(m => (
+        <div key={m.id} className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-center">
+          <div>
+            <p className="font-medium text-sm text-gray-900">{m.name}</p>
+            <p className="text-xs text-gray-400">{m.email}</p>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-gray-400">Bergabung</p>
+            <p className="text-xs font-medium text-gray-700">{new Date(m.joined_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
