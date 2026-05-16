@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { emitOrderPaid } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
+import { notifyAffiliateOrderValid } from '@/lib/affiliate/notifications'
 
 // Initialize listeners
 setupEventListeners()
@@ -285,6 +286,13 @@ export async function GET(req: NextRequest) {
           console.log(
             `[process-paid-orders] commission created: ${orderId} | code: ${order.attributed_affiliate_code} | PV: ${totalPV}`
           )
+
+          // Send WA notif to affiliate about new valid order
+          if (commission?.id) {
+            notifyAffiliateOrderValid(commission.id).catch(e =>
+              console.error('[process-paid-orders] affiliate notif error:', e)
+            )
+          }
         } else {
           // No valid affiliate — mark done so we don't retry forever
           await admin.from('orders').update({ commission_created: true }).eq('id', orderId)
