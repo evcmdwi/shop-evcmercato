@@ -1,55 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
-import { createClient as createAdminClient } from '@supabase/supabase-js'
-
-interface PeriodInfo {
-  start: string
-  end: string
-  settlementDate: string
-  label: string
-}
-
-function getCurrentPeriod(): PeriodInfo {
-  const now = new Date()
-  const day = now.getDate()
-  const month = now.getMonth()
-  const year = now.getFullYear()
-
-  if (day >= 27) {
-    // Periode A: 27 ini → 14 bulan depan
-    const start = new Date(year, month, 27)
-    const end = new Date(year, month + 1, 14)
-    const settle = new Date(year, month + 1, 15)
-    return {
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0],
-      settlementDate: settle.toISOString().split('T')[0],
-      label: `Periode A ${start.toLocaleDateString('id-ID')} - ${end.toLocaleDateString('id-ID')}`,
-    }
-  } else if (day >= 15) {
-    // Periode B: 15 ini → 26 ini, settle 27
-    const start = new Date(year, month, 15)
-    const end = new Date(year, month, 26)
-    const settle = new Date(year, month, 27)
-    return {
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0],
-      settlementDate: settle.toISOString().split('T')[0],
-      label: `Periode B ${start.toLocaleDateString('id-ID')} - ${end.toLocaleDateString('id-ID')}`,
-    }
-  } else {
-    // Periode A: 27 bulan lalu → 14 ini, settle 15
-    const start = new Date(year, month - 1, 27)
-    const end = new Date(year, month, 14)
-    const settle = new Date(year, month, 15)
-    return {
-      start: start.toISOString().split('T')[0],
-      end: end.toISOString().split('T')[0],
-      settlementDate: settle.toISOString().split('T')[0],
-      label: `Periode A ${start.toLocaleDateString('id-ID')} - ${end.toLocaleDateString('id-ID')}`,
-    }
-  }
-}
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { getCurrentPeriod } from '@/lib/affiliate/settlement-period'
 
 export async function GET() {
   const supabase = await createClient()
@@ -75,22 +27,44 @@ export async function GET() {
 
   const period = getCurrentPeriod()
 
-  const adminClient = createAdminClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.SUPABASE_SERVICE_ROLE_KEY!
+  // days_until_settlement
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const settleDate = new Date(period.settlementDate + 'T00:00:00Z')
+  const daysUntilSettlement = Math.max(
+    0,
+    Math.ceil((settleDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
   )
 
-  const { data: commissions, error: commError } = await adminClient
+  const admin = getSupabaseAdmin()
+
+  // Fetch commissions + join orders for delivered_at
+  const { data: commissions, error: commError } = await admin
     .from('commissions')
     .select('order_id, pv_earned, status, valid_at, order_total, created_at')
     .eq('affiliate_id', affiliate.id)
-    
-    
     .order('created_at', { ascending: false })
 
   if (commError) {
     console.error('[affiliate/settlement/current] query error:', commError)
     return NextResponse.json({ error: 'Gagal mengambil data settlement' }, { status: 500 })
+  }
+
+  // Fetch orders to get delivered_at for each commission
+  const orderIds = (commissions ?? []).map((c) => c.order_id).filter(Boolean)
+  let deliveredAtMap: Record<string, string | null> = {}
+
+  if (orderIds.length > 0) {
+    const { data: orders } = await admin
+      .from('orders')
+      .select('id, delivered_at')
+      .in('id', orderIds)
+
+    if (orders) {
+      for (const o of orders) {
+        deliveredAtMap[o.id] = o.delivered_at ?? null
+      }
+    }
   }
 
   const orders = (commissions ?? []).map((c: {
@@ -99,13 +73,24 @@ export async function GET() {
     status: string
     valid_at: string | null
     order_total: number
-  }) => ({
-    order_id: c.order_id,
-    pv_earned: c.pv_earned,
-    status: c.status,
-    valid_at: c.valid_at,
-    order_total: c.order_total,
-  }))
+    created_at: string
+  }) => {
+    const delivered_at = deliveredAtMap[c.order_id] ?? null
+    const estimated_valid_at =
+      c.status === 'pending' && delivered_at
+        ? new Date(new Date(delivered_at).getTime() + 48 * 60 * 60 * 1000).toISOString()
+        : null
+
+    return {
+      order_id: c.order_id,
+      pv_earned: c.pv_earned,
+      status: c.status,
+      valid_at: c.valid_at,
+      order_total: c.order_total,
+      delivered_at,
+      estimated_valid_at,
+    }
+  })
 
   const validPv = orders
     .filter((o) => o.status === 'valid')
@@ -121,6 +106,7 @@ export async function GET() {
       start: period.start,
       end: period.end,
       settlement_date: period.settlementDate,
+      days_until_settlement: daysUntilSettlement,
     },
     orders,
     totals: {
