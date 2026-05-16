@@ -11,6 +11,15 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('https://shop.evcmercato.com' + request.nextUrl.pathname), 301)
   }
 
+  // shop.evcmercato.com/lp/* → 301 redirect ke apex evcmercato.com/lp/*
+  const isShop = hostname === 'shop.evcmercato.com'
+  if (isShop && request.nextUrl.pathname.startsWith('/lp/')) {
+    const redirectUrl = new URL(request.url)
+    redirectUrl.host = 'evcmercato.com'
+    redirectUrl.protocol = 'https:'
+    return NextResponse.redirect(redirectUrl, 301)
+  }
+
   let supabaseResponse = NextResponse.next({ request })
 
   const supabase = createServerClient(
