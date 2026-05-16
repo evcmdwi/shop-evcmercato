@@ -680,22 +680,17 @@ function SettlementTab() {
     <div className="space-y-4">
       <div className="bg-[#f8fce8] rounded-xl p-4">
         <p className="text-sm text-gray-500">{settlement.period_label}</p>
-        <div className="flex gap-4 mt-2">
-          <div>
-            <p className="text-2xl font-bold text-[#7FB300]">{settlement.valid_pv}</p>
-            <p className="text-xs text-gray-500">Valid PV</p>
-          </div>
-          <div>
-            <p className="text-2xl font-bold text-amber-500">{settlement.pending_pv}</p>
-            <p className="text-xs text-gray-500">Pending PV</p>
-          </div>
+        <div className="flex gap-2 mt-3">
+          <button onClick={() => setPvFilter('all')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'all' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Semua ({(settlement.orders?.length ?? 0)})</button>
+          <button onClick={() => setPvFilter('valid')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'valid' ? 'bg-[#7FB300] text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Valid PV ({settlement.valid_pv ?? 0})</button>
+          <button onClick={() => setPvFilter('pending')} className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${pvFilter === 'pending' ? 'bg-amber-500 text-white' : 'bg-white text-gray-600 border border-gray-200'}`}>Pending PV ({settlement.pending_pv ?? 0})</button>
         </div>
       </div>
 
       {settlement.orders?.length > 0 && (
         <div className="space-y-2">
           <p className="text-sm font-medium text-gray-700">Transaksi</p>
-          {settlement.orders.map((o) => (
+          {settlement.orders.filter(o => pvFilter === 'all' || o.status === pvFilter).map((o) => (
             <div
               key={o.order_id ?? o.id}
               className="bg-white border border-gray-100 rounded-xl px-4 py-3 flex justify-between items-center text-sm"
