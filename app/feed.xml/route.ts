@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 const BASE_URL = 'https://shop.evcmercato.com'
 
 function slugify(text: string): string {
