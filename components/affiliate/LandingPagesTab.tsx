@@ -5,15 +5,15 @@ import LPCard from './LPCard';
 
 interface LPItem {
   id: string;
+  slug: string;
   title: string;
   description: string;
   target_audience: string;
   conversion_benchmark_pct: number;
-  short_link: {
-    code: string;
-    url: string;
-  };
-  stats_last_7_days: {
+  preview_image_url: string | null;
+  short_code: string | null;
+  short_url: string | null;
+  stats_7d: {
     clicks: number;
     signups: number;
     orders: number;
@@ -31,7 +31,8 @@ export default function LandingPagesTab() {
         const res = await fetch('/api/affiliate/landing-pages');
         if (!res.ok) throw new Error('Gagal memuat data landing page');
         const data = await res.json();
-        setItems(Array.isArray(data) ? data : data.data ?? []);
+        // API returns { landing_pages: [...] }
+        setItems(Array.isArray(data) ? data : (data.landing_pages ?? []));
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Terjadi kesalahan');
       } finally {
