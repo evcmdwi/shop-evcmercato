@@ -43,5 +43,29 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 
-  return NextResponse.json({ affiliates: affiliates ?? [], total: count ?? 0 })
+  // Aggregate real PV from commissions (lifetime_pv may be stale)
+  const affiliateIds = (affiliates ?? []).map((a: { id: string }) => a.id)
+  let pvMap: Record<string, number> = {}
+  let ordersMap: Record<string, number> = {}
+
+  if (affiliateIds.length > 0) {
+    const { data: commissions } = await admin
+      .from('commissions')
+      .select('affiliate_id, pv_earned')
+      .in('affiliate_id', affiliateIds)
+      .in('status', ['pending', 'valid'])
+
+    for (const c of commissions ?? []) {
+      pvMap[c.affiliate_id] = (pvMap[c.affiliate_id] ?? 0) + c.pv_earned
+      ordersMap[c.affiliate_id] = (ordersMap[c.affiliate_id] ?? 0) + 1
+    }
+  }
+
+  const enriched = (affiliates ?? []).map((a: Record<string, unknown>) => ({
+    ...a,
+    lifetime_pv: pvMap[a.id as string] ?? a.lifetime_pv ?? 0,
+    lifetime_orders: ordersMap[a.id as string] ?? a.lifetime_orders ?? 0,
+  }))
+
+  return NextResponse.json({ affiliates: enriched, total: count ?? 0 })
 }
