@@ -188,67 +188,82 @@ export default async function NateshPeriodComfortPage({
       }}>
         {/* ── SECTION 1: HERO ── */}
         <section className="relative overflow-hidden bg-[#FDF8F5]/90">
-          {/* Full-width hero image with all overlays inside */}
           <div className="relative">
             <Image
               src="/assets/natesh-hero-woman-bedroom.jpg"
               alt="Wanita nyaman bersama Natesh"
               width={600}
-              height={600}
+              height={620}
               className="w-full object-cover"
-              style={{ aspectRatio: '4/5' }}
+              style={{ aspectRatio: '1/1.1' }}
               priority
             />
 
-            {/* LEFT OVERLAY: badge + headline + subheadline */}
-            <div className="absolute top-5 left-4 w-[52%] flex flex-col">
+            {/* TOP-LEFT overlay: badge + headline (2 baris) */}
+            <div className="absolute top-4 left-3 w-[58%]">
               {/* Badge */}
-              <div className="inline-block bg-white/80 backdrop-blur-sm text-pink-600 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3 self-start">
-                🌸 Perawatan Diri • Setiap Hari
+              <div className="inline-flex items-center gap-1.5 bg-white/80 backdrop-blur-sm text-pink-600 text-[10px] font-semibold px-3 py-1.5 rounded-full mb-3">
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                  <path d="M12 2C8 2 5 5 5 9c0 5 7 13 7 13s7-8 7-13c0-4-3-7-7-7z" fill="#D4456B" opacity="0.3"/>
+                  <path d="M12 4c0 0-4 3-4 7s4 9 4 9 4-5 4-9-4-7-4-7z" fill="#D4456B"/>
+                </svg>
+                Perawatan Diri • Setiap Hari
               </div>
-              {/* Headline — bigger */}
-              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.65rem] leading-snug text-gray-900 mb-0.5">
+              {/* Headline 2 baris, lebih besar */}
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-[2rem] leading-tight text-gray-900 whitespace-nowrap">
                 Nyaman di Setiap
               </h1>
-              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.65rem] leading-snug text-[#D4456B] mb-2">
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-[2rem] leading-tight text-[#D4456B] mb-4">
                 Siklusmu.
               </h1>
-              {/* Subheadline directly below headline */}
-              <p className="text-gray-700 text-xs leading-relaxed mb-4">
+              {/* Subheadline — diberi jarak dari headline, tidak menyentuh wajah model */}
+              <p className="text-gray-700 text-[11px] leading-relaxed pr-2 mt-1">
                 {content.hero.subheadline}
               </p>
             </div>
 
-            {/* Product card — bottom left, tampil produk */}
-            <div className="absolute bottom-14 left-3 bg-[#F9E4E8]/92 backdrop-blur-sm rounded-2xl p-2.5 shadow-md border border-pink-100 w-[110px]">
-              <div className="bg-[#F9E4E8] rounded-xl overflow-hidden mb-2">
-                <Image
-                  src="/assets/natesh-packshot.png"
-                  alt="Natesh Pantyliner"
-                  width={100}
-                  height={70}
-                  className="w-full h-auto object-cover mix-blend-multiply"
-                />
-              </div>
-              <p className="text-[10px] font-bold text-gray-800 leading-tight text-center">Natesh Pantyliner</p>
-            </div>
-
-            {/* Trust badges — INSIDE image at bottom, 3 cards row */}
+            {/* Trust badges — bottom of image, dalam gambar, dengan headline + subheadline */}
             <div className="absolute bottom-2 left-2 right-2 grid grid-cols-3 gap-1.5">
               {[
-                { icon: '🌿', label: 'Lembut & Nyaman' },
-                { icon: '✓', label: 'Terpercaya' },
-                { icon: '♡', label: 'Dukung Diri' },
+                {
+                  headline: 'Lembut & Nyaman',
+                  sub: 'Untuk setiap hari',
+                  icon: (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
+                      <path d="M17 8C8 10 5.9 16.17 3.82 19.31C3.82 19.31 3 22 6 21C9 20 11 17 14 15C17 13 19 11 19 11L17 8Z" fill="#D4456B"/>
+                      <path d="M7 21C10 19 14 16 18 10" stroke="#D4456B" strokeWidth="1.5" strokeLinecap="round"/>
+                    </svg>
+                  )
+                },
+                {
+                  headline: 'Terpercaya',
+                  sub: 'Kualitas pilihan',
+                  icon: (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
+                      <path d="M20 6L9 17L4 12" stroke="#D4456B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
+                  )
+                },
+                {
+                  headline: 'Dukung Diri',
+                  sub: 'Ritual penuh cinta',
+                  icon: (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
+                      <path d="M12 21C12 21 4 14 4 8.5C4 5.42 6.42 3 9.5 3C11.07 3 12 4 12 4C12 4 12.93 3 14.5 3C17.58 3 20 5.42 20 8.5C20 14 12 21 12 21Z" fill="#D4456B" fillOpacity="0.2" stroke="#D4456B" strokeWidth="1.5"/>
+                    </svg>
+                  )
+                },
               ].map((t) => (
-                <div key={t.label} className="bg-white/85 backdrop-blur-sm rounded-xl py-1.5 px-1 text-center border border-white/60">
-                  <span className="text-xs font-bold text-[#D4456B] block">{t.icon}</span>
-                  <p className="text-[9px] font-semibold text-gray-700 leading-tight mt-0.5">{t.label}</p>
+                <div key={t.headline} className="bg-white/88 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-white/70 shadow-sm">
+                  {t.icon}
+                  <p className="text-[9.5px] font-bold text-gray-800 leading-tight">{t.headline}</p>
+                  <p className="text-[8px] text-gray-400 mt-0.5 leading-tight">{t.sub}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* CTA below image */}
+          {/* CTA button below image */}
           <div className="px-4 py-5 max-w-lg mx-auto">
             <a
               href={shopLink}
