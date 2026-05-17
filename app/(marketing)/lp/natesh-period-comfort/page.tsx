@@ -219,10 +219,18 @@ export default async function NateshPeriodComfortPage({
               </p>
             </div>
 
-            {/* Product mini card — bottom left, compact, no image */}
-            <div className="absolute bottom-16 left-4 bg-[#F9E4E8]/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow border border-pink-100 flex items-center gap-2">
-              <div className="w-2 h-2 rounded-full bg-[#D4456B]" />
-              <p className="text-xs font-bold text-gray-800">Natesh Pantyliner</p>
+            {/* Product card — bottom left, tampil produk */}
+            <div className="absolute bottom-14 left-3 bg-[#F9E4E8]/92 backdrop-blur-sm rounded-2xl p-2.5 shadow-md border border-pink-100 w-[110px]">
+              <div className="bg-[#F9E4E8] rounded-xl overflow-hidden mb-2">
+                <Image
+                  src="/assets/natesh-packshot.png"
+                  alt="Natesh Pantyliner"
+                  width={100}
+                  height={70}
+                  className="w-full h-auto object-cover mix-blend-multiply"
+                />
+              </div>
+              <p className="text-[10px] font-bold text-gray-800 leading-tight text-center">Natesh Pantyliner</p>
             </div>
 
             {/* Trust badges — INSIDE image at bottom, 3 cards row */}
