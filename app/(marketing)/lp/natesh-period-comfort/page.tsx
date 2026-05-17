@@ -179,7 +179,13 @@ export default async function NateshPeriodComfortPage({
         </a>
       </header>
 
-      <main>
+      <main style={{
+        backgroundImage: "url('/assets/natesh-bg-floral-wave.jpg')",
+        backgroundSize: 'cover',
+        backgroundAttachment: 'fixed',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+      }}>
         {/* ── SECTION 1: HERO ── */}
         <section className="relative overflow-hidden bg-[#FDF8F5] px-4 pt-8 pb-10">
           {/* Botanical pattern overlay */}
@@ -261,11 +267,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: hero → problem */}
         <div className="overflow-hidden -mb-1 bg-[#FDF8F5]" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 2: PROBLEM ── */}
-        <section className="px-4 py-12 bg-[#FDF8F5]">
+        <section className="px-4 py-12 bg-[#FDF8F5]/85">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-2 leading-tight">
               Saat PMS, Tubuh Bisa Terasa Lebih Sensitif.
@@ -292,11 +297,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: problem → solution */}
         <div className="overflow-hidden -mb-1 bg-white" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 3: SOLUTION ── */}
-        <section className="px-4 py-12 bg-white">
+        <section className="px-4 py-12 bg-white/90">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-3 leading-tight">
               Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
@@ -321,11 +325,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: solution → why */}
         <div className="overflow-hidden -mb-1 bg-[#FDF8F5]" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 4: WHY NATESH ── */}
-        <section className="px-4 py-12 bg-[#FDF8F5]">
+        <section className="px-4 py-12 bg-[#FDF8F5]/85">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-6 leading-tight">
               Kenapa Harus Pakai Natesh?
@@ -360,11 +363,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: why → routine */}
         <div className="overflow-hidden -mb-1 bg-white" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 5: ROUTINE ── */}
-        <section className="px-4 py-12 bg-white">
+        <section className="px-4 py-12 bg-white/90">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-5 leading-tight">
               Kapan Sebaiknya Pakai Natesh?
@@ -398,11 +400,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: routine → trust */}
         <div className="overflow-hidden -mb-1 bg-[#F9E4E8]" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 6: TRUST ── */}
-        <section className="px-4 py-12 bg-[#F9E4E8]">
+        <section className="px-4 py-12 bg-[#F9E4E8]/85">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-6 leading-tight">
               Belanja Natesh Lebih Aman di EVC Mercato.
@@ -421,11 +422,10 @@ export default async function NateshPeriodComfortPage({
 
         {/* Wave divider: trust → faq */}
         <div className="overflow-hidden -mb-1 bg-white" aria-hidden="true">
-          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
         </div>
 
         {/* ── SECTION 7: FAQ ── */}
-        <section className="px-4 py-12 bg-white">
+        <section className="px-4 py-12 bg-white/90">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-6">
               Pertanyaan Umum
