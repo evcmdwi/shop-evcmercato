@@ -222,18 +222,18 @@ export default async function NateshPeriodComfortPage({
               </p>
             </div>
 
-            {/* Trust badges 2x2 — bottom RIGHT, tidak menutupi model */}
-            <div className="absolute bottom-3 right-2 grid grid-cols-2 gap-1.5 w-[48%]">
+            {/* Trust badges 2x2 — bottom LEFT, background senada */}
+            <div className="absolute bottom-3 left-2 grid grid-cols-2 gap-1.5 w-[48%]">
               {[
                 { headline: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
                 { headline: 'Terpercaya', sub: 'Kualitas pilihan' },
                 { headline: 'Dukung Diri', sub: 'Ritual penuh cinta' },
                 { headline: 'Anion Ion-Negative', sub: 'Antioksidan area intimmu' },
               ].map((t) => (
-                <div key={t.headline} className="bg-white/80 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-white/60 shadow-sm">
+                <div key={t.headline} className="bg-[#F9E4E8]/85 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-pink-200/50 shadow-sm">
                   <div className="w-1.5 h-1.5 rounded-full bg-[#D4456B] mx-auto mb-1" />
                   <p className="text-[9px] font-bold text-gray-800 leading-tight">{t.headline}</p>
-                  <p className="text-[7.5px] text-gray-500 mt-0.5 leading-tight">{t.sub}</p>
+                  <p className="text-[7.5px] text-[#D4456B] mt-0.5 leading-tight font-medium">{t.sub}</p>
                 </div>
               ))}
             </div>
