@@ -333,33 +333,31 @@ export default async function NateshPeriodComfortPage({
         </div>
 
         {/* ── SECTION 3B: SOLUTION IMAGE ── */}
-        <section className="relative overflow-hidden bg-[#FDF8F5]/88">
+        <section className="overflow-hidden bg-[#FDF8F5]/88">
+          {/* Image with headline overlay on RIGHT side */}
           <div className="relative">
             <Image
-              src="/assets/natesh-hero-woman-bedroom.jpg"
+              src="/assets/natesh-support-nyaman.jpg"
               alt="Natesh mendampingi hari-hari sensitifmu"
               width={600}
-              height={500}
+              height={750}
               className="w-full object-cover"
-              style={{ aspectRatio: '4/3.5' }}
             />
-            {/* Copy overlay — RIGHT side (ruang kosong) */}
-            <div className="absolute top-0 right-0 bottom-0 w-[46%] flex flex-col justify-center px-3 py-6">
-              <div className="bg-white/75 backdrop-blur-sm rounded-2xl p-3 shadow-sm">
-                <h2 className="font-[family-name:var(--font-dm-serif)] text-[0.95rem] leading-snug text-gray-900 mb-2.5">
-                  Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
-                </h2>
-                <p className="text-gray-700 text-[9.5px] leading-relaxed mb-2">
-                  Hari-hari menjelang menstruasi memang bisa terasa lebih berat — tubuh berubah, mood naik turun, dan area kewanitaan butuh perhatian ekstra.
-                </p>
-                <p className="text-gray-700 text-[9.5px] leading-relaxed mb-2">
-                  Natesh hadir bukan untuk mengubah semua itu, tapi untuk membantu kamu merasa lebih nyaman melewatinya.
-                </p>
-                <p className="text-gray-700 text-[9.5px] leading-relaxed">
-                  Dengan Natesh Pantyliner, area kewanitaan bisa terjaga lebih fresh dan kering, sehingga aktivitas tetap bisa berjalan tanpa rasa terganggu.
-                </p>
-              </div>
+            {/* Headline overlay — TOP RIGHT (ruang kosong di kanan atas) */}
+            <div className="absolute top-4 right-3 w-[44%]">
+              <h2 className="font-[family-name:var(--font-dm-serif)] text-[1.1rem] leading-snug text-gray-900 text-right">
+                Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
+              </h2>
             </div>
+          </div>
+          {/* Copywriting BELOW image */}
+          <div className="px-5 py-6 max-w-lg mx-auto space-y-3">
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Hari-hari menjelang menstruasi memang bisa terasa lebih berat — tubuh berubah, mood naik turun, dan area kewanitaan butuh perhatian ekstra. Natesh hadir bukan untuk mengubah semua itu, tapi untuk membantu kamu merasa lebih nyaman melewatinya.
+            </p>
+            <p className="text-gray-700 text-sm leading-relaxed">
+              Dengan Natesh Pantyliner, area kewanitaan bisa terjaga lebih fresh dan kering, sehingga aktivitas tetap bisa berjalan tanpa rasa terganggu.
+            </p>
           </div>
         </section>
 
