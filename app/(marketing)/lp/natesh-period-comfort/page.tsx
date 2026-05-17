@@ -222,42 +222,18 @@ export default async function NateshPeriodComfortPage({
               </p>
             </div>
 
-            {/* Trust badges — bottom of image, dalam gambar, dengan headline + subheadline */}
-            <div className="absolute bottom-2 left-2 right-2 grid grid-cols-3 gap-1.5">
+            {/* Trust badges 2x2 — bottom RIGHT, tidak menutupi model */}
+            <div className="absolute bottom-3 right-2 grid grid-cols-2 gap-1.5 w-[48%]">
               {[
-                {
-                  headline: 'Lembut & Nyaman',
-                  sub: 'Untuk setiap hari',
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
-                      <path d="M17 8C8 10 5.9 16.17 3.82 19.31C3.82 19.31 3 22 6 21C9 20 11 17 14 15C17 13 19 11 19 11L17 8Z" fill="#D4456B"/>
-                      <path d="M7 21C10 19 14 16 18 10" stroke="#D4456B" strokeWidth="1.5" strokeLinecap="round"/>
-                    </svg>
-                  )
-                },
-                {
-                  headline: 'Terpercaya',
-                  sub: 'Kualitas pilihan',
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
-                      <path d="M20 6L9 17L4 12" stroke="#D4456B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
-                  )
-                },
-                {
-                  headline: 'Dukung Diri',
-                  sub: 'Ritual penuh cinta',
-                  icon: (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" className="mx-auto mb-0.5">
-                      <path d="M12 21C12 21 4 14 4 8.5C4 5.42 6.42 3 9.5 3C11.07 3 12 4 12 4C12 4 12.93 3 14.5 3C17.58 3 20 5.42 20 8.5C20 14 12 21 12 21Z" fill="#D4456B" fillOpacity="0.2" stroke="#D4456B" strokeWidth="1.5"/>
-                    </svg>
-                  )
-                },
+                { headline: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
+                { headline: 'Terpercaya', sub: 'Kualitas pilihan' },
+                { headline: 'Dukung Diri', sub: 'Ritual penuh cinta' },
+                { headline: 'Anion Ion-Negative', sub: 'Antioksidan area intimmu' },
               ].map((t) => (
-                <div key={t.headline} className="bg-white/88 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-white/70 shadow-sm">
-                  {t.icon}
-                  <p className="text-[9.5px] font-bold text-gray-800 leading-tight">{t.headline}</p>
-                  <p className="text-[8px] text-gray-400 mt-0.5 leading-tight">{t.sub}</p>
+                <div key={t.headline} className="bg-white/80 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-white/60 shadow-sm">
+                  <div className="w-1.5 h-1.5 rounded-full bg-[#D4456B] mx-auto mb-1" />
+                  <p className="text-[9px] font-bold text-gray-800 leading-tight">{t.headline}</p>
+                  <p className="text-[7.5px] text-gray-500 mt-0.5 leading-tight">{t.sub}</p>
                 </div>
               ))}
             </div>
@@ -300,38 +276,6 @@ export default async function NateshPeriodComfortPage({
           </div>
         </section>
 
-        {/* Wave divider: problem → solution */}
-        <div className="overflow-hidden -mb-1 bg-white" aria-hidden="true">
-        </div>
-
-        {/* ── SECTION 3: SOLUTION ── */}
-        <section className="px-4 py-12 bg-white/90">
-          <div className="max-w-lg mx-auto">
-            <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-3 leading-tight">
-              Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
-            </h2>
-            <p className="text-sm text-gray-600 mb-4 leading-relaxed">
-              Hari-hari menjelang menstruasi memang bisa terasa lebih berat — tubuh berubah, mood naik
-              turun, dan area kewanitaan butuh perhatian ekstra. Natesh hadir bukan untuk mengubah
-              semua itu, tapi untuk membantu kamu merasa lebih nyaman melewatinya.
-            </p>
-            <p className="text-sm text-gray-600 mb-6 leading-relaxed">
-              Dengan Natesh Pantyliner, area kewanitaan bisa terjaga lebih fresh dan kering, sehingga
-              aktivitas tetap bisa berjalan tanpa rasa terganggu.
-            </p>
-            {/* Highlight box */}
-            <div className="bg-[#F9E4E8] border border-pink-200 rounded-2xl p-5">
-              <p className="text-sm text-gray-800 font-semibold leading-relaxed text-center">
-                💡 &ldquo;Bukan untuk mengobati PMS, tapi membantu kamu merasa lebih nyaman menghadapi hari-hari sensitif.&rdquo;
-              </p>
-            </div>
-          </div>
-        </section>
-
-        {/* Wave divider: solution → why */}
-        <div className="overflow-hidden -mb-1 bg-[#FDF8F5]" aria-hidden="true">
-        </div>
-
         {/* ── SECTION 3B: SOLUTION IMAGE ── */}
         <section className="overflow-hidden bg-[#FDF8F5]/88">
           {/* Image with headline overlay on RIGHT side */}
@@ -359,6 +303,12 @@ export default async function NateshPeriodComfortPage({
             <p className="text-gray-700 text-sm leading-relaxed">
               Dengan Natesh Pantyliner, area kewanitaan bisa terjaga lebih fresh dan kering, sehingga aktivitas tetap bisa berjalan tanpa rasa terganggu.
             </p>
+            {/* Highlight box — di bawah copywriting */}
+            <div className="mt-4 bg-[#F9E4E8] border border-pink-200 rounded-2xl p-4">
+              <p className="text-sm text-gray-800 font-semibold leading-relaxed text-center">
+                💡 &ldquo;Bukan untuk mengobati PMS, tapi membantu kamu merasa lebih nyaman menghadapi hari-hari sensitif.&rdquo;
+              </p>
+            </div>
           </div>
         </section>
 
@@ -377,13 +327,13 @@ export default async function NateshPeriodComfortPage({
                 </div>
               ))}
             </div>
-            {/* Packshot */}
+            {/* Packshot flatlay */}
             <div className="rounded-2xl overflow-hidden mb-5">
               <Image
-                src="/assets/natesh-packshot-4variants.jpg"
+                src="/assets/natesh-packshot-flatlay.jpg"
                 alt="Natesh Pantyliner — 4 varian untuk kebutuhan kamu"
                 width={600}
-                height={400}
+                height={600}
                 className="w-full h-auto object-cover"
               />
             </div>
@@ -458,6 +408,18 @@ export default async function NateshPeriodComfortPage({
         {/* Wave divider: trust → faq */}
         <div className="overflow-hidden -mb-1 bg-white" aria-hidden="true">
         </div>
+
+        {/* ── CTA BEFORE FAQ ── */}
+        <section className="px-4 pb-8 bg-[#FDF8F5]/85">
+          <div className="max-w-lg mx-auto">
+            <a
+              href={shopLink}
+              className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors shadow-md"
+            >
+              🛒 Belanja Natesh Sekarang
+            </a>
+          </div>
+        </section>
 
         {/* ── SECTION 7: FAQ ── */}
         <section className="px-4 py-12 bg-white/90">
