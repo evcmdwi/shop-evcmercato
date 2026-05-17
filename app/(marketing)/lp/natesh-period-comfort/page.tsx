@@ -187,87 +187,77 @@ export default async function NateshPeriodComfortPage({
         backgroundRepeat: 'no-repeat',
       }}>
         {/* ── SECTION 1: HERO ── */}
-        <section className="relative overflow-hidden bg-[#FDF8F5] px-4 pt-8 pb-10">
-          {/* Botanical pattern overlay */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              backgroundImage: `url('/assets/natesh-bg-pattern.svg')`,
-              backgroundRepeat: 'repeat',
-              backgroundSize: '200px 200px',
-              opacity: 0.12,
-            }}
-            aria-hidden="true"
-          />
-          {/* Floral wave accent */}
-          <div
-            className="absolute inset-0 pointer-events-none opacity-10"
-            style={{
-              backgroundImage: `url('/assets/natesh-bg-floral-wave.jpg')`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            }}
-            aria-hidden="true"
-          />
+        <section className="relative overflow-hidden bg-[#FDF8F5]/90 px-4 pt-6 pb-10">
           <div className="relative max-w-lg mx-auto">
+            {/* Badge */}
             <div className="inline-block bg-[#F9E4E8] text-pink-600 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              🌸 Period Comfort Care
+              🌸 Perawatan Diri • Setiap Hari
             </div>
-            <h1 className="font-[family-name:var(--font-dm-serif)] text-3xl text-gray-900 leading-tight mb-3">
-              {content.hero.headline}
-            </h1>
-            <p className="text-gray-500 text-base mb-6 leading-relaxed">
-              {content.hero.subheadline}
-            </p>
-            {/* 3 micro icons */}
-            <div className="flex flex-wrap gap-2 mb-5">
-              {[
-                'Nyaman dipakai rutin',
-                'Praktis untuk aktivitas harian',
-                'Cocok untuk wanita aktif',
-              ].map((item) => (
-                <span
-                  key={item}
-                  className="bg-white/80 border border-pink-100 text-xs text-gray-600 px-3 py-1.5 rounded-full font-medium"
-                >
-                  ✓ {item}
-                </span>
-              ))}
-            </div>
-            {/* Hero image */}
-            <div className="rounded-3xl overflow-hidden bg-[#F9E4E8] mb-5">
-              <Image
-                src="/assets/natesh-hero-woman-bedroom.jpg"
-                alt="Wanita nyaman bersama Natesh di hari-hari sensitif"
-                width={600}
-                height={400}
-                className="w-full h-auto object-cover"
-                priority
-              />
-            </div>
-            {/* CTA buttons horizontal */}
-            <div className="flex gap-3">
+
+            {/* Hero layout: copy kiri, image kanan */}
+            <div className="flex flex-col gap-5">
+              {/* Headline + subheadline + trust */}
+              <div>
+                <h1 className="font-[family-name:var(--font-dm-serif)] text-3xl text-gray-900 leading-tight mb-1">
+                  Nyaman di Setiap
+                </h1>
+                <h1 className="font-[family-name:var(--font-dm-serif)] text-3xl text-[#D4456B] leading-tight mb-4">
+                  Siklusmu.
+                </h1>
+                <p className="text-gray-500 text-sm mb-5 leading-relaxed">
+                  {content.hero.subheadline}
+                </p>
+              </div>
+
+              {/* Hero image with floating product card */}
+              <div className="relative rounded-3xl overflow-hidden shadow-lg">
+                <Image
+                  src="/assets/natesh-hero-woman-bedroom.jpg"
+                  alt="Wanita nyaman bersama Natesh"
+                  width={600}
+                  height={500}
+                  className="w-full h-auto object-cover"
+                  priority
+                />
+                {/* Floating product card */}
+                <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-2xl p-3 shadow-lg max-w-[160px]">
+                  <Image
+                    src="/assets/natesh-packshot-4variants.jpg"
+                    alt="Natesh Pantyliner"
+                    width={120}
+                    height={80}
+                    className="w-full h-auto rounded-xl mb-2 object-cover"
+                  />
+                  <p className="text-xs font-bold text-gray-800 leading-tight">Rangkaian Nyaman &amp; Terpercaya</p>
+                  <p className="text-xs text-gray-500 mt-0.5">Dukung hari-harimu dengan Natesh</p>
+                </div>
+              </div>
+
+              {/* 3 trust icons */}
+              <div className="grid grid-cols-3 gap-2 text-center">
+                {[
+                  { icon: '🌿', label: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
+                  { icon: '✅', label: 'Terpercaya', sub: 'Kualitas pilihan' },
+                  { icon: '💫', label: 'Dukung Diri Sendiri', sub: 'Ritual penuh cinta' },
+                ].map((t) => (
+                  <div key={t.label} className="bg-white/80 rounded-2xl p-3 border border-pink-50">
+                    <span className="text-xl block mb-1">{t.icon}</span>
+                    <p className="text-xs font-semibold text-gray-800 leading-tight">{t.label}</p>
+                    <p className="text-xs text-gray-400 mt-0.5">{t.sub}</p>
+                  </div>
+                ))}
+              </div>
+
+              {/* CTA */}
               <a
                 href={shopLink}
-                className="flex-1 block text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
+                className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
               >
-                {content.hero.cta_primary.text}
-              </a>
-              <a
-                href={waLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors text-center"
-              >
-                {content.hero.cta_secondary?.text}
+                Temukan Rangkaian Lengkap →
               </a>
             </div>
           </div>
         </section>
-
-        {/* Wave divider: hero → problem */}
-        <div className="overflow-hidden -mb-1 bg-[#FDF8F5]" aria-hidden="true">
-        </div>
 
         {/* ── SECTION 2: PROBLEM ── */}
         <section className="px-4 py-12 bg-[#FDF8F5]/85">
