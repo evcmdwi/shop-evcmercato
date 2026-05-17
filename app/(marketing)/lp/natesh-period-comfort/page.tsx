@@ -78,6 +78,11 @@ const NATESH_BENEFITS = [
     title: 'Praktis untuk Wanita Aktif',
     desc: 'Ringan, praktis, dan mudah dibawa ke mana saja.',
   },
+  {
+    icon: '🌟',
+    title: 'Manfaat Kesehatan Tambahan',
+    desc: 'Mengandung Anion, Nano Silver, FIR, Herbal dan Magnet untuk kesehatanmu.',
+  },
 ]
 
 const USE_CASES = [
