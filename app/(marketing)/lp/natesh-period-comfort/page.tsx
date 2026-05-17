@@ -222,16 +222,16 @@ export default async function NateshPeriodComfortPage({
               </p>
             </div>
 
-            {/* Trust badges 2x2 — bottom LEFT, background senada */}
+            {/* Trust badges 2x2 — bottom LEFT, background senada, SVG icons */}
             <div className="absolute bottom-3 left-2 grid grid-cols-2 gap-1.5 w-[48%]">
               {[
-                { headline: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
-                { headline: 'Terpercaya', sub: 'Kualitas pilihan' },
-                { headline: 'Dukung Diri', sub: 'Ritual penuh cinta' },
-                { headline: 'Anion Ion-Negative', sub: 'Antioksidan area intimmu' },
+                { headline: 'Lembut & Nyaman', sub: 'Untuk setiap hari', icon: '/assets/natesh-icon-lembut.svg' },
+                { headline: 'Terpercaya', sub: 'Kualitas pilihan', icon: '/assets/natesh-icon-terpercaya.svg' },
+                { headline: 'Dukung Diri', sub: 'Ritual penuh cinta', icon: '/assets/natesh-icon-dukung.svg' },
+                { headline: 'Anion Ion-Negative', sub: 'Antioksidan area intimmu', icon: '/assets/natesh-icon-anion.svg' },
               ].map((t) => (
                 <div key={t.headline} className="bg-[#F9E4E8]/85 backdrop-blur-sm rounded-xl py-2 px-1.5 text-center border border-pink-200/50 shadow-sm">
-                  <div className="w-1.5 h-1.5 rounded-full bg-[#D4456B] mx-auto mb-1" />
+                  <img src={t.icon} alt="" className="w-5 h-5 mx-auto mb-1" aria-hidden="true" />
                   <p className="text-[9px] font-bold text-gray-800 leading-tight">{t.headline}</p>
                   <p className="text-[7.5px] text-[#D4456B] mt-0.5 leading-tight font-medium">{t.sub}</p>
                 </div>
