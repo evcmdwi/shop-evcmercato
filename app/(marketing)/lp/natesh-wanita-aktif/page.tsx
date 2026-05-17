@@ -160,9 +160,27 @@ export default async function NateshPage({
         </a>
       </header>
 
-      <main className="bg-[#FDF8F5]">
+      <main
+        className="bg-[#FDF8F5] relative"
+        style={{
+          backgroundImage: `url('/assets/natesh-bg-pattern.svg')`,
+          backgroundRepeat: 'repeat',
+          backgroundSize: '200px 200px',
+        }}
+      >
         {/* SECTION 1 — HERO */}
-        <section className="px-4 pt-8 pb-10 bg-white">
+        <section className="px-4 pt-8 pb-10 bg-white relative overflow-hidden">
+          {/* Botanical overlay */}
+          <div
+            className="absolute inset-0 pointer-events-none"
+            style={{
+              backgroundImage: `url('/assets/natesh-bg-pattern.svg')`,
+              backgroundRepeat: 'repeat',
+              backgroundSize: '180px 180px',
+              opacity: 0.08,
+            }}
+            aria-hidden="true"
+          />
           <div className="max-w-lg mx-auto">
             <div className="inline-block bg-[#F9E4E8] text-pink-600 text-xs font-semibold px-3 py-1 rounded-full mb-4">
               🌸 Feminine Care Premium
@@ -239,6 +257,11 @@ export default async function NateshPage({
           </div>
         </section>
 
+        {/* Wave divider: section 2 → 3 */}
+        <div className="overflow-hidden -mb-1" aria-hidden="true">
+          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
+        </div>
+
         {/* SECTION 3 — KENAPA NATESH */}
         <section className="px-4 py-12 bg-white">
           <div className="max-w-lg mx-auto">
@@ -289,6 +312,11 @@ export default async function NateshPage({
             </a>
           </div>
         </section>
+
+        {/* Wave divider: section 3 → 4 */}
+        <div className="overflow-hidden -mb-1" aria-hidden="true">
+          <img src="/assets/natesh-wave-divider.svg" alt="" className="w-full" />
+        </div>
 
         {/* SECTION 4 — USE CASE */}
         <section className="px-4 py-12 bg-[#F9E4E8]">
