@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" width="200" height="200">
+  <defs>
+    <pattern id="botanicalTile" x="0" y="0" width="200" height="200" patternUnits="userSpaceOnUse">
+
+      <!-- Leaf 1: top-left area -->
+      <g opacity="0.08" fill="none" stroke="#df91a3" stroke-width="1.2" stroke-linecap="round">
+        <path d="M18 40 Q30 20 42 40 Q30 52 18 40Z" fill="#df91a3" stroke="none" opacity="0.07"/>
+        <path d="M30 40 Q30 28 30 52" stroke="#df91a3" stroke-width="0.8"/>
+        <path d="M30 52 Q24 62 22 72" stroke="#df91a3" stroke-width="0.9"/>
+      </g>
+
+      <!-- Leaf 2: small leaf near center-left -->
+      <g opacity="0.07" fill="none" stroke="#df91a3" stroke-linecap="round">
+        <path d="M55 90 Q65 76 75 90 Q65 100 55 90Z" fill="#df91a3" stroke="none" opacity="0.06"/>
+        <path d="M65 90 Q65 80 65 100" stroke="#df91a3" stroke-width="0.7"/>
+      </g>
+
+      <!-- Leaf 3: right side, slightly larger -->
+      <g opacity="0.08" fill="none" stroke="#df91a3" stroke-linecap="round">
+        <path d="M148 55 Q162 35 176 55 Q162 70 148 55Z" fill="#df91a3" stroke="none" opacity="0.07"/>
+        <path d="M162 55 Q162 40 162 70" stroke="#df91a3" stroke-width="0.9"/>
+        <path d="M162 70 Q157 80 155 92" stroke="#df91a3" stroke-width="0.85"/>
+      </g>
+
+      <!-- Leaf 4: bottom-right -->
+      <g opacity="0.07" fill="none" stroke="#df91a3" stroke-linecap="round">
+        <path d="M135 150 Q148 134 160 150 Q148 162 135 150Z" fill="#df91a3" stroke="none" opacity="0.06"/>
+        <path d="M147 150 Q147 137 147 163" stroke="#df91a3" stroke-width="0.75"/>
+      </g>
+
+      <!-- Leaf 5: bottom-left -->
+      <g opacity="0.08">
+        <path d="M22 155 Q34 138 46 155 Q34 168 22 155Z" fill="#df91a3" stroke="none" opacity="0.07"/>
+        <path d="M34 155 Q34 142 34 168" stroke="#df91a3" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+      </g>
+
+      <!-- Small flower 1: top-right quadrant -->
+      <g opacity="0.09">
+        <circle cx="120" cy="28" r="2.5" fill="#df91a3" opacity="0.08"/>
+        <path d="M120 22 Q122 25 120 28 Q118 25 120 22Z" fill="#df91a3" opacity="0.07"/>
+        <path d="M120 28 Q122 31 120 34 Q118 31 120 28Z" fill="#df91a3" opacity="0.07"/>
+        <path d="M114 28 Q117 30 120 28 Q117 26 114 28Z" fill="#df91a3" opacity="0.07"/>
+        <path d="M120 28 Q123 30 126 28 Q123 26 120 28Z" fill="#df91a3" opacity="0.07"/>
+        <path d="M115 23 Q117 26 120 28 Q118 25 115 23Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M125 23 Q123 26 120 28 Q122 25 125 23Z" fill="#df91a3" opacity="0.06"/>
+      </g>
+
+      <!-- Small flower 2: center area -->
+      <g opacity="0.08">
+        <circle cx="98" cy="108" r="2" fill="#df91a3" opacity="0.08"/>
+        <path d="M98 103 Q100 105 98 108 Q96 105 98 103Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M98 108 Q100 111 98 113 Q96 111 98 108Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M93 108 Q95 110 98 108 Q95 106 93 108Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M98 108 Q101 110 103 108 Q101 106 98 108Z" fill="#df91a3" opacity="0.06"/>
+      </g>
+
+      <!-- Small flower 3: bottom area -->
+      <g opacity="0.08">
+        <circle cx="172" cy="170" r="2.2" fill="#df91a3" opacity="0.07"/>
+        <path d="M172 165 Q174 167 172 170 Q170 167 172 165Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M172 170 Q174 173 172 175 Q170 173 172 170Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M167 170 Q169 172 172 170 Q169 168 167 170Z" fill="#df91a3" opacity="0.06"/>
+        <path d="M172 170 Q175 172 177 170 Q175 168 172 170Z" fill="#df91a3" opacity="0.06"/>
+      </g>
+
+      <!-- Scattered tiny dots (floral accents) -->
+      <circle cx="85" cy="18" r="1.2" fill="#df91a3" opacity="0.08"/>
+      <circle cx="92" cy="22" r="0.8" fill="#df91a3" opacity="0.06"/>
+      <circle cx="40" cy="115" r="1.1" fill="#df91a3" opacity="0.07"/>
+      <circle cx="47" cy="108" r="0.7" fill="#df91a3" opacity="0.05"/>
+      <circle cx="180" cy="100" r="1.2" fill="#df91a3" opacity="0.07"/>
+      <circle cx="186" cy="108" r="0.8" fill="#df91a3" opacity="0.05"/>
+      <circle cx="108" cy="180" r="1.1" fill="#df91a3" opacity="0.07"/>
+      <circle cx="100" cy="186" r="0.7" fill="#df91a3" opacity="0.05"/>
+      <circle cx="60" cy="50" r="0.9" fill="#df91a3" opacity="0.06"/>
+      <circle cx="145" cy="130" r="0.9" fill="#df91a3" opacity="0.06"/>
+
+      <!-- Delicate curved stems -->
+      <path d="M30 52 Q20 68 25 82" stroke="#df91a3" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.07"/>
+      <path d="M162 70 Q168 88 162 105" stroke="#df91a3" stroke-width="0.8" fill="none" stroke-linecap="round" opacity="0.07"/>
+      <path d="M34 168 Q28 180 32 195" stroke="#df91a3" stroke-width="0.75" fill="none" stroke-linecap="round" opacity="0.06"/>
+
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#botanicalTile)"/>
+</svg>
