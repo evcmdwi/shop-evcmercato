@@ -169,7 +169,7 @@ export default async function NateshPage({
         }}
       >
         {/* SECTION 1 — HERO */}
-        <section className="px-4 pt-8 pb-10 bg-white relative overflow-hidden">
+        <section className="px-4 pt-8 pb-10 relative overflow-hidden">
           {/* Botanical overlay */}
           <div
             className="absolute inset-0 pointer-events-none"
@@ -177,7 +177,7 @@ export default async function NateshPage({
               backgroundImage: `url('/assets/natesh-bg-pattern.svg')`,
               backgroundRepeat: 'repeat',
               backgroundSize: '180px 180px',
-              opacity: 0.08,
+              opacity: 0.15,
             }}
             aria-hidden="true"
           />
@@ -263,7 +263,7 @@ export default async function NateshPage({
         </div>
 
         {/* SECTION 3 — KENAPA NATESH */}
-        <section className="px-4 py-12 bg-white">
+        <section className="px-4 py-12">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-3">
               Kenapa Wanita Aktif Memilih Natesh?
