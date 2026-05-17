@@ -343,10 +343,11 @@ export default async function NateshPeriodComfortPage({
               height={750}
               className="w-full object-cover"
             />
-            {/* Headline overlay — TOP RIGHT (ruang kosong di kanan atas) */}
-            <div className="absolute top-4 right-3 w-[44%]">
-              <h2 className="font-[family-name:var(--font-dm-serif)] text-[1.1rem] leading-snug text-gray-900 text-right">
-                Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
+            {/* Headline overlay — RIGHT, sejajar mata model */}
+            <div className="absolute top-[28%] right-3 w-[44%]">
+              <h2 className="font-[family-name:var(--font-dm-serif)] text-[1.35rem] leading-snug text-gray-900 text-right">
+                Natesh Jadi Support Nyaman di Hari-Hari{' '}
+                <span className="text-[#D4456B]">Sensitifmu.</span>
               </h2>
             </div>
           </div>
