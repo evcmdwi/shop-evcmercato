@@ -187,73 +187,67 @@ export default async function NateshPeriodComfortPage({
         backgroundRepeat: 'no-repeat',
       }}>
         {/* ── SECTION 1: HERO ── */}
-        <section className="relative overflow-hidden bg-[#FDF8F5]/90 pb-6">
-          {/* Full-width hero image */}
+        <section className="relative overflow-hidden bg-[#FDF8F5]/90">
+          {/* Full-width hero image with all overlays inside */}
           <div className="relative">
             <Image
               src="/assets/natesh-hero-woman-bedroom.jpg"
               alt="Wanita nyaman bersama Natesh"
               width={600}
-              height={500}
-              className="w-full h-auto object-cover"
+              height={600}
+              className="w-full object-cover"
+              style={{ aspectRatio: '4/5' }}
               priority
             />
-            {/* Text overlay — LEFT side (ruang kosong) */}
-            <div className="absolute top-0 left-0 bottom-0 w-[52%] flex flex-col justify-center px-5 py-6">
-              <div className="inline-block bg-white/70 backdrop-blur-sm text-pink-600 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3 self-start">
+
+            {/* LEFT OVERLAY: badge + headline + subheadline */}
+            <div className="absolute top-5 left-4 w-[52%] flex flex-col">
+              {/* Badge */}
+              <div className="inline-block bg-white/80 backdrop-blur-sm text-pink-600 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3 self-start">
                 🌸 Perawatan Diri • Setiap Hari
               </div>
-              <h1 className="font-[family-name:var(--font-dm-serif)] text-xl leading-snug text-gray-900 mb-1">
+              {/* Headline — bigger */}
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.65rem] leading-snug text-gray-900 mb-0.5">
                 Nyaman di Setiap
               </h1>
-              <h1 className="font-[family-name:var(--font-dm-serif)] text-xl leading-snug text-[#D4456B] mb-3">
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.65rem] leading-snug text-[#D4456B] mb-2">
                 Siklusmu.
               </h1>
-              <p className="text-gray-700 text-xs leading-relaxed mb-4 hidden sm:block">
+              {/* Subheadline directly below headline */}
+              <p className="text-gray-700 text-xs leading-relaxed mb-4">
                 {content.hero.subheadline}
               </p>
-              <a
-                href={shopLink}
-                className="inline-block bg-[#D4456B] text-white px-4 py-2.5 rounded-full font-bold text-xs hover:bg-[#B93A5B] transition-colors self-start"
-              >
-                Temukan Rangkaian →
-              </a>
             </div>
 
-            {/* Product card — bottom LEFT, senada background */}
-            <div className="absolute bottom-4 left-4 bg-[#F9E4E8]/90 backdrop-blur-sm rounded-2xl p-3 shadow-md max-w-[130px] border border-pink-100">
-              <div className="bg-[#FDF8F5] rounded-xl p-1.5 mb-2">
-                <Image
-                  src="/assets/natesh-packshot-4variants.jpg"
-                  alt="Natesh Pantyliner"
-                  width={110}
-                  height={70}
-                  className="w-full h-auto rounded-lg object-cover mix-blend-multiply"
-                />
-              </div>
-              <p className="text-xs font-bold text-gray-800 leading-tight">Natesh Pantyliner</p>
-              <p className="text-[10px] text-gray-500 mt-0.5">Comfort routine</p>
+            {/* Product mini card — bottom left, compact, no image */}
+            <div className="absolute bottom-16 left-4 bg-[#F9E4E8]/90 backdrop-blur-sm rounded-xl px-3 py-2 shadow border border-pink-100 flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-[#D4456B]" />
+              <p className="text-xs font-bold text-gray-800">Natesh Pantyliner</p>
+            </div>
+
+            {/* Trust badges — INSIDE image at bottom, 3 cards row */}
+            <div className="absolute bottom-2 left-2 right-2 grid grid-cols-3 gap-1.5">
+              {[
+                { icon: '🌿', label: 'Lembut & Nyaman' },
+                { icon: '✓', label: 'Terpercaya' },
+                { icon: '♡', label: 'Dukung Diri' },
+              ].map((t) => (
+                <div key={t.label} className="bg-white/85 backdrop-blur-sm rounded-xl py-1.5 px-1 text-center border border-white/60">
+                  <span className="text-xs font-bold text-[#D4456B] block">{t.icon}</span>
+                  <p className="text-[9px] font-semibold text-gray-700 leading-tight mt-0.5">{t.label}</p>
+                </div>
+              ))}
             </div>
           </div>
 
-          {/* Trust icons — below image, single color */}
-          <div className="grid grid-cols-3 gap-2 px-4 mt-4 max-w-lg mx-auto">
-            {[
-              { icon: '🌿', label: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
-              { icon: '✓', label: 'Terpercaya', sub: 'Kualitas pilihan' },
-              { icon: '♡', label: 'Dukung Diri', sub: 'Ritual penuh cinta' },
-            ].map((t) => (
-              <div key={t.label} className="bg-white/80 rounded-2xl p-3 border border-[#F2D5DA] text-center">
-                <span className="text-base font-bold text-[#D4456B] block mb-1">{t.icon}</span>
-                <p className="text-xs font-semibold text-gray-700 leading-tight">{t.label}</p>
-                <p className="text-[10px] text-gray-400 mt-0.5">{t.sub}</p>
-              </div>
-            ))}
-          </div>
-
-          {/* Subheadline below on mobile */}
-          <div className="px-4 mt-4 max-w-lg mx-auto sm:hidden">
-            <p className="text-gray-600 text-sm leading-relaxed text-center">{content.hero.subheadline}</p>
+          {/* CTA below image */}
+          <div className="px-4 py-5 max-w-lg mx-auto">
+            <a
+              href={shopLink}
+              className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
+            >
+              Temukan Rangkaian Lengkap →
+            </a>
           </div>
         </section>
 
