@@ -113,17 +113,21 @@ export default function CheckoutPage() {
   const shippingDiscount = subtotal >= 80000 ? 10000 : 0
   const selectedMethodData = shippingRates?.available_methods?.find((m) => m.method === shippingMethod)
   const baseRate = selectedMethodData?.base_rate ?? 10000
-  const shippingCost = Math.max(0, baseRate - shippingDiscount)
-  const freeShipping = shippingCost === 0
   const qualifiesForFreeShipping = subtotal >= 80000
   const remaining = Math.max(0, 80000 - subtotal)
-  // Service fee always free (Phase 1)
-  const totalSaved = (qualifiesForFreeShipping ? baseRate : 0) + serviceFee
-  const totalAmount = subtotal + shippingCost
+  // Always show full shipping + service fee, discount as separate line
+  const shippingFee = baseRate  // always show full rate
+  const serviceFeeFull = serviceFee  // always show Rp3.000
+  // Discount: if qualifies → -10.000 ongkir + -3.000 layanan = -13.000; else just -3.000 layanan
+  const promoDiscount = qualifiesForFreeShipping ? -(shippingDiscount + serviceFee) : -serviceFee
+  const totalAmount = subtotal + shippingFee + serviceFeeFull + promoDiscount
+  const totalSaved = Math.abs(promoDiscount)
   const evcPoints = Math.floor(subtotal / 1000)
   // Keep backward compat vars
   const ongkir = baseRate
-  const promo = qualifiesForFreeShipping ? -(ongkir + serviceFee) : -serviceFee
+  const shippingCost = shippingFee
+  const freeShipping = false
+  const promo = promoDiscount
   const totalBayar = totalAmount
 
   const handlePay = async () => {
@@ -399,24 +403,18 @@ export default function CheckoutPage() {
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Ongkos Kirim</span>
-                      <span>
-                        {qualifiesForFreeShipping ? (
-                          <span>
-                            <s className="text-gray-400 mr-1">{formatRupiah(selectedMethodData?.base_rate ?? 10000)}</s>
-                            <span className="text-[#1D9E75] font-bold">GRATIS</span>
-                          </span>
-                        ) : (
-                          <span className="font-medium">{formatRupiah(shippingCost)}</span>
-                        )}
-                      </span>
+                      <span className="font-medium">{formatRupiah(shippingFee)}</span>
                     </div>
                     <div className="flex justify-between">
                       <span className="text-gray-600">Biaya Layanan</span>
-                      <span>
-                        <s className="text-gray-400 mr-1">{formatRupiah(serviceFee)}</s>
-                        <span className="text-[#1D9E75] font-bold">GRATIS</span>
-                      </span>
+                      <span className="font-medium">{formatRupiah(serviceFeeFull)}</span>
                     </div>
+                    {totalSaved > 0 && (
+                      <div className="flex justify-between text-[#1D9E75]">
+                        <span className="font-medium">Promo Ongkir &amp; Layanan</span>
+                        <span className="font-bold">-{formatRupiah(totalSaved)}</span>
+                      </div>
+                    )}
                     <div className="border-t border-gray-100 pt-3 flex justify-between font-bold text-base">
                       <span>Total Bayar</span>
                       <span style={{ color: '#7FB300' }}>{formatRupiah(totalAmount)}</span>
