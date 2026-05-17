@@ -1,8 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none">
-  <!-- Leaf 1: main botanical leaf -->
-  <path d="M12 20 C12 20 5 15 5 9 C5 5.5 8 3 12 3 C12 3 12 10 12 20Z" fill="#D4456B" fill-opacity="0.2" stroke="#D4456B" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-  <!-- Leaf 2: second smaller leaf -->
-  <path d="M12 20 C12 20 17 16 18 11 C18.8 7.5 17 5 14 4.5 C14 4.5 13 11 12 20Z" fill="#D4456B" fill-opacity="0.15" stroke="#D4456B" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Leaf shape: pointed tip top, rounded base -->
+  <path d="M12 3 C7 7 5 11 6.5 15.5 C8 19.5 12 21 12 21 C12 21 16 19.5 17.5 15.5 C19 11 17 7 12 3Z" fill="#D4456B" fill-opacity="0.18" stroke="#D4456B" stroke-width="1.4" stroke-linejoin="round"/>
   <!-- Center vein -->
-  <path d="M12 6 C12 10 12 15 12 20" stroke="#D4456B" stroke-width="0.8" stroke-linecap="round" opacity="0.6"/>
+  <line x1="12" y1="4.5" x2="12" y2="20" stroke="#D4456B" stroke-width="1" stroke-linecap="round"/>
+  <!-- Side veins -->
+  <path d="M12 10 C10 11 8.5 12 8 13" stroke="#D4456B" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>
+  <path d="M12 10 C14 11 15.5 12 16 13" stroke="#D4456B" stroke-width="0.8" stroke-linecap="round" opacity="0.7"/>
 </svg>
