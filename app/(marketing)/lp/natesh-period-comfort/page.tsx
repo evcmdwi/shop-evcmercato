@@ -332,7 +332,38 @@ export default async function NateshPeriodComfortPage({
         <div className="overflow-hidden -mb-1 bg-[#FDF8F5]" aria-hidden="true">
         </div>
 
-        {/* ── SECTION 4: WHY NATESH ── */}
+        {/* ── SECTION 3B: SOLUTION IMAGE ── */}
+        <section className="relative overflow-hidden bg-[#FDF8F5]/88">
+          <div className="relative">
+            <Image
+              src="/assets/natesh-hero-woman-bedroom.jpg"
+              alt="Natesh mendampingi hari-hari sensitifmu"
+              width={600}
+              height={500}
+              className="w-full object-cover"
+              style={{ aspectRatio: '4/3.5' }}
+            />
+            {/* Copy overlay — RIGHT side (ruang kosong) */}
+            <div className="absolute top-0 right-0 bottom-0 w-[46%] flex flex-col justify-center px-3 py-6">
+              <div className="bg-white/75 backdrop-blur-sm rounded-2xl p-3 shadow-sm">
+                <h2 className="font-[family-name:var(--font-dm-serif)] text-[0.95rem] leading-snug text-gray-900 mb-2.5">
+                  Natesh Jadi Support Nyaman di Hari-Hari Sensitifmu.
+                </h2>
+                <p className="text-gray-700 text-[9.5px] leading-relaxed mb-2">
+                  Hari-hari menjelang menstruasi memang bisa terasa lebih berat — tubuh berubah, mood naik turun, dan area kewanitaan butuh perhatian ekstra.
+                </p>
+                <p className="text-gray-700 text-[9.5px] leading-relaxed mb-2">
+                  Natesh hadir bukan untuk mengubah semua itu, tapi untuk membantu kamu merasa lebih nyaman melewatinya.
+                </p>
+                <p className="text-gray-700 text-[9.5px] leading-relaxed">
+                  Dengan Natesh Pantyliner, area kewanitaan bisa terjaga lebih fresh dan kering, sehingga aktivitas tetap bisa berjalan tanpa rasa terganggu.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+                {/* ── SECTION 4: WHY NATESH ── */}
         <section className="px-4 py-12 bg-[#FDF8F5]/85">
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-gray-900 mb-6 leading-tight">
