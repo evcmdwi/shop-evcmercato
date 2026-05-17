@@ -187,75 +187,73 @@ export default async function NateshPeriodComfortPage({
         backgroundRepeat: 'no-repeat',
       }}>
         {/* ── SECTION 1: HERO ── */}
-        <section className="relative overflow-hidden bg-[#FDF8F5]/90 px-4 pt-6 pb-10">
-          <div className="relative max-w-lg mx-auto">
-            {/* Badge */}
-            <div className="inline-block bg-[#F9E4E8] text-pink-600 text-xs font-semibold px-3 py-1 rounded-full mb-4">
-              🌸 Perawatan Diri • Setiap Hari
-            </div>
-
-            {/* Hero layout: copy kiri, image kanan */}
-            <div className="flex flex-col gap-5">
-              {/* Headline + subheadline + trust */}
-              <div>
-                <h1 className="font-[family-name:var(--font-dm-serif)] text-3xl text-gray-900 leading-tight mb-1">
-                  Nyaman di Setiap
-                </h1>
-                <h1 className="font-[family-name:var(--font-dm-serif)] text-3xl text-[#D4456B] leading-tight mb-4">
-                  Siklusmu.
-                </h1>
-                <p className="text-gray-500 text-sm mb-5 leading-relaxed">
-                  {content.hero.subheadline}
-                </p>
+        <section className="relative overflow-hidden bg-[#FDF8F5]/90 pb-6">
+          {/* Full-width hero image */}
+          <div className="relative">
+            <Image
+              src="/assets/natesh-hero-woman-bedroom.jpg"
+              alt="Wanita nyaman bersama Natesh"
+              width={600}
+              height={500}
+              className="w-full h-auto object-cover"
+              priority
+            />
+            {/* Text overlay — LEFT side (ruang kosong) */}
+            <div className="absolute top-0 left-0 bottom-0 w-[52%] flex flex-col justify-center px-5 py-6">
+              <div className="inline-block bg-white/70 backdrop-blur-sm text-pink-600 text-[10px] font-semibold px-2.5 py-1 rounded-full mb-3 self-start">
+                🌸 Perawatan Diri • Setiap Hari
               </div>
-
-              {/* Hero image with floating product card */}
-              <div className="relative rounded-3xl overflow-hidden shadow-lg">
-                <Image
-                  src="/assets/natesh-hero-woman-bedroom.jpg"
-                  alt="Wanita nyaman bersama Natesh"
-                  width={600}
-                  height={500}
-                  className="w-full h-auto object-cover"
-                  priority
-                />
-                {/* Floating product card */}
-                <div className="absolute bottom-4 right-4 bg-white/95 backdrop-blur-sm rounded-2xl p-3 shadow-lg max-w-[160px]">
-                  <Image
-                    src="/assets/natesh-packshot-4variants.jpg"
-                    alt="Natesh Pantyliner"
-                    width={120}
-                    height={80}
-                    className="w-full h-auto rounded-xl mb-2 object-cover"
-                  />
-                  <p className="text-xs font-bold text-gray-800 leading-tight">Rangkaian Nyaman &amp; Terpercaya</p>
-                  <p className="text-xs text-gray-500 mt-0.5">Dukung hari-harimu dengan Natesh</p>
-                </div>
-              </div>
-
-              {/* 3 trust icons */}
-              <div className="grid grid-cols-3 gap-2 text-center">
-                {[
-                  { icon: '🌿', label: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
-                  { icon: '✅', label: 'Terpercaya', sub: 'Kualitas pilihan' },
-                  { icon: '💫', label: 'Dukung Diri Sendiri', sub: 'Ritual penuh cinta' },
-                ].map((t) => (
-                  <div key={t.label} className="bg-white/80 rounded-2xl p-3 border border-pink-50">
-                    <span className="text-xl block mb-1">{t.icon}</span>
-                    <p className="text-xs font-semibold text-gray-800 leading-tight">{t.label}</p>
-                    <p className="text-xs text-gray-400 mt-0.5">{t.sub}</p>
-                  </div>
-                ))}
-              </div>
-
-              {/* CTA */}
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-xl leading-snug text-gray-900 mb-1">
+                Nyaman di Setiap
+              </h1>
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-xl leading-snug text-[#D4456B] mb-3">
+                Siklusmu.
+              </h1>
+              <p className="text-gray-700 text-xs leading-relaxed mb-4 hidden sm:block">
+                {content.hero.subheadline}
+              </p>
               <a
                 href={shopLink}
-                className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
+                className="inline-block bg-[#D4456B] text-white px-4 py-2.5 rounded-full font-bold text-xs hover:bg-[#B93A5B] transition-colors self-start"
               >
-                Temukan Rangkaian Lengkap →
+                Temukan Rangkaian →
               </a>
             </div>
+
+            {/* Product card — bottom LEFT, senada background */}
+            <div className="absolute bottom-4 left-4 bg-[#F9E4E8]/90 backdrop-blur-sm rounded-2xl p-3 shadow-md max-w-[130px] border border-pink-100">
+              <div className="bg-[#FDF8F5] rounded-xl p-1.5 mb-2">
+                <Image
+                  src="/assets/natesh-packshot-4variants.jpg"
+                  alt="Natesh Pantyliner"
+                  width={110}
+                  height={70}
+                  className="w-full h-auto rounded-lg object-cover mix-blend-multiply"
+                />
+              </div>
+              <p className="text-xs font-bold text-gray-800 leading-tight">Natesh Pantyliner</p>
+              <p className="text-[10px] text-gray-500 mt-0.5">Comfort routine</p>
+            </div>
+          </div>
+
+          {/* Trust icons — below image, single color */}
+          <div className="grid grid-cols-3 gap-2 px-4 mt-4 max-w-lg mx-auto">
+            {[
+              { icon: '🌿', label: 'Lembut & Nyaman', sub: 'Untuk setiap hari' },
+              { icon: '✓', label: 'Terpercaya', sub: 'Kualitas pilihan' },
+              { icon: '♡', label: 'Dukung Diri', sub: 'Ritual penuh cinta' },
+            ].map((t) => (
+              <div key={t.label} className="bg-white/80 rounded-2xl p-3 border border-[#F2D5DA] text-center">
+                <span className="text-base font-bold text-[#D4456B] block mb-1">{t.icon}</span>
+                <p className="text-xs font-semibold text-gray-700 leading-tight">{t.label}</p>
+                <p className="text-[10px] text-gray-400 mt-0.5">{t.sub}</p>
+              </div>
+            ))}
+          </div>
+
+          {/* Subheadline below on mobile */}
+          <div className="px-4 mt-4 max-w-lg mx-auto sm:hidden">
+            <p className="text-gray-600 text-sm leading-relaxed text-center">{content.hero.subheadline}</p>
           </div>
         </section>
 
