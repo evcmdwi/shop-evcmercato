@@ -1,10 +1,24 @@
 import type { Metadata } from 'next'
 import Script from 'next/script'
 import Image from 'next/image'
-import { initPixelScript } from '@/lib/marketing/pixel'
+import { initPixelScript, trackPixelEvent, trackCustomPixelEvent } from '@/lib/marketing/pixel'
 import { extractUTM, appendUTM } from '@/lib/marketing/utm'
 import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
+
+// Client-side tracking helpers
+const TRACK_SHOP = `
+  if(typeof fbq!=='undefined'){
+    fbq('trackCustom','ShopClick',{campaign:'natesh_period_comfort',destination:'shop.evcmercato.com/katalog?category=natesh'});
+    fbq('track','Lead',{content_name:'Natesh Period Comfort Shop Click',lead_type:'shop_click'});
+  }
+`
+const TRACK_WA = `
+  if(typeof fbq!=='undefined'){
+    fbq('track','Lead',{content_name:'Natesh Period Comfort WhatsApp',lead_type:'whatsapp'});
+    fbq('trackCustom','WhatsAppClick',{campaign:'natesh_period_comfort'});
+  }
+`
 import content from '@/content/lp/natesh-period-comfort'
 
 export const metadata: Metadata = {
@@ -80,8 +94,8 @@ const NATESH_BENEFITS = [
   },
   {
     icon: '🌟',
-    title: 'Manfaat Kesehatan Tambahan',
-    desc: 'Mengandung Anion, Nano Silver, FIR, Herbal dan Magnet untuk kesehatanmu.',
+    title: 'Fitur Produk Pilihan',
+    desc: 'Dilengkapi material pilihan untuk mendukung rasa nyaman saat digunakan.',
   },
 ]
 
@@ -141,18 +155,12 @@ export default async function NateshPeriodComfortPage({
 
   const shopLink = appendRef(
     appendUTM(
-      `${SHOP_NATESH}&utm_campaign=natesh_period_comfort`,
+      `${SHOP_NATESH}&utm_source=meta&utm_medium=paid_social&utm_campaign=natesh_period_comfort&utm_content=lp_cta&utm_term=natesh_period_comfort`,
       utm
     ),
     ref
   )
-  const waLink = appendRef(
-    appendUTM(
-      `${WA_ADMIN}&utm_campaign=natesh_period_comfort`,
-      utm
-    ),
-    ref
-  )
+  const waLink = 'https://wa.me/6285820852908?text=Halo%20Admin%20EVC%2C%20saya%20ingin%20tanya%20tentang%20Natesh%20Period%20Comfort'
 
   return (
     <>
@@ -160,6 +168,25 @@ export default async function NateshPeriodComfortPage({
         <Script id="meta-pixel" strategy="afterInteractive">
           {initPixelScript(pixelId)}
         </Script>
+      )}
+      {pixelId && (
+        <Script id="meta-pixel-viewcontent" strategy="afterInteractive">{`
+          (function() {
+            function fireVC() {
+              if (typeof fbq !== 'undefined') {
+                fbq('track', 'ViewContent', {
+                  content_name: 'Natesh Period Comfort',
+                  content_category: 'Feminine Care',
+                  content_ids: ['natesh'],
+                  content_type: 'product_group'
+                });
+              } else {
+                setTimeout(fireVC, 300);
+              }
+            }
+            setTimeout(fireVC, 500);
+          })();
+        `}</Script>
       )}
       <AffiliateRefSetter refCode={ref} />
 
@@ -249,6 +276,7 @@ export default async function NateshPeriodComfortPage({
             <a
               href={shopLink}
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
+              onClick={() => { try { eval(TRACK_SHOP) } catch(e){} }}
             >
               Temukan Rangkaian Lengkap →
             </a>

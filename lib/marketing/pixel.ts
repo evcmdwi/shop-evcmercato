@@ -20,3 +20,11 @@ export function trackPixelEvent(event: string, data?: Record<string, unknown>): 
   if (!fbq) return
   fbq('track', event, data ?? {})
 }
+
+export function trackCustomPixelEvent(event: string, data?: Record<string, unknown>): void {
+  if (typeof window === 'undefined') return
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const fbq = (window as any).fbq
+  if (!fbq) return
+  fbq('trackCustom', event, data ?? {})
+}
