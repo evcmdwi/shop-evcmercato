@@ -69,7 +69,8 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
       .eq('id', order?.user_id)
       .single()
 
-    emitOrderShipped({
+    // MUST await — Vercel serverless will terminate before async WA send completes if not awaited
+    await emitOrderShipped({
       orderId: id,
       orderShortId: id.slice(0, 8).toUpperCase(),
       customerName: (userData as any)?.name || order?.shipping_recipient_name || 'Customer',
