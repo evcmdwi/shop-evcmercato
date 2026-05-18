@@ -17,7 +17,9 @@ export function generateOrderShippedBuyerWA(
     defaultTrackingUrls[courier] ||
     `https://www.google.com/search?q=${encodeURIComponent(courier + ' ' + trackingNumber)}`
 
-  const estimasi = shippingMethod === 'instan'
+  const estimasi = courier?.toLowerCase().includes('grab')
+    ? '30-90 menit'
+    : shippingMethod === 'instan'
     ? '30-60 menit'
     : shippingMethod === 'sameday'
     ? '2-8 jam'
