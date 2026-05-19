@@ -7,8 +7,6 @@ import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 import content from '@/content/lp/pearl-nourish-cream'
 
-// ── Client-side tracking helpers ──────────────────────────────────────────────
-const TRACK_SHOP = `
   if(typeof fbq!=='undefined'){
     fbq('trackCustom','ShopClick',{campaign:'pearl_nourish_cream'});
     fbq('track','Lead',{content_name:'Pearl Nourish Cream Shop Click',lead_type:'shop_click'});
@@ -185,11 +183,7 @@ export default async function PearlNourishCreamPage({
           <p className="text-xs text-[#7A6752]">Kristine Ko-Kool</p>
         </div>
         <a
-          href={shopLink}
-          onClick={() => {
-            try {
-              eval(TRACK_SHOP)
-            } catch (e) {}
+          href={shopLink} catch (e) {}
           }}
           className="flex-shrink-0 bg-[#9A6B1F] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-[#7A5518] transition-colors min-h-[44px] flex items-center"
         >
@@ -256,11 +250,7 @@ export default async function PearlNourishCreamPage({
           {/* CTA below hero image */}
           <div className="px-4 py-5 max-w-lg mx-auto">
             <a
-              href={shopLink}
-              onClick={() => {
-                try {
-                  eval(TRACK_SHOP)
-                } catch (e) {}
+              href={shopLink} catch (e) {}
               }}
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors"
             >
@@ -472,11 +462,7 @@ export default async function PearlNourishCreamPage({
               </div>
             </div>
             <a
-              href={shopLink}
-              onClick={() => {
-                try {
-                  eval(TRACK_SHOP)
-                } catch (e) {}
+              href={shopLink} catch (e) {}
               }}
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors mb-5"
             >
@@ -528,11 +514,7 @@ export default async function PearlNourishCreamPage({
             </p>
             <div className="flex flex-col gap-3">
               <a
-                href={shopLink}
-                onClick={() => {
-                  try {
-                    eval(TRACK_SHOP)
-                  } catch (e) {}
+                href={shopLink} catch (e) {}
                 }}
                 className="bg-white text-[#9A6B1F] py-4 rounded-2xl font-bold hover:bg-[#F5E6C8] transition-colors"
               >
@@ -541,11 +523,7 @@ export default async function PearlNourishCreamPage({
               <a
                 href={WA_LINK}
                 target="_blank"
-                rel="noopener noreferrer"
-                onClick={() => {
-                  try {
-                    eval(TRACK_WA)
-                  } catch (e) {}
+                rel="noopener noreferrer" catch (e) {}
                 }}
                 className="border-2 border-white/60 text-white py-3.5 rounded-2xl font-semibold hover:border-white transition-colors"
               >
