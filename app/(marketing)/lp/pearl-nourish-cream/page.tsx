@@ -221,12 +221,12 @@ export default async function PearlNourishCreamPage({
             </div>
 
             {/* Kemasan 20gr — bottom right */}
-            <div className="absolute bottom-2 right-1" style={{width: '195px'}}>
+            <div className="absolute bottom-2 right-1" style={{width: "166px"}}>
               <Image
                 src="/assets/pearl-packshot-20gr.png"
                 alt="Pearl Nourish Cream 20gr"
-                width={195}
-                height={195}
+                width={166}
+                height={166}
                 className="w-full h-auto drop-shadow-2xl"
               />
             </div>
