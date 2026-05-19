@@ -7,17 +7,6 @@ import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 import content from '@/content/lp/pearl-nourish-cream'
 
-  if(typeof fbq!=='undefined'){
-    fbq('trackCustom','ShopClick',{campaign:'pearl_nourish_cream'});
-    fbq('track','Lead',{content_name:'Pearl Nourish Cream Shop Click',lead_type:'shop_click'});
-  }
-`
-const TRACK_WA = `
-  if(typeof fbq!=='undefined'){
-    fbq('track','Lead',{content_name:'Pearl Nourish Cream WhatsApp',lead_type:'whatsapp'});
-    fbq('trackCustom','WhatsAppClick',{campaign:'pearl_nourish_cream'});
-  }
-`
 
 export const metadata: Metadata = {
   title: content.meta.title,
