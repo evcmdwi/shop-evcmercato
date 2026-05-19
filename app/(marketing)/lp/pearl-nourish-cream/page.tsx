@@ -231,16 +231,14 @@ export default async function PearlNourishCreamPage({
               />
             </div>
 
-            {/* Copywriting overlay — bottom LEFT, sejajar packshot */}
-            <div className="absolute bottom-2 left-2 w-[58%]">
-              <div className="bg-white/70 backdrop-blur-sm rounded-2xl px-3 py-3">
-                <p className="text-[10px] text-[#2C1810] leading-relaxed">
-                  Krim <em>all-in-one</em> Pelembab wajah, Pencerah Wajah, Tabir Surya, dan Pengganti bedak. Membantu kesehatan kulit wajah agar dapat tampak terlihat lebih cerah, dan awet muda.
-                </p>
-                <p className="text-[10px] text-[#9A6B1F] font-semibold leading-relaxed mt-1.5">
-                  Dipercaya Wanita Indonesia sejak 1999, Pearl Nourish Cream Kristine Ko-Kool selalu hadir menemani pagi Anda.
-                </p>
-              </div>
+            {/* Copywriting overlay — bottom LEFT, sejajar packshot, no box */}
+            <div className="absolute bottom-2 left-2 w-[55%]">
+              <p className="text-[10px] text-[#2C1810] leading-relaxed mb-1">
+                Krim <em>all-in-one</em> Pelembab wajah, Pencerah Wajah, Tabir Surya, dan Pengganti bedak. Membantu kesehatan kulit wajah agar dapat tampak terlihat lebih cerah, dan awet muda.
+              </p>
+              <p className="text-[10px] text-[#9A6B1F] font-semibold leading-relaxed">
+                Dipercaya Wanita Indonesia sejak 1999, Pearl Nourish Cream Kristine Ko-Kool selalu hadir menemani pagi Anda.
+              </p>
             </div>
           </div>
           {/* CTA below hero image */}
