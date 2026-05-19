@@ -220,28 +220,15 @@ export default async function PearlNourishCreamPage({
               </h1>
             </div>
 
-            {/* Product jars — bottom right, berdampingan sejajar */}
-            <div className="absolute bottom-2 right-1 flex items-end" style={{gap: '4px'}}>
-              {/* Minipack 5gr — explicit 80px */}
-              <div style={{width: '80px', flexShrink: 0}}>
-                <Image
-                  src="/assets/pearl-packshot-5gr.png"
-                  alt="Minipack 5gr"
-                  width={80}
-                  height={80}
-                  className="w-full h-auto drop-shadow-lg"
-                />
-              </div>
-              {/* Kemasan 20gr — explicit 130px */}
-              <div style={{width: '130px', flexShrink: 0}}>
-                <Image
-                  src="/assets/pearl-packshot-20gr.png"
-                  alt="Kemasan 20gr"
-                  width={130}
-                  height={130}
-                  className="w-full h-auto drop-shadow-2xl"
-                />
-              </div>
+            {/* Kemasan 20gr — solo, diperbesar */}
+            <div className="absolute bottom-2 right-1" style={{width: '195px'}}>
+              <Image
+                src="/assets/pearl-packshot-20gr.png"
+                alt="Pearl Nourish Cream 20gr"
+                width={195}
+                height={195}
+                className="w-full h-auto drop-shadow-2xl"
+              />
             </div>
           </div>
           {/* CTA below hero image */}
