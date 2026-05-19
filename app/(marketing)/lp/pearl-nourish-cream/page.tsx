@@ -191,26 +191,25 @@ export default async function PearlNourishCreamPage({
         <section className="relative overflow-hidden bg-[#FDFAF4]/90">
           <div className="relative">
             <Image
-              src="/assets/pearl-hero-bg-premium.jpg"
+              src="/assets/pearl-hero-model.png"
               alt="Pearl Nourish Cream — Krim Legendaris Sejak 1999"
               width={600}
-              height={700}
+              height={750}
               className="w-full object-cover"
-              style={{ aspectRatio: '1/1.15' }}
               priority
             />
-            {/* Product jar overlay — bottom right */}
-            <div className="absolute bottom-16 right-3 w-[38%]">
+            {/* Product jar overlay — bottom LEFT (woman is on RIGHT) */}
+            <div className="absolute bottom-14 left-3 w-[30%]">
               <Image
                 src="/assets/pearl-packshot-20gr.png"
                 alt="Pearl Nourish Cream 20gr"
-                width={200}
-                height={200}
-                className="w-full h-auto drop-shadow-xl"
+                width={150}
+                height={150}
+                className="w-full h-auto drop-shadow-xl mix-blend-multiply"
               />
             </div>
-            {/* Copy overlay — top-left */}
-            <div className="absolute top-4 left-3 w-[60%]">
+            {/* Copy overlay — top LEFT (ruang kosong di kiri, model di kanan) */}
+            <div className="absolute top-4 left-3 w-[55%]">
               {/* Badge */}
               <div className="inline-flex items-center bg-[#F5E6C8]/90 backdrop-blur-sm text-[#9A6B1F] text-[10px] font-semibold px-2.5 py-1 rounded-full mb-2 border border-[#9A6B1F]/30">
                 ✦ Sejak 1999
