@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <!-- Sun glow fill (very low opacity) -->
+  <circle cx="50" cy="36" r="14" fill="#9A6B1F" fill-opacity="0.07"/>
+  <!-- Sun circle -->
+  <circle cx="50" cy="36" r="13" stroke="#9A6B1F" stroke-width="1.8"/>
+  <!-- Sun rays (8 rays, short and elegant) -->
+  <line x1="50" y1="18" x2="50" y2="13" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="50" y1="54" x2="50" y2="59" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="32" y1="36" x2="27" y2="36" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="68" y1="36" x2="73" y2="36" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="38.4" y1="24.4" x2="34.9" y2="20.9" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="61.6" y1="47.6" x2="65.1" y2="51.1" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="61.6" y1="24.4" x2="65.1" y2="20.9" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="38.4" y1="47.6" x2="34.9" y2="51.1" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round"/>
+  <!-- Shield body fill (very low opacity) -->
+  <path d="M32 58 L32 75 Q32 87 50 92 Q68 87 68 75 L68 58 Q59 62 50 62 Q41 62 32 58 Z"
+        fill="#9A6B1F" fill-opacity="0.08"/>
+  <!-- Shield outline -->
+  <path d="M32 58 L32 75 Q32 87 50 92 Q68 87 68 75 L68 58 Q59 62 50 62 Q41 62 32 58 Z"
+        stroke="#9A6B1F" stroke-width="1.8" stroke-linejoin="round"/>
+  <!-- Shield top curved band (connecting to sun area) -->
+  <path d="M32 58 Q41 54 50 54 Q59 54 68 58"
+        stroke="#9A6B1F" stroke-width="1.8" stroke-linecap="round"/>
+  <!-- Shield inner checkmark / star detail -->
+  <path d="M43 73 L48 79 L58 67" stroke="#9A6B1F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

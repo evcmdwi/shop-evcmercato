@@ -7,7 +7,6 @@ import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 import content from '@/content/lp/pearl-nourish-cream'
 
-
 export const metadata: Metadata = {
   title: content.meta.title,
   description: content.meta.description,
@@ -172,8 +171,7 @@ export default async function PearlNourishCreamPage({
           <p className="text-xs text-[#7A6752]">Kristine Ko-Kool</p>
         </div>
         <a
-          href={shopLink} catch (e) {}
-          }}
+          href={shopLink}
           className="flex-shrink-0 bg-[#9A6B1F] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-[#7A5518] transition-colors min-h-[44px] flex items-center"
         >
           Beli Sekarang
@@ -211,8 +209,12 @@ export default async function PearlNourishCreamPage({
                 className="w-full h-auto drop-shadow-xl"
               />
             </div>
-            {/* Copy overlay — top-left, product/podium at center-bottom */}
+            {/* Copy overlay — top-left */}
             <div className="absolute top-4 left-3 w-[60%]">
+              {/* Badge */}
+              <div className="inline-flex items-center bg-[#F5E6C8]/90 backdrop-blur-sm text-[#9A6B1F] text-[10px] font-semibold px-2.5 py-1 rounded-full mb-2 border border-[#9A6B1F]/30">
+                ✦ Sejak 1999
+              </div>
               <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.7rem] leading-tight text-[#2C1810] mb-2">
                 Krim Legendaris
                 <br />
@@ -220,17 +222,14 @@ export default async function PearlNourishCreamPage({
                 <br />
                 Sejak 1999.
               </h1>
-              <p className="text-[#2C1810] text-[10.5px] leading-relaxed pr-1 mb-3">
-                {content.hero.subheadline}
-              </p>
               {/* Trust pill badges */}
-              <div className="flex flex-col gap-1.5">
-                {['✓ Sejak 1999', '✓ BPOM NA47130300750', '✓ SPF15 UV Protection'].map((badge) => (
+              <div className="flex flex-col gap-1.5 mt-2">
+                {['BPOM NA47130300750', 'SPF15', 'Sejak 1999'].map((badge) => (
                   <span
                     key={badge}
                     className="inline-flex items-center bg-[#F5E6C8]/90 backdrop-blur-sm text-[#9A6B1F] text-[9.5px] font-semibold px-2.5 py-1 rounded-full border border-[#9A6B1F]/30 w-fit"
                   >
-                    {badge}
+                    ✓ {badge}
                   </span>
                 ))}
               </div>
@@ -239,8 +238,7 @@ export default async function PearlNourishCreamPage({
           {/* CTA below hero image */}
           <div className="px-4 py-5 max-w-lg mx-auto">
             <a
-              href={shopLink} catch (e) {}
-              }}
+              href={shopLink}
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors"
             >
               Beli Sekarang →
@@ -429,7 +427,13 @@ export default async function PearlNourishCreamPage({
               {/* Card 1 — Minipack 5gr */}
               <div className="bg-white rounded-2xl p-4 border border-[#F5E6C8] flex flex-col">
                 <div className="bg-[#FBF7EE] rounded-xl p-2 mb-3">
-                  <Image src="/assets/pearl-packshot-5gr.png" alt="Minipack 5gr" width={120} height={120} className="w-full h-auto object-contain mix-blend-multiply" />
+                  <Image
+                    src="/assets/pearl-packshot-5gr.png"
+                    alt="Minipack 5gr"
+                    width={120}
+                    height={120}
+                    className="w-full h-auto object-contain mix-blend-multiply"
+                  />
                 </div>
                 <p className="font-semibold text-sm text-[#2C1810] mb-3">Minipack 5gr</p>
                 <p className="text-xs text-[#7A6752] line-through mb-1">Rp250.000</p>
@@ -442,7 +446,13 @@ export default async function PearlNourishCreamPage({
                   Best Value
                 </span>
                 <div className="bg-[#FBF7EE] rounded-xl p-2 mb-3 mt-1">
-                  <Image src="/assets/pearl-packshot-20gr.png" alt="Kemasan 20gr" width={120} height={120} className="w-full h-auto object-contain mix-blend-multiply" />
+                  <Image
+                    src="/assets/pearl-packshot-20gr.png"
+                    alt="Kemasan 20gr"
+                    width={120}
+                    height={120}
+                    className="w-full h-auto object-contain mix-blend-multiply"
+                  />
                 </div>
                 <p className="font-semibold text-sm text-[#2C1810] mb-3">Kemasan 20gr</p>
                 <p className="text-xs text-[#7A6752] line-through mb-1">Rp550.000</p>
@@ -451,8 +461,7 @@ export default async function PearlNourishCreamPage({
               </div>
             </div>
             <a
-              href={shopLink} catch (e) {}
-              }}
+              href={shopLink}
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors mb-5"
             >
               Beli Sekarang →
@@ -503,8 +512,7 @@ export default async function PearlNourishCreamPage({
             </p>
             <div className="flex flex-col gap-3">
               <a
-                href={shopLink} catch (e) {}
-                }}
+                href={shopLink}
                 className="bg-white text-[#9A6B1F] py-4 rounded-2xl font-bold hover:bg-[#F5E6C8] transition-colors"
               >
                 🛍️ Beli Sekarang
@@ -512,8 +520,7 @@ export default async function PearlNourishCreamPage({
               <a
                 href={WA_LINK}
                 target="_blank"
-                rel="noopener noreferrer" catch (e) {}
-                }}
+                rel="noopener noreferrer"
                 className="border-2 border-white/60 text-white py-3.5 rounded-2xl font-semibold hover:border-white transition-colors"
               >
                 💬 Bantuan Admin EVC
