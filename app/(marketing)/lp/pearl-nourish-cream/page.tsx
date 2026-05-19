@@ -199,7 +199,7 @@ export default async function PearlNourishCreamPage({
               priority
             />
             {/* Kristine Ko-Kool logo — TOP RIGHT */}
-            <div className="absolute top-4 right-3 w-[28%]">
+            <div className="absolute top-3 right-3 w-[38%]">
               <Image
                 src="/assets/kristine-ko-kool-logo.png"
                 alt="Kristine Ko-Kool"
@@ -220,15 +220,28 @@ export default async function PearlNourishCreamPage({
               </h1>
             </div>
 
-            {/* Product jar — BIGGER, bottom right */}
-            <div className="absolute bottom-4 right-3 w-[46%]">
-              <Image
-                src="/assets/pearl-packshot-20gr.png"
-                alt="Pearl Nourish Cream 20gr"
-                width={220}
-                height={220}
-                className="w-full h-auto drop-shadow-2xl"
-              />
+            {/* Product jars — bottom right: 5gr (kecil) kiri + 20gr (besar) kanan */}
+            <div className="absolute bottom-4 right-2 flex items-end gap-1">
+              {/* Minipack 5gr — lebih kecil */}
+              <div className="w-[30%] flex-shrink-0">
+                <Image
+                  src="/assets/pearl-packshot-5gr.png"
+                  alt="Pearl Nourish Cream Minipack 5gr"
+                  width={100}
+                  height={100}
+                  className="w-full h-auto drop-shadow-xl"
+                />
+              </div>
+              {/* Kemasan 20gr — lebih besar */}
+              <div className="w-[48%] flex-shrink-0">
+                <Image
+                  src="/assets/pearl-packshot-20gr.png"
+                  alt="Pearl Nourish Cream 20gr"
+                  width={200}
+                  height={200}
+                  className="w-full h-auto drop-shadow-2xl"
+                />
+              </div>
             </div>
           </div>
           {/* CTA below hero image */}
@@ -311,9 +324,11 @@ export default async function PearlNourishCreamPage({
         >
           <div className="max-w-lg mx-auto">
             <h2 className="font-[family-name:var(--font-dm-serif)] text-2xl text-[#2C1810] mb-6 leading-tight text-center">
-              4 Manfaat Harian Pearl Nourish Cream
+              4 Manfaat Harian
+              <br />
+              Pearl Nourish Cream
             </h2>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 gap-3 mb-6">
               {BENEFITS.map((b) => (
                 <div
                   key={b.title}
@@ -335,6 +350,12 @@ export default async function PearlNourishCreamPage({
                 </div>
               ))}
             </div>
+            <a
+              href={shopLink}
+              className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors"
+            >
+              Beli Sekarang →
+            </a>
           </div>
         </section>
 
