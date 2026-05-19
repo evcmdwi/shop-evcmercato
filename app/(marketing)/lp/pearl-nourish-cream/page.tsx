@@ -198,40 +198,37 @@ export default async function PearlNourishCreamPage({
               className="w-full object-cover"
               priority
             />
-            {/* Product jar overlay — bottom LEFT (woman is on RIGHT) */}
-            <div className="absolute bottom-14 left-3 w-[30%]">
+            {/* Kristine Ko-Kool logo — TOP RIGHT */}
+            <div className="absolute top-4 right-3 w-[28%]">
               <Image
-                src="/assets/pearl-packshot-20gr.png"
-                alt="Pearl Nourish Cream 20gr"
-                width={150}
-                height={150}
-                className="w-full h-auto drop-shadow-xl mix-blend-multiply"
+                src="/assets/kristine-ko-kool-logo.png"
+                alt="Kristine Ko-Kool"
+                width={120}
+                height={120}
+                className="w-full h-auto mix-blend-multiply opacity-90"
               />
             </div>
-            {/* Copy overlay — top LEFT (ruang kosong di kiri, model di kanan) */}
-            <div className="absolute top-4 left-3 w-[55%]">
-              {/* Badge */}
-              <div className="inline-flex items-center bg-[#F5E6C8]/90 backdrop-blur-sm text-[#9A6B1F] text-[10px] font-semibold px-2.5 py-1 rounded-full mb-2 border border-[#9A6B1F]/30">
-                ✦ Sejak 1999
-              </div>
-              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.7rem] leading-tight text-[#2C1810] mb-2">
+
+            {/* Headline overlay — RIGHT side (model di kiri) */}
+            <div className="absolute top-[30%] right-3 w-[50%] text-right">
+              <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.65rem] leading-snug text-[#2C1810]">
                 Krim Legendaris
                 <br />
                 <span className="text-[#9A6B1F]">Cantik Alami</span>
                 <br />
                 Sejak 1999.
               </h1>
-              {/* Trust pill badges */}
-              <div className="flex flex-col gap-1.5 mt-2">
-                {['BPOM NA47130300750', 'SPF15', 'Sejak 1999'].map((badge) => (
-                  <span
-                    key={badge}
-                    className="inline-flex items-center bg-[#F5E6C8]/90 backdrop-blur-sm text-[#9A6B1F] text-[9.5px] font-semibold px-2.5 py-1 rounded-full border border-[#9A6B1F]/30 w-fit"
-                  >
-                    ✓ {badge}
-                  </span>
-                ))}
-              </div>
+            </div>
+
+            {/* Product jar — BIGGER, bottom right */}
+            <div className="absolute bottom-4 right-3 w-[46%]">
+              <Image
+                src="/assets/pearl-packshot-20gr.png"
+                alt="Pearl Nourish Cream 20gr"
+                width={220}
+                height={220}
+                className="w-full h-auto drop-shadow-2xl"
+              />
             </div>
           </div>
           {/* CTA below hero image */}
