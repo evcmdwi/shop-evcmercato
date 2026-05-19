@@ -209,16 +209,25 @@ export default async function PearlNourishCreamPage({
         {/* ── SECTION 1: HERO ── */}
         <section className="relative overflow-hidden bg-[#FDFAF4]/90">
           <div className="relative">
-            {/* TODO: Replace pearl-hero-bg.png with product packshot jar overlay when available */}
             <Image
-              src="/assets/pearl-hero-bg.png"
+              src="/assets/pearl-hero-bg-premium.jpg"
               alt="Pearl Nourish Cream — Krim Legendaris Sejak 1999"
               width={600}
-              height={660}
+              height={700}
               className="w-full object-cover"
-              style={{ aspectRatio: '1/1.1' }}
+              style={{ aspectRatio: '1/1.15' }}
               priority
             />
+            {/* Product jar overlay — bottom right */}
+            <div className="absolute bottom-16 right-3 w-[38%]">
+              <Image
+                src="/assets/pearl-packshot-20gr.png"
+                alt="Pearl Nourish Cream 20gr"
+                width={200}
+                height={200}
+                className="w-full h-auto drop-shadow-xl"
+              />
+            </div>
             {/* Copy overlay — top-left, product/podium at center-bottom */}
             <div className="absolute top-4 left-3 w-[60%]">
               <h1 className="font-[family-name:var(--font-dm-serif)] text-[1.7rem] leading-tight text-[#2C1810] mb-2">
@@ -440,6 +449,9 @@ export default async function PearlNourishCreamPage({
             <div className="grid grid-cols-2 gap-4 mb-6">
               {/* Card 1 — Minipack 5gr */}
               <div className="bg-white rounded-2xl p-4 border border-[#F5E6C8] flex flex-col">
+                <div className="bg-[#FBF7EE] rounded-xl p-2 mb-3">
+                  <Image src="/assets/pearl-packshot-5gr.png" alt="Minipack 5gr" width={120} height={120} className="w-full h-auto object-contain mix-blend-multiply" />
+                </div>
                 <p className="font-semibold text-sm text-[#2C1810] mb-3">Minipack 5gr</p>
                 <p className="text-xs text-[#7A6752] line-through mb-1">Rp250.000</p>
                 <p className="text-xl font-bold text-[#9A6B1F] mb-2">Rp200.000</p>
@@ -450,7 +462,10 @@ export default async function PearlNourishCreamPage({
                 <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-[#9A6B1F] text-white text-[10px] font-bold px-3 py-1 rounded-full whitespace-nowrap">
                   Best Value
                 </span>
-                <p className="font-semibold text-sm text-[#2C1810] mb-3 mt-1">Kemasan 20gr</p>
+                <div className="bg-[#FBF7EE] rounded-xl p-2 mb-3 mt-1">
+                  <Image src="/assets/pearl-packshot-20gr.png" alt="Kemasan 20gr" width={120} height={120} className="w-full h-auto object-contain mix-blend-multiply" />
+                </div>
+                <p className="font-semibold text-sm text-[#2C1810] mb-3">Kemasan 20gr</p>
                 <p className="text-xs text-[#7A6752] line-through mb-1">Rp550.000</p>
                 <p className="text-xl font-bold text-[#9A6B1F] mb-2">Rp480.000</p>
                 <p className="text-[11px] text-[#7A6752] mt-auto">Estimasi 6–8 bulan pemakaian</p>
