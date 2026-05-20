@@ -84,14 +84,20 @@ export default async function EVCResmiPage({
               <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
                 Belanja Produk Kesehatan KKI Group &amp; Wellness Pilihan di EVC Mercato
               </h1>
-              <p className="text-base text-gray-500 mb-8 max-w-lg mx-auto md:mx-0">
+              <p className="text-base text-gray-500 mb-4 max-w-lg mx-auto md:mx-0">
                 Temukan produk pilihan untuk kebutuhan harian, kesehatan, wellness, beauty, dan feminine care dalam satu tempat yang praktis, jelas, dan mudah diakses dari HP.
+              </p>
+              <p className="text-sm text-gray-600 mb-6 max-w-lg mx-auto md:mx-0 leading-relaxed">
+                Kalau biasanya Anda belanja lewat marketplace, wajar kalau butuh rasa yakin sebelum pindah ke website resmi. Di sini, Anda bisa mulai dari langkah paling aman: cek produk resmi, lihat alur belanja, lalu tanya admin jika masih ragu.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
                 <a href={shopLink} className="bg-[#7FB300] text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-[#6B9700] transition-colors text-center">
-                  Belanja Sekarang
+                  Mulai Cek Produk Resmi
                 </a>
               </div>
+              <p className="text-xs text-gray-400 mt-2 text-center md:text-left">
+                Tidak harus langsung checkout — bisa tanya admin dulu.
+              </p>
             </div>
             {/* Hero image — right on desktop, bottom on mobile */}
             <div className="flex-1 flex justify-center">

@@ -10,7 +10,8 @@ const content: LandingPageContent = {
   },
   hero: {
     headline: 'Aktif Seharian? Tetap Nyaman & Percaya Diri',
-    subheadline: 'Natesh untuk wanita aktif yang ingin bergerak lebih nyaman, tenang, dan praktis sepanjang hari.',
+    subheadline:
+      'Untuk hari-hari saat kamu tetap harus kerja, meeting, jalan, dan banyak bergerak — Natesh bantu kamu merasa lebih nyaman tanpa terus kepikiran gerah, geser, atau kurang percaya diri.',
     cta_primary: {
       text: 'Beli Natesh Sekarang',
       link: 'https://shop.evcmercato.com/katalog?category=natesh',

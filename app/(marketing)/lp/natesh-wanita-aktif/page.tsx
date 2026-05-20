@@ -219,6 +219,9 @@ export default async function NateshPage({
                 {content.hero.cta_secondary?.text}
               </a>
             </div>
+            <p className="text-xs text-gray-400 mt-2 text-center">
+              Beli discreet lewat EVC, atau tanya admin dulu kalau masih ragu.
+            </p>
           </div>
         </section>
 
