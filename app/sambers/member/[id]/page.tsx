@@ -169,9 +169,14 @@ export default function MemberDetailPage() {
     try {
       const res = await fetch(`/api/sambers/member/${memberId}`)
       if (!res.ok) throw new Error('Not found')
-      const data = await res.json()
-      setMember(data.member ?? data)
-      setStats(data.stats ?? null)
+      const json = await res.json()
+      const data = json.data ?? json
+      setMember(data)
+      setStats(data.orders_count !== undefined ? {
+        total_orders: data.orders_count,
+        total_spent: data.orders_total,
+        last_order_at: data.last_order_at,
+      } : null)
       setOrders(data.recent_orders ?? [])
     } catch {
       // Fallback: try members list to get basic info
