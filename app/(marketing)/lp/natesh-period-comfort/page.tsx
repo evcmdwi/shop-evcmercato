@@ -7,18 +7,6 @@ import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
 
 // Client-side tracking helpers
-const TRACK_SHOP = `
-  if(typeof fbq!=='undefined'){
-    fbq('trackCustom','ShopClick',{campaign:'natesh_period_comfort',destination:'shop.evcmercato.com/katalog?category=natesh'});
-    fbq('track','Lead',{content_name:'Natesh Period Comfort Shop Click',lead_type:'shop_click'});
-  }
-`
-const TRACK_WA = `
-  if(typeof fbq!=='undefined'){
-    fbq('track','Lead',{content_name:'Natesh Period Comfort WhatsApp',lead_type:'whatsapp'});
-    fbq('trackCustom','WhatsAppClick',{campaign:'natesh_period_comfort'});
-  }
-`
 import content from '@/content/lp/natesh-period-comfort'
 
 export const metadata: Metadata = {
@@ -276,7 +264,6 @@ export default async function NateshPeriodComfortPage({
             <a
               href={shopLink}
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
-              onClick={() => { try { eval(TRACK_SHOP) } catch(e){} }}
             >
               Temukan Rangkaian Lengkap →
             </a>
