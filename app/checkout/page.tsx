@@ -123,7 +123,8 @@ export default function CheckoutPage() {
   // Discount: if qualifies → -10.000 ongkir + -3.000 layanan = -13.000; else just -3.000 layanan
   const promoDiscount = qualifiesForFreeShipping ? -(shippingDiscount + serviceFee) : -serviceFee
   const totalAmount = subtotal + shippingFee + serviceFeeFull + promoDiscount
-  const totalSaved = Math.abs(promoDiscount)
+  const specialDiscountAmount = specialDiscountPct > 0 ? Math.round(subtotal * specialDiscountPct / 100) : 0
+  const totalSaved = Math.abs(promoDiscount) + specialDiscountAmount
   const evcPoints = Math.floor(subtotal / 1000)
   // Keep backward compat vars
   const ongkir = baseRate
@@ -443,7 +444,7 @@ export default function CheckoutPage() {
                     {qualifiesForFreeShipping && totalSaved > 0 && (
                       <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
                         <p className="text-sm text-green-700 font-medium text-center">
-                          💚 Hemat {formatRupiah(totalSaved)}{' '}dari ongkir &amp; biaya layanan!
+                          💚 Hemat {formatRupiah(totalSaved)}{' '}{specialDiscountPct > 0 ? 'dari diskon member + ongkir & layanan!' : 'dari ongkir & biaya layanan!'}
                         </p>
                       </div>
                     )}
