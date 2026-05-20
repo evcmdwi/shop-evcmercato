@@ -21,7 +21,21 @@ export async function GET(req: NextRequest) {
     const cartId = await getOrCreateCart(user.id, supabase)
     const cart = await getFullCart(cartId, supabase)
 
-    return NextResponse.json({ data: cart })
+    // Fetch user's special discount for checkout display
+    const { getSupabaseAdmin } = await import('@/lib/supabase-admin')
+    const admin = getSupabaseAdmin()
+    const { data: userData } = await admin
+      .from('users')
+      .select('special_discount_pct')
+      .eq('id', user.id)
+      .single()
+
+    return NextResponse.json({
+      data: {
+        ...cart,
+        special_discount_pct: userData?.special_discount_pct ?? null,
+      }
+    })
   } catch (err) {
     console.error('GET /api/cart error:', err)
     return NextResponse.json(

@@ -29,7 +29,6 @@ export default function CheckoutPage() {
   const [loadingCart, setLoadingCart] = useState(true)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
-  // TODO: Populate from checkout API response when BENJI adds special_discount_pct to /api/checkout or /api/cart
   const [specialDiscountPct, setSpecialDiscountPct] = useState(0)
   const [deliveryNote, setDeliveryNote] = useState(() => {
     if (typeof window !== 'undefined') return sessionStorage.getItem('checkout_delivery_note') ?? ''
@@ -70,8 +69,7 @@ export default function CheckoutPage() {
     if (res.ok) {
       const { data } = await res.json()
       setCart(data)
-      // TODO: Replace with real field from API when BENJI adds special_discount_pct
-      if (data?.special_discount_pct) setSpecialDiscountPct(data.special_discount_pct)
+      if (data?.special_discount_pct) setSpecialDiscountPct(Number(data.special_discount_pct))
     }
     setLoadingCart(false)
   }, [router])
