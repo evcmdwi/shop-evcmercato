@@ -262,19 +262,22 @@ function AdminPesananPageInner() {
                         </button>
                       )}
                       {order.status === 'pending' && (
-                        <a
-                          href={`https://wa.me/${
-                            (order.shipping_phone || '').replace(/^0/, '62').replace(/[^0-9]/g, '')
-                          }?text=${encodeURIComponent(
-                            `Hai Kak ${order.customer_name || order.shipping_recipient_name || ''},\nKami telah menerima pesanan Kakak dengan nomor *#${order.short_id}* senilai *${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.total_amount || 0)}*.\n\nSilakan lanjutkan pembayaran melalui link berikut:\n${order.xendit_invoice_url || '-'}\n\nBila ada yang perlu ditanyakan, Kakak bisa langsung hubungi admin kami di nomor WhatsApp ini. Kami siap membantu. 😊\n\nTerima kasih sudah belanja di EVC Mercato! 💚`
-                          )}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
+                        <button
+                          onClick={async (e) => {
+                            e.stopPropagation()
+                            try {
+                              const res = await fetch(`/api/sambers/orders/${order.id}/follow-up-wa`, { method: 'POST' })
+                              const data = await res.json()
+                              if (data.success) alert('✅ WA follow-up berhasil dikirim!')
+                              else alert('❌ Gagal: ' + (data.error || 'Unknown error'))
+                            } catch {
+                              alert('❌ Gagal kirim WA')
+                            }
+                          }}
                           className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500 text-white text-xs font-medium rounded-lg hover:bg-green-600"
                         >
                           💬 Follow Up WA
-                        </a>
+                        </button>
                       )}
                       {!['paid', 'processed', 'pending'].includes(order.status) && (
                         <span className="text-slate-400 text-sm">—</span>
