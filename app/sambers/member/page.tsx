@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 
 interface Member {
   id: string
@@ -11,6 +12,7 @@ interface Member {
   total_points: number
   tier: string
   has_order: boolean
+  special_discount_pct: number | null
 }
 
 function formatDate(iso: string) {
@@ -33,20 +35,25 @@ function TierBadge({ tier }: { tier: string }) {
   )
 }
 
+function VipBadge({ pct }: { pct: number }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-yellow-100 text-yellow-800 border border-yellow-300">
+      💛 VIP {pct}%
+    </span>
+  )
+}
+
 function TrashIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-      />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
     </svg>
   )
 }
 
 export default function AdminMembersPage() {
+  const router = useRouter()
   const [members, setMembers] = useState<Member[]>([])
   const [total, setTotal] = useState(0)
   const [search, setSearch] = useState('')
@@ -55,7 +62,6 @@ export default function AdminMembersPage() {
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
   const [deleting, setDeleting] = useState(false)
 
-  // Debounce search
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(search), 400)
     return () => clearTimeout(t)
@@ -134,12 +140,21 @@ export default function AdminMembersPage() {
               </thead>
               <tbody>
                 {members.map(member => (
-                  <tr key={member.id} className="border-b border-slate-50 hover:bg-gray-50 transition-colors">
+                  <tr
+                    key={member.id}
+                    className="border-b border-slate-50 hover:bg-slate-50 transition-colors cursor-pointer"
+                    onClick={() => router.push('/sambers/member/' + member.id)}
+                  >
                     <td className="px-4 py-3 text-slate-600 whitespace-nowrap">
                       {formatDate(member.created_at)}
                     </td>
                     <td className="px-4 py-3 font-medium text-slate-800">
-                      {member.name || <span className="text-slate-400 italic">—</span>}
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span>{member.name || <span className="text-slate-400 italic">—</span>}</span>
+                        {member.special_discount_pct && member.special_discount_pct > 0 && (
+                          <VipBadge pct={member.special_discount_pct} />
+                        )}
+                      </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">
                       {member.phone || <span className="text-slate-400">—</span>}
@@ -164,7 +179,7 @@ export default function AdminMembersPage() {
                     </td>
                     <td className="px-4 py-3">
                       <button
-                        onClick={() => setDeleteTarget(member)}
+                        onClick={e => { e.stopPropagation(); setDeleteTarget(member) }}
                         className="p-1.5 rounded-lg text-red-400 hover:text-red-600 hover:bg-red-50 transition-colors"
                         title="Hapus member"
                       >

@@ -29,6 +29,8 @@ export default function CheckoutPage() {
   const [loadingCart, setLoadingCart] = useState(true)
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
+  // TODO: Populate from checkout API response when BENJI adds special_discount_pct to /api/checkout or /api/cart
+  const [specialDiscountPct, setSpecialDiscountPct] = useState(0)
   const [deliveryNote, setDeliveryNote] = useState(() => {
     if (typeof window !== 'undefined') return sessionStorage.getItem('checkout_delivery_note') ?? ''
     return ''
@@ -68,6 +70,8 @@ export default function CheckoutPage() {
     if (res.ok) {
       const { data } = await res.json()
       setCart(data)
+      // TODO: Replace with real field from API when BENJI adds special_discount_pct
+      if (data?.special_discount_pct) setSpecialDiscountPct(data.special_discount_pct)
     }
     setLoadingCart(false)
   }, [router])
@@ -409,6 +413,12 @@ export default function CheckoutPage() {
                       <span className="text-gray-600">Biaya Layanan</span>
                       <span className="font-medium">{formatRupiah(serviceFeeFull)}</span>
                     </div>
+                    {specialDiscountPct > 0 && (
+                      <div className="flex justify-between text-[#7FB300]">
+                        <span>Diskon Member {specialDiscountPct}%</span>
+                        <span className="font-bold">-{formatRupiah(Math.round(subtotal * specialDiscountPct / 100))}</span>
+                      </div>
+                    )}
                     {totalSaved > 0 && (
                       <div className="flex justify-between text-[#1D9E75]">
                         <span className="font-medium">Promo Ongkir &amp; Layanan</span>
