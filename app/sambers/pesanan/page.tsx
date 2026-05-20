@@ -44,6 +44,9 @@ interface Order {
   total_amount: number
   created_at: string
   customer_name: string
+  shipping_phone?: string
+  shipping_recipient_name?: string
+  xendit_invoice_url?: string
   customer_email: string
   items_count: number
   shipping_method?: string | null
@@ -258,7 +261,22 @@ function AdminPesananPageInner() {
                           🚚 Kirim
                         </button>
                       )}
-                      {!['paid', 'processed'].includes(order.status) && (
+                      {order.status === 'pending' && (
+                        <a
+                          href={`https://wa.me/${
+                            (order.shipping_phone || '').replace(/^0/, '62').replace(/[^0-9]/g, '')
+                          }?text=${encodeURIComponent(
+                            `Hai Kak ${order.customer_name || order.shipping_recipient_name || ''},\nKami telah menerima pesanan Kakak dengan nomor *#${order.short_id}* senilai *${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(order.total_amount || 0)}*.\n\nPesanan Kakak saat ini masih menunggu pembayaran. Silakan selesaikan pembayaran agar pesanan dapat segera kami proses. 🙏\n\nLink pembayaran: ${order.xendit_invoice_url || '-'}\n\nTerima kasih sudah belanja di EVC Mercato! 💚`
+                          )}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500 text-white text-xs font-medium rounded-lg hover:bg-green-600"
+                        >
+                          💬 Follow Up WA
+                        </a>
+                      )}
+                      {!['paid', 'processed', 'pending'].includes(order.status) && (
                         <span className="text-slate-400 text-sm">—</span>
                       )}
                     </td>
