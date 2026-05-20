@@ -120,14 +120,26 @@ export async function POST(req: NextRequest) {
     const service_fee = 3000
     const shipping_cost_discount = shippingDiscount
     const service_fee_discount = 3000 // always-on Phase 1
+
+    // Special member discount (VIP): fetched after userData query below — placeholder here
+    // (actual values resolved after userData fetch in step 7; see special_discount_* below)
     const total_amount = subtotal + shippingCostFinal + (service_fee - service_fee_discount)
 
-    // 7. Get user data for snapshot
+    // 7. Get user data for snapshot (includes special_discount_pct for VIP members)
     const { data: userData } = await admin
       .from('users')
-      .select('name, email, phone')
+      .select('name, email, phone, special_discount_pct')
       .eq('id', user.id)
       .single()
+
+    // 7a. Apply special member discount if user has one set
+    const specialDiscountPct: number | null =
+      (userData as any)?.special_discount_pct ?? null
+    const special_discount_amount: number =
+      specialDiscountPct != null
+        ? Math.round(subtotal * specialDiscountPct / 100)
+        : 0
+    const final_total_amount = total_amount - special_discount_amount
 
     // 7b. Resolve district name if not provided
     let resolvedDistrictName = shipping_district_name || address.district || null
@@ -143,13 +155,13 @@ export async function POST(req: NextRequest) {
       .insert({
         user_id: user.id,
         status: 'pending',
-        total_price: total_amount,    // backward compat — mirrors total_amount (redundant col, to be dropped in Sub-PR G)
+        total_price: final_total_amount,    // backward compat — mirrors total_amount (redundant col, to be dropped in Sub-PR G)
         subtotal,
         shipping_cost,
         shipping_cost_discount,
         service_fee,
         service_fee_discount,
-        total_amount,
+        total_amount: final_total_amount,
         shipping_address_id: address_id,
         shipping_recipient_name: address.recipient_name,
         shipping_phone: address.phone,
@@ -230,9 +242,9 @@ export async function POST(req: NextRequest) {
     try {
       const invoice = await createInvoice({
         external_id: order.id,
-        amount: total_amount,
+        amount: final_total_amount,
         payer_email: user.email || '',
-        description: `Order #${order.id.slice(0, 8).toUpperCase()} - EVC Mercato`,
+        description: `Order #${order.id.slice(0, 8).toUpperCase()} - EVC Mercato${specialDiscountPct ? ` (diskon member ${specialDiscountPct}%)` : ''}`,
         items: orderItemsData.map(item => ({
           name: item.product_name + (item.variant_name ? ` (${item.variant_name})` : ''),
           quantity: item.quantity,
@@ -275,7 +287,12 @@ export async function POST(req: NextRequest) {
     } catch (e) { console.error('[affiliate] checkout attribution failed (non-critical):', e) }
 
     return NextResponse.json({
-      data: { order_id: order.id, xendit_invoice_url: xenditInvoiceUrl },
+      data: {
+        order_id: order.id,
+        xendit_invoice_url: xenditInvoiceUrl,
+        special_discount_pct: specialDiscountPct,
+        special_discount_amount,
+      },
       message: 'Pesanan berhasil dibuat'
     })
 
