@@ -151,6 +151,33 @@ export default async function PearlNourishCreamPage({
           })();
         `}</Script>
       )}
+      {pixelId && (
+        <Script id="cta-tracking-pearl-nourish-cream" strategy="afterInteractive">{`
+          (function() {
+            function attachTracking() {
+              document.querySelectorAll('[data-track-shop]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('trackCustom', 'ShopClick', {campaign: 'pearl_nourish_cream'});
+                  fbq('track', 'Lead', {content_name: 'Pearl Nourish Cream Shop Click', lead_type: 'shop_click'});
+                });
+              });
+              document.querySelectorAll('[data-track-wa]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('track', 'Lead', {content_name: 'Pearl Nourish Cream WhatsApp', lead_type: 'whatsapp'});
+                  fbq('trackCustom', 'WhatsAppClick', {campaign: 'pearl_nourish_cream'});
+                });
+              });
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', attachTracking);
+            } else {
+              attachTracking();
+            }
+          })();
+        `}</Script>
+      )}
       <AffiliateRefSetter refCode={ref} />
 
       {/* ── NAVBAR ── */}
@@ -172,6 +199,7 @@ export default async function PearlNourishCreamPage({
         </div>
         <a
           href={shopLink}
+          data-track-shop
           className="flex-shrink-0 bg-[#9A6B1F] text-white text-xs font-semibold px-4 py-2.5 rounded-full hover:bg-[#7A5518] transition-colors min-h-[44px] flex items-center"
         >
           Beli Sekarang
@@ -245,6 +273,7 @@ export default async function PearlNourishCreamPage({
           <div className="px-4 py-5 max-w-lg mx-auto">
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors"
             >
               Beli Sekarang →
@@ -349,6 +378,7 @@ export default async function PearlNourishCreamPage({
             </div>
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors"
             >
               Beli Sekarang →
@@ -476,6 +506,7 @@ export default async function PearlNourishCreamPage({
             </div>
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#9A6B1F] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#7A5518] transition-colors mb-5"
             >
               Beli Sekarang →
@@ -527,12 +558,14 @@ export default async function PearlNourishCreamPage({
             <div className="flex flex-col gap-3">
               <a
                 href={shopLink}
+                data-track-shop
                 className="bg-white text-[#9A6B1F] py-4 rounded-2xl font-bold hover:bg-[#F5E6C8] transition-colors"
               >
                 🛍️ Beli Sekarang
               </a>
               <a
                 href={WA_LINK}
+                data-track-wa
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border-2 border-white/60 text-white py-3.5 rounded-2xl font-semibold hover:border-white transition-colors"

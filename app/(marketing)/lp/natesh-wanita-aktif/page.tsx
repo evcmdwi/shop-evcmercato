@@ -127,8 +127,8 @@ export default async function NateshPage({
   )
   const ref = sp['ref'] ?? null
 
-  const shopLink = appendRef(appendUTM(SHOP_NATESH, utm), ref)
-  const waLink = appendRef(appendUTM(WA_ADMIN, utm), ref)
+  const shopLink = appendRef(appendUTM(`${SHOP_NATESH}&utm_source=meta&utm_medium=paid_social&utm_campaign=natesh_wanita_aktif&utm_content=lp_cta&utm_term=lp_organic`, utm), ref)
+  const waLink = appendRef(WA_ADMIN, ref)
 
   return (
     <>
@@ -136,6 +136,52 @@ export default async function NateshPage({
         <Script id="meta-pixel" strategy="afterInteractive">
           {initPixelScript(pixelId)}
         </Script>
+      )}
+      {pixelId && (
+        <Script id="meta-pixel-viewcontent" strategy="afterInteractive">{`
+          (function() {
+            function fireVC() {
+              if (typeof fbq !== 'undefined') {
+                fbq('track', 'ViewContent', {
+                  content_name: 'Natesh Wanita Aktif',
+                  content_category: 'Feminine Care',
+                  content_ids: ['natesh'],
+                  content_type: 'product_group'
+                });
+              } else {
+                setTimeout(fireVC, 300);
+              }
+            }
+            setTimeout(fireVC, 500);
+          })();
+        `}</Script>
+      )}
+      {pixelId && (
+        <Script id="cta-tracking-natesh-wanita-aktif" strategy="afterInteractive">{`
+          (function() {
+            function attachTracking() {
+              document.querySelectorAll('[data-track-shop]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('trackCustom', 'ShopClick', {campaign: 'natesh_wanita_aktif'});
+                  fbq('track', 'Lead', {content_name: 'Natesh Wanita Aktif Shop Click', lead_type: 'shop_click'});
+                });
+              });
+              document.querySelectorAll('[data-track-wa]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('track', 'Lead', {content_name: 'Natesh Wanita Aktif WhatsApp', lead_type: 'whatsapp'});
+                  fbq('trackCustom', 'WhatsAppClick', {campaign: 'natesh_wanita_aktif'});
+                });
+              });
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', attachTracking);
+            } else {
+              attachTracking();
+            }
+          })();
+        `}</Script>
       )}
       <AffiliateRefSetter refCode={ref} />
 
@@ -147,6 +193,7 @@ export default async function NateshPage({
         </div>
         <a
           href={shopLink}
+          data-track-shop
           className="flex items-center justify-center w-11 h-11 rounded-full overflow-hidden border-2 border-[#F9E4E8] hover:border-[#D4456B] transition-colors flex-shrink-0"
           aria-label="EVC Mercato"
         >
@@ -206,12 +253,14 @@ export default async function NateshPage({
             <div className="flex gap-3">
               <a
                 href={shopLink}
+                data-track-shop
                 className="flex-1 block text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
               >
                 {content.hero.cta_primary.text}
               </a>
               <a
                 href={waLink}
+                data-track-wa
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 flex items-center justify-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold text-base hover:bg-[#F9E4E8] transition-colors"
@@ -309,6 +358,7 @@ export default async function NateshPage({
             </div>
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold hover:bg-[#B93A5B] transition-colors"
             >
               Upgrade feminine care kamu hari ini →
@@ -383,12 +433,14 @@ export default async function NateshPage({
             </div>
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold hover:bg-[#B93A5B] transition-colors mb-3"
             >
               🛍️ Beli Aman Lewat EVC
             </a>
             <a
               href={waLink}
+              data-track-wa
               target="_blank"
               rel="noopener noreferrer"
               className="block w-full text-center border-2 border-[#D4456B] text-[#D4456B] py-3.5 rounded-2xl font-semibold hover:bg-[#F9E4E8] transition-colors"
@@ -452,12 +504,14 @@ export default async function NateshPage({
             <div className="flex flex-col gap-3">
               <a
                 href={shopLink}
+                data-track-shop
                 className="bg-white text-[#D4456B] py-4 rounded-2xl font-bold hover:bg-pink-50 transition-colors"
               >
                 🛍️ Beli Natesh Sekarang
               </a>
               <a
                 href={waLink}
+                data-track-wa
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border-2 border-white/60 text-white py-3.5 rounded-2xl font-semibold hover:border-white transition-colors"
