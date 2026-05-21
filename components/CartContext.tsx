@@ -1,5 +1,6 @@
 'use client'
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
+import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth/auth-context'
 
 export interface CartItem {
@@ -51,6 +52,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const fetchingRef = useRef(false)
   const prevUserIdRef = useRef<string | undefined>(undefined)
 
+  const pathname = usePathname()
+  // Pages that need full cart data (items + prices). Everywhere else we only
+  // fetch the cheap count so the navbar icon stays fast.
+  const needsFullCart = pathname === '/keranjang' || pathname?.startsWith('/checkout')
+
   const refreshCart = useCallback(async () => {
     if (!user) {
       setCart(null)
@@ -60,10 +66,24 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     fetchingRef.current = true
     setLoading(true)
     try {
-      const res = await fetch('/api/cart')
-      if (res.ok) {
-        const { data } = await res.json()
-        setCart(data ?? null)
+      if (needsFullCart) {
+        // Full fetch: items + prices (used on /keranjang and /checkout)
+        const res = await fetch('/api/cart')
+        if (res.ok) {
+          const { data } = await res.json()
+          setCart(data ?? null)
+        }
+      } else {
+        // Lightweight fetch: count only (used by navbar icon on all other pages)
+        const res = await fetch('/api/cart?count_only=true')
+        if (res.ok) {
+          const { count } = await res.json()
+          // Preserve existing cart data; just update item_count for the icon
+          setCart(prev => prev
+            ? { ...prev, item_count: count ?? 0 }
+            : { id: '', items: [], item_count: count ?? 0, subtotal: 0 }
+          )
+        }
       }
     } catch {
       /* network error — silently ignore */
@@ -71,7 +91,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       setLoading(false)
       fetchingRef.current = false
     }
-  }, [user])
+  }, [user, needsFullCart])
 
   // Fetch cart on mount and when user changes
   useEffect(() => {

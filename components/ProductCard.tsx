@@ -18,6 +18,8 @@ interface ProductCardProps {
     categories?: { name: string; slug: string } | null
   }
   variants?: { price: number; stock: number; is_active: boolean }[]
+  /** Pass true for the first ~4 cards (above fold) to eagerly load images */
+  priority?: boolean
 }
 
 function slugify(name: string): string {
@@ -27,7 +29,7 @@ function slugify(name: string): string {
     .replace(/^-+|-+$/g, '')
 }
 
-export default function ProductCard({ product, variants }: ProductCardProps) {
+export default function ProductCard({ product, variants, priority }: ProductCardProps) {
   const slug = slugify(product.name)
   const detailUrl = `/katalog/${slug}`
 
@@ -62,6 +64,8 @@ export default function ProductCard({ product, variants }: ProductCardProps) {
               fill
               className="object-cover"
               sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+              priority={priority ?? false}
+              loading={priority ? 'eager' : 'lazy'}
             />
           ) : (
             <div className="absolute inset-0 flex items-center justify-center text-gray-300">
