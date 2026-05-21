@@ -61,8 +61,8 @@ export default async function EVCResmiPage({
   const utm = extractUTM(new URLSearchParams(Object.entries(sp).map(([k, v]) => [k, v])))
   const ref = sp['ref'] ?? null
 
-  const shopLink = appendRef(appendUTM('https://shop.evcmercato.com', utm), ref)
-  const katalogLink = appendRef(appendUTM('https://shop.evcmercato.com/katalog', utm), ref)
+  const shopLink = appendRef(appendUTM('https://shop.evcmercato.com?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
+  const katalogLink = appendRef(appendUTM('https://shop.evcmercato.com/katalog?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
   const waLink = appendRef(WA_ADMIN, ref)
   const evieLink = appendRef(EVIE_LINK, ref)
 
@@ -72,6 +72,52 @@ export default async function EVCResmiPage({
         <Script id="meta-pixel" strategy="afterInteractive">
           {initPixelScript(pixelId)}
         </Script>
+      )}
+      {pixelId && (
+        <Script id="meta-pixel-viewcontent" strategy="afterInteractive">{`
+          (function() {
+            function fireVC() {
+              if (typeof fbq !== 'undefined') {
+                fbq('track', 'ViewContent', {
+                  content_name: 'EVC Resmi',
+                  content_category: 'E-Commerce',
+                  content_ids: ['evc-resmi'],
+                  content_type: 'website'
+                });
+              } else {
+                setTimeout(fireVC, 300);
+              }
+            }
+            setTimeout(fireVC, 500);
+          })();
+        `}</Script>
+      )}
+      {pixelId && (
+        <Script id="cta-tracking-evc-resmi" strategy="afterInteractive">{`
+          (function() {
+            function attachTracking() {
+              document.querySelectorAll('[data-track-shop]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('trackCustom', 'ShopClick', {campaign: 'evc_resmi'});
+                  fbq('track', 'Lead', {content_name: 'EVC Resmi Shop Click', lead_type: 'shop_click'});
+                });
+              });
+              document.querySelectorAll('[data-track-wa]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('track', 'Lead', {content_name: 'EVC Resmi WhatsApp', lead_type: 'whatsapp'});
+                  fbq('trackCustom', 'WhatsAppClick', {campaign: 'evc_resmi'});
+                });
+              });
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', attachTracking);
+            } else {
+              attachTracking();
+            }
+          })();
+        `}</Script>
       )}
       <AffiliateRefSetter refCode={ref} />
 
@@ -91,7 +137,7 @@ export default async function EVCResmiPage({
                 Kalau biasanya Anda belanja lewat marketplace, wajar kalau butuh rasa yakin sebelum pindah ke website resmi. Di sini, Anda bisa mulai dari langkah paling aman: cek produk resmi, lihat alur belanja, lalu tanya admin jika masih ragu.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                <a href={shopLink} className="bg-[#7FB300] text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-[#6B9700] transition-colors text-center">
+                <a href={shopLink} data-track-shop className="bg-[#7FB300] text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-[#6B9700] transition-colors text-center">
                   Mulai Cek Produk Resmi
                 </a>
               </div>
@@ -129,7 +175,7 @@ export default async function EVCResmiPage({
               Evie Health by EVC adalah konsultan kesehatan digital EVC yang siap sedia membantu pelanggan 24 jam, 7 hari seminggu. Evie dibekali pengetahuan luas seputar keluhan umum, pilihan solusi, gaya hidup, dan kebutuhan wellness masa kini, sehingga pelanggan bisa mendapatkan arahan awal yang lebih personal sebelum memilih produk.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href={shopLink} className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
+              <a href={shopLink} data-track-shop className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
                 Belanja Sekarang
               </a>
               <a href={evieLink} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors">
@@ -206,7 +252,7 @@ export default async function EVCResmiPage({
                 <h3 className="font-bold text-gray-900 mb-2">Chat Admin EVC</h3>
                 <p className="text-sm text-gray-600 mb-4 leading-relaxed">Tanya ketersediaan produk, info pengiriman, atau panduan belanja langsung via WhatsApp.</p>
                 <a href={waLink} target="_blank" rel="noopener noreferrer"
-                  className="block w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors">
+                  className="block w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors" data-track-wa>
                   Chat Admin Sekarang
                 </a>
               </div>

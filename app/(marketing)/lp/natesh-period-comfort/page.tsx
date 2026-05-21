@@ -176,6 +176,33 @@ export default async function NateshPeriodComfortPage({
           })();
         `}</Script>
       )}
+      {pixelId && (
+        <Script id="cta-tracking-natesh-period-comfort" strategy="afterInteractive">{`
+          (function() {
+            function attachTracking() {
+              document.querySelectorAll('[data-track-shop]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('trackCustom', 'ShopClick', {campaign: 'natesh_period_comfort'});
+                  fbq('track', 'Lead', {content_name: 'Natesh Period Comfort Shop Click', lead_type: 'shop_click'});
+                });
+              });
+              document.querySelectorAll('[data-track-wa]').forEach(function(el) {
+                el.addEventListener('click', function() {
+                  if(typeof fbq === 'undefined') return;
+                  fbq('track', 'Lead', {content_name: 'Natesh Period Comfort WhatsApp', lead_type: 'whatsapp'});
+                  fbq('trackCustom', 'WhatsAppClick', {campaign: 'natesh_period_comfort'});
+                });
+              });
+            }
+            if (document.readyState === 'loading') {
+              document.addEventListener('DOMContentLoaded', attachTracking);
+            } else {
+              attachTracking();
+            }
+          })();
+        `}</Script>
+      )}
       <AffiliateRefSetter refCode={ref} />
 
       {/* ── NAVBAR ── */}
@@ -186,6 +213,7 @@ export default async function NateshPeriodComfortPage({
         </div>
         <a
           href={shopLink}
+          data-track-shop
           className="flex items-center justify-center w-11 h-11 rounded-full overflow-hidden border-2 border-[#F9E4E8] hover:border-[#D4456B] transition-colors flex-shrink-0"
           aria-label="EVC Mercato"
         >
@@ -263,6 +291,7 @@ export default async function NateshPeriodComfortPage({
           <div className="px-4 py-5 max-w-lg mx-auto">
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors"
             >
               Temukan Rangkaian Lengkap →
@@ -359,6 +388,7 @@ export default async function NateshPeriodComfortPage({
             </div>
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold hover:bg-[#B93A5B] transition-colors"
             >
               Dapatkan Natesh Sekarang →
@@ -434,6 +464,7 @@ export default async function NateshPeriodComfortPage({
           <div className="max-w-lg mx-auto">
             <a
               href={shopLink}
+              data-track-shop
               className="block w-full text-center bg-[#D4456B] text-white py-4 rounded-2xl font-bold text-base hover:bg-[#B93A5B] transition-colors shadow-md"
             >
               🛒 Belanja Natesh Sekarang
@@ -477,12 +508,14 @@ export default async function NateshPeriodComfortPage({
             <div className="flex flex-col gap-3">
               <a
                 href={shopLink}
+                data-track-shop
                 className="bg-white text-[#D4456B] py-4 rounded-2xl font-bold hover:bg-pink-50 transition-colors"
               >
                 🛍️ Beli Natesh Sekarang
               </a>
               <a
                 href={waLink}
+                data-track-wa
                 target="_blank"
                 rel="noopener noreferrer"
                 className="border-2 border-white/60 text-white py-3.5 rounded-2xl font-semibold hover:border-white transition-colors"
