@@ -38,11 +38,12 @@ export default function ProductGrid({ products }: ProductGridProps) {
 
   return (
     <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
-      {products.map((product) => (
+      {products.map((product, idx) => (
         <ProductCard
           key={product.id}
           product={product}
           variants={product.product_variants}
+          priority={idx < 4}
         />
       ))}
     </div>
