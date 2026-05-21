@@ -26,7 +26,7 @@ function getPeriodRange(period: Period): { start: string; end: string } | null {
 export async function GET(req: NextRequest) {
   const supabase = await createClient()
 
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getSession().then(r => ({ data: { user: r.data.session?.user ?? null }, error: r.error }))
   if (authError || !user) {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
   }

@@ -6,7 +6,7 @@ export async function GET() {
   const supabase = await createClient()
   const {
     data: { user },
-  } = await supabase.auth.getUser()
+  } = await supabase.auth.getSession().then(r => ({ data: { user: r.data.session?.user ?? null }, error: r.error }))
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   // Verify approved affiliate

@@ -4,7 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function GET() {
   const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getSession().then(r => ({ data: { user: r.data.session?.user ?? null }, error: r.error }))
   if (authError || !user) {
     return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
@@ -25,7 +25,7 @@ export async function GET() {
 
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
-  const { data: { user }, error: authError } = await supabase.auth.getUser()
+  const { data: { user }, error: authError } = await supabase.auth.getSession().then(r => ({ data: { user: r.data.session?.user ?? null }, error: r.error }))
   if (authError || !user) {
     return NextResponse.json({ data: null, error: 'Unauthorized', message: 'Authentication required' }, { status: 401 })
   }
