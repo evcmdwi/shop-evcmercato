@@ -12,6 +12,30 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(url.searchParams.get('limit') || '20')
   const offset = (page - 1) * limit
 
+  // If search term provided: first find matching district_ids via 2-step lookup
+  // (PostgREST does not support OR filter across related tables in .or())
+  let districtIdFilter: string[] | null = null
+  if (search) {
+    // Step 1: find regency IDs matching the search
+    const { data: matchingRegencies } = await admin
+      .from('regencies')
+      .select('id')
+      .ilike('name', `%${search}%`)
+    const regencyIds = (matchingRegencies ?? []).map((r: any) => r.id)
+
+    // Step 2: find district IDs from matching regencies OR matching district names
+    const districtQueries = [
+      admin.from('districts').select('id').ilike('name', `%${search}%`),
+    ]
+    if (regencyIds.length > 0) {
+      districtQueries.push(admin.from('districts').select('id').in('regency_id', regencyIds))
+    }
+    const results = await Promise.all(districtQueries)
+    const allIds = new Set<string>()
+    results.forEach(r => (r.data ?? []).forEach((d: any) => allIds.add(d.id)))
+    districtIdFilter = allIds.size > 0 ? Array.from(allIds) : ['__no_match__']
+  }
+
   let query = admin
     .from('shipping_rates')
     .select(
@@ -23,8 +47,8 @@ export async function GET(req: NextRequest) {
     .order('updated_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (search) {
-    query = query.or(`districts.name.ilike.%${search}%,districts.regencies.name.ilike.%${search}%`)
+  if (districtIdFilter) {
+    query = query.in('district_id', districtIdFilter)
   }
 
   const { data, count, error } = await query
