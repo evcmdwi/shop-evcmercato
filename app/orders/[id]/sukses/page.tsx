@@ -50,14 +50,19 @@ export default function OrderSuksesPage() {
       if (res.ok) {
         const { data } = await res.json()
         setOrder(data)
-      // Fire Meta Pixel Purchase event on success page
-      if (data?.status === 'paid' && data?.total_amount) {
-        trackPixelEvent('Purchase', {
-          value: data.total_amount,
-          currency: 'IDR',
-          content_type: 'product',
-          content_ids: data.items?.map((i: { id: string }) => i.id) ?? [],
-        })
+      // Fire Meta Pixel Purchase event — fire once when order loads on sukses page
+      // (sukses page = Xendit redirect after payment, regardless of current status)
+      if (data?.total_amount && typeof window !== 'undefined') {
+        const fireKey = `px_purchase_${data.id}`
+        if (!sessionStorage.getItem(fireKey)) {
+          sessionStorage.setItem(fireKey, '1')
+          trackPixelEvent('Purchase', {
+            value: data.total_amount,
+            currency: 'IDR',
+            content_type: 'product',
+            content_ids: data.items?.map((i: { id: string }) => i.id) ?? [],
+          })
+        }
       }
         return data as OrderSummary
       }
