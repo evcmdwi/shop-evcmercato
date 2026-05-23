@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { CheckCircle2 } from 'lucide-react'
 import { useAuth } from '@/lib/auth/auth-context'
+import { trackPixelEvent } from '@/lib/marketing/pixel'
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -49,6 +50,15 @@ export default function OrderSuksesPage() {
       if (res.ok) {
         const { data } = await res.json()
         setOrder(data)
+      // Fire Meta Pixel Purchase event on success page
+      if (data?.status === 'paid' && data?.total_amount) {
+        trackPixelEvent('Purchase', {
+          value: data.total_amount,
+          currency: 'IDR',
+          content_type: 'product',
+          content_ids: data.items?.map((i: { id: string }) => i.id) ?? [],
+        })
+      }
         return data as OrderSummary
       }
     } finally {

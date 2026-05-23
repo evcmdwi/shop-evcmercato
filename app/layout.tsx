@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import Script from "next/script";
+import { initPixelScript } from "@/lib/marketing/pixel";
 import { Geist, Geist_Mono, Montserrat, DM_Serif_Display } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
@@ -62,6 +64,11 @@ export default async function RootLayout({
             <ToastContainer />
           </CartProvider>
         </AuthProvider>
+      {process.env.NEXT_PUBLIC_META_PIXEL_ID && (
+        <Script id="meta-pixel-global" strategy="afterInteractive">
+          {initPixelScript(process.env.NEXT_PUBLIC_META_PIXEL_ID)}
+        </Script>
+      )}
       </body>
     </html>
   );
