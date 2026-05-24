@@ -173,7 +173,7 @@ export default function CheckoutPage() {
   const loading = loadingAddresses || loadingCart
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8">
+    <div className="min-h-screen bg-gray-50 pb-8 lg:pb-8 pb-28">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Checkout</h1>
 
@@ -485,16 +485,23 @@ export default function CheckoutPage() {
                     </p>
 
                     {/* Bayar Sekarang button */}
+                    {!selectedAddressId && (
+                      <p className="text-xs text-red-500 text-center -mb-2">
+                        ⚠️ Tambahkan alamat pengiriman terlebih dahulu
+                      </p>
+                    )}
                     <button
                       onClick={handlePay}
                       disabled={paying || !selectedAddressId}
-                      className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-50 hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
+                      className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
                     >
                       {paying ? (
                         <>
                           <Loader2 className="w-5 h-5 animate-spin" />
                           Memproses...
                         </>
+                      ) : !selectedAddressId ? (
+                        'Tambahkan Alamat Dulu'
                       ) : (
                         `Bayar Sekarang ${formatRupiah(totalAmount)}`
                       )}
@@ -508,7 +515,7 @@ export default function CheckoutPage() {
       </div>
 
 
-      {/* Modal AddressForm */}
+{/* Modal AddressForm */}
       <Modal isOpen={showAddressModal} onClose={() => setShowAddressModal(false)} title="Tambah Alamat Baru">
         <AddressForm
           onSuccess={() => {
