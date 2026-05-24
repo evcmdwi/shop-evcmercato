@@ -485,14 +485,28 @@ export default function CheckoutPage() {
                     </p>
 
                     {/* Bayar Sekarang button */}
-                    {!selectedAddressId && (
-                      <p className="text-xs text-red-500 text-center -mb-2">
-                        ⚠️ Tambahkan alamat pengiriman terlebih dahulu
-                      </p>
+                    {/* Checklist kelengkapan sebelum bayar */}
+                    {(!selectedAddressId || loadingCart) && !paying && (
+                      <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5">
+                        <p className="text-xs font-semibold text-amber-800 mb-1">Sebelum checkout, lengkapi:</p>
+                        <div className="flex items-center gap-2 text-xs">
+                          <span className={selectedAddressId ? 'text-green-600' : 'text-amber-700'}>
+                            {selectedAddressId ? '✅' : '⬜'}
+                          </span>
+                          <span className={selectedAddressId ? 'text-gray-500 line-through' : 'text-amber-800 font-medium'}>
+                            Alamat pengiriman
+                          </span>
+                          {!selectedAddressId && (
+                            <a href="/profile/alamat?kembali=/checkout" className="text-[#7FB300] underline text-xs ml-auto">
+                              Tambah →
+                            </a>
+                          )}
+                        </div>
+                      </div>
                     )}
                     <button
                       onClick={handlePay}
-                      disabled={paying || !selectedAddressId}
+                      disabled={paying || !selectedAddressId || loadingCart}
                       className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
                     >
                       {paying ? (
@@ -501,7 +515,9 @@ export default function CheckoutPage() {
                           Memproses...
                         </>
                       ) : !selectedAddressId ? (
-                        'Tambahkan Alamat Dulu'
+                        '⬜ Alamat belum diisi'
+                      ) : loadingCart ? (
+                        'Memuat...'
                       ) : (
                         `Bayar Sekarang ${formatRupiah(totalAmount)}`
                       )}
