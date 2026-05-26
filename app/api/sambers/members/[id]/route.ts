@@ -33,7 +33,6 @@ export async function DELETE(
       .update({
         name: '[Akun Dihapus]',
         phone: null,
-        updated_at: new Date().toISOString(),
       })
       .eq('id', id)
 
