@@ -88,6 +88,10 @@ export default function AdminMembersPage() {
     const res = await fetch(`/api/sambers/members/${deleteTarget.id}`, { method: 'DELETE' })
     setDeleting(false)
     if (res.ok) {
+      const data = await res.json()
+      if (data.anonymized) {
+        alert(`✅ ${data.message}`)
+      }
       setMembers(prev => prev.filter(m => m.id !== deleteTarget.id))
       setTotal(prev => prev - 1)
       setDeleteTarget(null)

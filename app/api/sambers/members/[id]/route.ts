@@ -19,17 +19,52 @@ export async function DELETE(
 
   const admin = getSupabaseAdmin()
 
-  // Delete from auth.users — cascade will remove from users table if FK is set
-  const { error: authError } = await admin.auth.admin.deleteUser(id)
+  // Check if member has orders — cannot hard-delete if orders exist
+  const { count: orderCount } = await admin
+    .from('orders')
+    .select('id', { count: 'exact', head: true })
+    .eq('user_id', id)
 
+  if (orderCount && orderCount > 0) {
+    // Soft-delete: anonymize the account instead of hard-delete
+    // This preserves order history integrity
+    const { error: anonError } = await admin
+      .from('users')
+      .update({
+        name: '[Akun Dihapus]',
+        phone: null,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+
+    if (anonError) {
+      return NextResponse.json({ error: anonError.message }, { status: 500 })
+    }
+
+    // Disable auth login — user can no longer login
+    const { error: disableError } = await admin.auth.admin.updateUserById(id, {
+      ban_duration: '87600h', // 10 years = effectively permanent ban
+    })
+    if (disableError) {
+      console.warn('[DELETE member] could not disable auth user', disableError.message)
+    }
+
+    return NextResponse.json({
+      success: true,
+      anonymized: true,
+      message: `Member memiliki ${orderCount} pesanan — akun dianonimkan dan dinonaktifkan (data pesanan tetap terjaga).`,
+    })
+  }
+
+  // No orders — safe to hard-delete
+  const { error: authError } = await admin.auth.admin.deleteUser(id)
   if (authError) {
     console.error('[DELETE /api/sambers/members/[id]] auth delete error', authError)
-    // Fallback: try deleting from users table directly
     const { error: dbError } = await admin.from('users').delete().eq('id', id)
     if (dbError) {
       return NextResponse.json({ error: dbError.message }, { status: 500 })
     }
   }
 
-  return NextResponse.json({ success: true })
+  return NextResponse.json({ success: true, anonymized: false })
 }
