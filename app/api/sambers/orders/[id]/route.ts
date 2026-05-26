@@ -104,8 +104,9 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     const payload: OrderStatusChangePayload = {
       orderId: id,
       orderShortId: id.slice(0, 8).toUpperCase(),
-      customerName: (userData as any)?.name || (orderData as any)?.shipping_recipient_name || 'Customer',
-      payerPhone: (userData as any)?.phone || (orderData as any)?.shipping_phone || '',
+      // Use recipient name since WA goes to shipping_phone
+      customerName: (orderData as any)?.shipping_recipient_name || (userData as any)?.name || 'Pelanggan',
+      payerPhone: (orderData as any)?.shipping_phone || (userData as any)?.phone || '',
       status: status as string,
       courier: shipping_courier,
       trackingNumber: tracking_number,

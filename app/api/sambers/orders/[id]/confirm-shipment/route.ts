@@ -73,8 +73,9 @@ export async function PUT(req: NextRequest, { params }: RouteContext) {
     await emitOrderShipped({
       orderId: id,
       orderShortId: id.slice(0, 8).toUpperCase(),
-      customerName: (userData as any)?.name || order?.shipping_recipient_name || 'Customer',
-      payerPhone: (userData as any)?.phone || order?.shipping_phone || '',
+      // Use recipient name (not buyer name) since WA goes to shipping_phone
+      customerName: order?.shipping_recipient_name || (userData as any)?.name || 'Pelanggan',
+      payerPhone: order?.shipping_phone || (userData as any)?.phone || '',
       status: 'shipped',
       courier: order?.courier_type === 'grab' ? 'Grab Express' : 'JNT',
       trackingNumber: finalResi,

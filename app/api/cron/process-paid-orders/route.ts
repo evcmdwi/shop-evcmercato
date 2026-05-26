@@ -181,9 +181,10 @@ export async function GET(req: NextRequest) {
         await emitOrderPaid({
           orderId: order.id,
           orderShortId: order.id.slice(0, 8).toUpperCase(),
-          customerName: freshUser?.name || 'Customer',
+          // Use recipient name since WA goes to shipping_phone
+          customerName: order.shipping_recipient_name || freshUser?.name || 'Pelanggan',
           payerEmail: freshUser?.email || '',
-          payerPhone: freshUser?.phone || order.shipping_phone || '',
+          payerPhone: order.shipping_phone || freshUser?.phone || '',
           totalAmount: order.total_amount,
           items: (items || []).map(item => ({
             product_name: item.variant_name
