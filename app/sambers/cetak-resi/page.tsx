@@ -4,8 +4,9 @@ import { useState, useRef } from 'react'
 import { Printer } from 'lucide-react'
 
 interface ResiForm {
-  ekspedisi: 'jnt' | 'grab'
+  ekspedisi: 'jnt' | 'jne' | 'grab'
   noResi: string
+  noHpPengirim: string
   namaPenerima: string
   noPenerima: string
   alamatPenerima: string
@@ -20,6 +21,7 @@ export default function CetakResiPage() {
   const [form, setForm] = useState<ResiForm>({
     ekspedisi: 'jnt',
     noResi: '',
+    noHpPengirim: '',
     namaPenerima: '',
     noPenerima: '',
     alamatPenerima: '',
@@ -43,7 +45,7 @@ export default function CetakResiPage() {
     if (!content) return
     const win = window.open('', '_blank', 'width=600,height=700')
     if (!win) return
-    const barcodeScript = form.ekspedisi === 'jnt' && form.noResi
+    const barcodeScript = (form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && form.noResi
       ? `<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
          <script>setTimeout(function(){ try { JsBarcode("#barcode-svg","${form.noResi}",{format:"CODE128",width:2,height:40,displayValue:false,margin:0}); } catch(e){} }, 100);</script>`
       : ''
@@ -77,7 +79,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
     setTimeout(() => { win.print() }, 400)
   }
 
-  const isComplete = form.namaPenerima && form.namaPengirim && form.noPesanan && (form.ekspedisi === 'grab' || form.noResi)
+  const isComplete = form.namaPenerima && form.namaPengirim && (form.ekspedisi === 'grab' || form.noResi)
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -89,24 +91,24 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-2">Jenis Ekspedisi</label>
           <div className="flex gap-4">
-            {(['jnt', 'grab'] as const).map((e) => (
+            {(['jnt', 'jne', 'grab'] as const).map((e) => (
               <label key={e} className={`flex items-center gap-2 px-4 py-2.5 rounded-xl border-2 cursor-pointer transition-colors ${form.ekspedisi === e ? 'border-[#7FB300] bg-[#F0F9E0]' : 'border-slate-200 hover:border-slate-300'}`}>
                 <input type="radio" name="ekspedisi" value={e} checked={form.ekspedisi === e}
                   onChange={() => set('ekspedisi', e)} className="accent-[#7FB300]" />
-                <span className="font-semibold text-sm">{e === 'jnt' ? 'JNT' : 'Grab Express'}</span>
+                <span className="font-semibold text-sm">{e === 'jnt' ? 'JNT' : e === 'jne' ? 'JNE' : 'Grab Express'}</span>
               </label>
             ))}
           </div>
         </div>
 
         {/* No Resi JNT */}
-        {form.ekspedisi === 'jnt' && (
+        {(form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && (
           <div>
             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
-              No Resi JNT <span className="text-red-400">*</span>
+              No Resi {form.ekspedisi === 'jnt' ? 'JNT' : 'JNE'} <span className="text-red-400">*</span>
             </label>
             <input type="text" value={form.noResi} onChange={e => set('noResi', e.target.value)}
-              placeholder="Contoh: JP0012345678"
+              placeholder={form.ekspedisi === 'jnt' ? 'Contoh: JP0012345678' : 'Contoh: 0001234567890'}
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
           </div>
         )}
@@ -143,11 +145,19 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-1.5">No Pesanan <span className="text-red-400">*</span></label>
-            <input type="text" value={form.noPesanan} onChange={e => set('noPesanan', e.target.value)}
-              placeholder="Contoh: WA-20260530-001"
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">No HP Pengirim</label>
+            <input type="text" value={form.noHpPengirim} onChange={e => set('noHpPengirim', e.target.value)}
+              placeholder="08xxx"
               className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
           </div>
+        </div>
+
+        {/* No Pesanan — opsional */}
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-1.5">No Pesanan <span className="text-xs text-slate-400">(opsional)</span></label>
+          <input type="text" value={form.noPesanan} onChange={e => set('noPesanan', e.target.value)}
+            placeholder="Contoh: WA-20260530-001"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
         </div>
 
         {/* Tanggal */}
@@ -181,9 +191,13 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                 {/* Header */}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '1.4cm', marginBottom: '0.15cm', borderBottom: '1px solid #ccc', paddingBottom: '0.1cm', flexShrink: 0 }}>
                   <span style={{ fontSize: '0.55cm', fontWeight: 'bold', color: '#333' }}>EVC Mercato</span>
-                  <span style={{ fontSize: '0.75cm', fontWeight: '900', color: form.ekspedisi === 'jnt' ? '#d10000' : '#00B14F', letterSpacing: '0.05cm' }}>
-                    {form.ekspedisi === 'jnt' ? 'JNT' : 'GRAB'}
-                  </span>
+                  {form.ekspedisi === 'jne' ? (
+                    <img src="/logo-jne.png" alt="JNE" style={{ height: '1.2cm', width: 'auto', objectFit: 'contain' }} />
+                  ) : (
+                    <span style={{ fontSize: '0.75cm', fontWeight: '900', color: form.ekspedisi === 'grab' ? '#00B14F' : '#d10000', letterSpacing: '0.05cm' }}>
+                      {form.ekspedisi === 'jnt' ? 'JNT' : 'GRAB'}
+                    </span>
+                  )}
                 </div>
 
                 {/* Barcode JNT or No Pesanan */}
@@ -211,6 +225,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                   <div style={{ flex: 3, overflow: 'hidden' }}>
                     <div style={{ fontSize: '0.3cm', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.08cm' }}>PENGIRIM</div>
                     <div style={{ fontSize: '0.36cm', fontWeight: 'bold', lineHeight: 1.2 }}>{form.namaPengirim}</div>
+                    {form.noHpPengirim && <div style={{ fontSize: '0.28cm', color: '#555' }}>{form.noHpPengirim}</div>}
                     <div style={{ fontSize: '0.27cm', color: '#555', marginTop: '0.05cm' }}>Balikpapan</div>
                   </div>
                 </div>
