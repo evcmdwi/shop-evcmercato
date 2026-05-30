@@ -63,6 +63,13 @@ const menuItems = [
     ),
   },
   {
+    href: '/sambers/chat',
+    label: 'Chat Member',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">💬</span>
+    ),
+  },
+  {
     href: '/sambers/affiliate',
     label: 'Affiliate',
     icon: (
