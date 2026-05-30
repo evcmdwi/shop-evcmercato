@@ -5,6 +5,7 @@ import { Printer } from 'lucide-react'
 
 interface ResiForm {
   ekspedisi: 'jnt' | 'grab'
+  noResi: string
   namaPenerima: string
   noPenerima: string
   alamatPenerima: string
@@ -18,6 +19,7 @@ const today = new Date().toISOString().split('T')[0]
 export default function CetakResiPage() {
   const [form, setForm] = useState<ResiForm>({
     ekspedisi: 'jnt',
+    noResi: '',
     namaPenerima: '',
     noPenerima: '',
     alamatPenerima: '',
@@ -41,6 +43,10 @@ export default function CetakResiPage() {
     if (!content) return
     const win = window.open('', '_blank', 'width=600,height=700')
     if (!win) return
+    const barcodeScript = form.ekspedisi === 'jnt' && form.noResi
+      ? `<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
+         <script>setTimeout(function(){ try { JsBarcode("#barcode-svg","${form.noResi}",{format:"CODE128",width:2,height:40,displayValue:false,margin:0}); } catch(e){} }, 100);</script>`
+      : ''
     win.document.write(`<!DOCTYPE html>
 <html><head>
 <title>Resi ${form.noPesanan || 'Custom'}</title>
@@ -49,27 +55,29 @@ export default function CetakResiPage() {
 body { display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f5f5f5; font-family:system-ui,sans-serif; }
 @media print { body { background:white; } }
 .resi { width:10cm; height:10cm; border:2px solid black; background:white; display:flex; flex-direction:column; padding:0.2cm; overflow:hidden; }
-.header { display:flex; justify-content:space-between; align-items:center; height:1.6cm; margin-bottom:0.15cm; border-bottom:1px solid #ccc; padding-bottom:0.1cm; }
-.header-left { display:flex; align-items:center; gap:0.15cm; }
+.header { display:flex; justify-content:space-between; align-items:center; height:1.4cm; margin-bottom:0.12cm; border-bottom:1px solid #ccc; padding-bottom:0.1cm; }
 .header-left span { font-size:0.55cm; color:#333; font-weight:bold; }
-.courier-label { font-size:0.9cm; font-weight:900; letter-spacing:0.05cm; color:#d10000; }
-.resi-number-text { font-size:0.38cm; font-family:monospace; font-weight:bold; text-align:center; margin:0.15cm 0; border:1px dashed #999; padding:0.1cm; letter-spacing:0.05cm; }
+.courier-label { font-size:0.9cm; font-weight:900; letter-spacing:0.05cm; }
+.barcode-section { display:flex; flex-direction:column; align-items:center; flex-shrink:0; border-bottom:1px solid #ccc; margin-bottom:0.1cm; padding:0.05cm 0; max-height:2.0cm; overflow:hidden; }
+#barcode-svg { max-width:8cm; max-height:1.8cm; display:block; }
+.resi-number-text { font-size:0.3cm; font-family:monospace; font-weight:bold; text-align:center; margin-top:0.05cm; }
+.no-pesanan-text { font-size:0.32cm; font-family:monospace; font-weight:bold; text-align:center; border:1px dashed #999; padding:0.08cm; margin:0.08cm 0; }
 .address-section { display:flex; flex:1; min-height:0; overflow:hidden; gap:0.15cm; margin-bottom:0.1cm; }
 .penerima { flex:7; border-right:1px solid #ccc; padding-right:0.15cm; }
 .pengirim { flex:3; }
-.addr-heading { font-size:0.32cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.08cm; }
-.addr-name { font-size:0.46cm; font-weight:bold; line-height:1.2; }
-.addr-phone { font-size:0.35cm; margin:0.06cm 0; }
-.addr-detail { font-size:0.28cm; line-height:1.4; color:#333; }
+.addr-heading { font-size:0.3cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.08cm; }
+.addr-name { font-size:0.44cm; font-weight:bold; line-height:1.2; }
+.addr-phone { font-size:0.34cm; margin:0.06cm 0; }
+.addr-detail { font-size:0.27cm; line-height:1.4; color:#333; }
 .footer { display:flex; justify-content:space-between; flex-shrink:0; border-top:1px solid #ccc; padding-top:0.1cm; font-size:0.28cm; color:#555; }
 </style>
-</head><body>${content}</body></html>`)
+</head><body>${content}${barcodeScript}</body></html>`)
     win.document.close()
     win.focus()
     setTimeout(() => { win.print() }, 400)
   }
 
-  const isComplete = form.namaPenerima && form.namaPengirim && form.noPesanan
+  const isComplete = form.namaPenerima && form.namaPengirim && form.noPesanan && (form.ekspedisi === 'grab' || form.noResi)
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8">
@@ -90,6 +98,18 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
             ))}
           </div>
         </div>
+
+        {/* No Resi JNT */}
+        {form.ekspedisi === 'jnt' && (
+          <div>
+            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+              No Resi JNT <span className="text-red-400">*</span>
+            </label>
+            <input type="text" value={form.noResi} onChange={e => set('noResi', e.target.value)}
+              placeholder="Contoh: JP0012345678"
+              className="w-full border border-slate-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-[#7FB300]" />
+          </div>
+        )}
 
         {/* Nama Penerima */}
         <div className="grid grid-cols-2 gap-4">
@@ -166,10 +186,17 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                   </span>
                 </div>
 
-                {/* No Pesanan */}
-                <div style={{ textAlign: 'center', fontSize: '0.38cm', fontFamily: 'monospace', fontWeight: 'bold', border: '1px dashed #999', padding: '0.1cm', margin: '0.1cm 0', letterSpacing: '0.05cm', flexShrink: 0 }}>
-                  {form.noPesanan}
-                </div>
+                {/* Barcode JNT or No Pesanan */}
+                {form.ekspedisi === 'jnt' && form.noResi ? (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, borderBottom: '1px solid #ccc', marginBottom: '0.1cm', padding: '0.05cm 0', maxHeight: '2.0cm', overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.3cm', fontFamily: 'monospace', fontWeight: 'bold', color: '#555' }}>No Resi: {form.noResi}</div>
+                    <div style={{ fontSize: '0.25cm', fontFamily: 'monospace', color: '#888' }}>(Barcode tampil saat cetak)</div>
+                  </div>
+                ) : (
+                  <div style={{ textAlign: 'center', fontSize: '0.38cm', fontFamily: 'monospace', fontWeight: 'bold', border: '1px dashed #999', padding: '0.1cm', margin: '0.1cm 0', letterSpacing: '0.05cm', flexShrink: 0 }}>
+                    {form.noPesanan}
+                  </div>
+                )}
 
                 {/* Address section */}
                 <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', gap: '0.15cm', marginBottom: '0.1cm' }}>
