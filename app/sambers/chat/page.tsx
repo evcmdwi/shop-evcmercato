@@ -177,7 +177,7 @@ function HistoryModal({ member, onClose }: HistoryModalProps) {
   useEffect(() => {
     fetch(`/api/sambers/chat/history/${member.id}`)
       .then((r) => r.json())
-      .then((data) => setMessages(data.messages ?? []))
+      .then((data) => setMessages(data.data ?? []))
       .catch(() => setMessages([]))
       .finally(() => setLoading(false))
   }, [member.id])
