@@ -192,7 +192,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '1.4cm', marginBottom: '0.15cm', borderBottom: '1px solid #ccc', paddingBottom: '0.1cm', flexShrink: 0 }}>
                   <span style={{ fontSize: '0.55cm', fontWeight: 'bold', color: '#333' }}>EVC Mercato</span>
                   {form.ekspedisi === 'jne' ? (
-                    <img src="/logo-jne.png" alt="JNE" style={{ height: '1.2cm', width: 'auto', objectFit: 'contain' }} />
+                    <img src="/logo-jne.svg" alt="JNE" style={{ height: '1.2cm', width: 'auto', objectFit: 'contain' }} />
                   ) : (
                     <span style={{ fontSize: '0.75cm', fontWeight: '900', color: form.ekspedisi === 'grab' ? '#00B14F' : '#d10000', letterSpacing: '0.05cm' }}>
                       {form.ekspedisi === 'jnt' ? 'JNT' : 'GRAB'}
@@ -200,15 +200,11 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                   )}
                 </div>
 
-                {/* Barcode JNT or No Pesanan */}
-                {form.ekspedisi === 'jnt' && form.noResi ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, borderBottom: '1px solid #ccc', marginBottom: '0.1cm', padding: '0.05cm 0', maxHeight: '2.0cm', overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.3cm', fontFamily: 'monospace', fontWeight: 'bold', color: '#555' }}>No Resi: {form.noResi}</div>
-                    <div style={{ fontSize: '0.25cm', fontFamily: 'monospace', color: '#888' }}>(Barcode tampil saat cetak)</div>
-                  </div>
-                ) : (
-                  <div style={{ textAlign: 'center', fontSize: '0.38cm', fontFamily: 'monospace', fontWeight: 'bold', border: '1px dashed #999', padding: '0.1cm', margin: '0.1cm 0', letterSpacing: '0.05cm', flexShrink: 0 }}>
-                    {form.noPesanan}
+                {/* Barcode section for JNT/JNE, empty for GRAB */}
+                {(form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && form.noResi && (
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, borderBottom: '1px solid #ccc', marginBottom: '0.1cm', padding: '0.08cm 0', maxHeight: '2.0cm', overflow: 'hidden' }}>
+                    <div style={{ fontSize: '0.3cm', fontFamily: 'monospace', fontWeight: 'bold', color: '#333', letterSpacing: '0.05cm' }}>No Resi: {form.noResi}</div>
+                    <div style={{ fontSize: '0.24cm', fontFamily: 'monospace', color: '#888', marginTop: '0.04cm' }}>▓▓▓▓▓ Barcode tampil saat cetak ▓▓▓▓▓</div>
                   </div>
                 )}
 
