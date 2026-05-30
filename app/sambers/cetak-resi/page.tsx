@@ -230,53 +230,64 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
           {/* Resi preview box */}
           <div className="bg-gray-100 rounded-2xl p-6 flex justify-center">
             <div ref={printRef}>
-              <div className="resi" style={{
-                width: '10cm', height: '10cm', border: '2px solid black', background: 'white',
-                display: 'flex', flexDirection: 'column', padding: '0.2cm', overflow: 'hidden',
-                fontFamily: 'system-ui, sans-serif', boxSizing: 'border-box'
+              <div style={{
+                width:'10cm', height:'10cm', border:'2px solid black', background:'white',
+                display:'flex', flexDirection:'column', padding:'0.2cm', overflow:'hidden',
+                fontFamily:'system-ui,sans-serif', boxSizing:'border-box'
               }}>
                 {/* Header */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', height: '1.4cm', marginBottom: '0.15cm', borderBottom: '1px solid #ccc', paddingBottom: '0.1cm', flexShrink: 0 }}>
-                  <span style={{ fontSize: '0.55cm', fontWeight: 'bold', color: '#333' }}>EVC Mercato</span>
-                  {form.ekspedisi === 'jne' ? (
-                    <img src="/logo-jne.svg" alt="JNE" style={{ height: '1.2cm', width: 'auto', objectFit: 'contain' }} />
-                  ) : (
-                    <span style={{ fontSize: '0.75cm', fontWeight: '900', color: form.ekspedisi === 'grab' ? '#00B14F' : '#d10000', letterSpacing: '0.05cm' }}>
-                      {form.ekspedisi === 'jnt' ? 'JNT' : 'GRAB'}
-                    </span>
+                <div style={{ display:'flex', justifyContent:'space-between', alignItems:'center', flexShrink:0, height:'1.6cm', marginBottom:'0.15cm', borderBottom:'1px solid #ccc', paddingBottom:'0.1cm' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'0.15cm' }}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src="/logo-evcmercato.jpg" alt="EVC" style={{ height:'1.2cm', width:'auto' }} />
+                    <span style={{ fontSize:'0.55cm', color:'#333', fontWeight:'bold' }}>shop.evcmercato.com</span>
+                  </div>
+                  {form.ekspedisi === 'jnt' && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src="/logo-jnt.jpg" alt="JNT" style={{ height:'1.3cm', width:'auto' }} />
+                  )}
+                  {form.ekspedisi === 'jne' && (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src="/logo-jne.svg" alt="JNE" style={{ height:'1.3cm', width:'auto' }} />
                   )}
                 </div>
 
-                {/* Barcode section for JNT/JNE, empty for GRAB */}
-                {(form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && form.noResi && (
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0, borderBottom: '1px solid #ccc', marginBottom: '0.1cm', padding: '0.08cm 0', maxHeight: '2.0cm', overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.3cm', fontFamily: 'monospace', fontWeight: 'bold', color: '#333', letterSpacing: '0.05cm' }}>No Resi: {form.noResi}</div>
-                    <div style={{ fontSize: '0.24cm', fontFamily: 'monospace', color: '#888', marginTop: '0.04cm' }}>▓▓▓▓▓ Barcode tampil saat cetak ▓▓▓▓▓</div>
-                  </div>
-                )}
+                {/* Barcode / Courier section */}
+                <div style={{ display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', flexShrink:0, maxHeight:'2.1cm', overflow:'hidden', borderBottom:'1px solid #ccc', marginBottom:'0.15cm', padding:'0.05cm 0' }}>
+                  {(form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && form.noResi && (
+                    <>
+                      <div style={{ fontSize:'0.28cm', color:'#888', fontFamily:'monospace' }}>▓▓▓ Barcode: {form.noResi} ▓▓▓</div>
+                      <div style={{ fontSize:'0.26cm', color:'#aaa', marginTop:'0.04cm' }}>(barcode auto-generate saat cetak)</div>
+                    </>
+                  )}
+                  {form.ekspedisi === 'grab' && (
+                    <>
+                      <div style={{ fontSize:'0.35cm', fontWeight:'bold', color:'#00B14F', letterSpacing:'0.05cm', marginBottom:'0.1cm' }}>INSTAN / 2-3 JAM</div>
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src="/logo-grab-express.jpg" alt="Grab Express" style={{ height:'1.6cm', width:'auto' }} />
+                    </>
+                  )}
+                </div>
 
-                {/* Address section */}
-                <div style={{ display: 'flex', flex: 1, minHeight: 0, overflow: 'hidden', gap: '0.15cm', marginBottom: '0.1cm' }}>
-                  {/* Penerima */}
-                  <div style={{ flex: 7, borderRight: '1px solid #ccc', paddingRight: '0.15cm', overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.3cm', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.08cm' }}>PENERIMA</div>
-                    <div style={{ fontSize: '0.44cm', fontWeight: 'bold', lineHeight: 1.2 }}>{form.namaPenerima}</div>
-                    {form.noPenerima && <div style={{ fontSize: '0.34cm', margin: '0.06cm 0' }}>{form.noPenerima}</div>}
-                    {form.alamatPenerima && <div style={{ fontSize: '0.27cm', lineHeight: 1.4, color: '#333' }}>{form.alamatPenerima}</div>}
+                {/* Address */}
+                <div style={{ display:'flex', flex:1, minHeight:0, overflow:'hidden', gap:'0.15cm', marginBottom:'0.1cm' }}>
+                  <div style={{ flex:7, borderRight:'1px solid #ccc', paddingRight:'0.15cm', overflow:'hidden' }}>
+                    <div style={{ fontSize:'0.32cm', fontWeight:'bold', textTransform:'uppercase', marginBottom:'0.1cm' }}>Penerima</div>
+                    <div style={{ fontSize:'0.46cm', fontWeight:'bold', lineHeight:1.2 }}>{form.namaPenerima}</div>
+                    {form.noPenerima && <div style={{ fontSize:'0.35cm', marginBottom:'0.06cm' }}>{form.noPenerima}</div>}
+                    {form.alamatPenerima && <div style={{ fontSize:'0.28cm', lineHeight:1.4, color:'#333' }}>{form.alamatPenerima}</div>}
                   </div>
-                  {/* Pengirim */}
-                  <div style={{ flex: 3, overflow: 'hidden' }}>
-                    <div style={{ fontSize: '0.3cm', fontWeight: 'bold', textTransform: 'uppercase', marginBottom: '0.08cm' }}>PENGIRIM</div>
-                    <div style={{ fontSize: '0.36cm', fontWeight: 'bold', lineHeight: 1.2 }}>{form.namaPengirim}</div>
-                    {form.noHpPengirim && <div style={{ fontSize: '0.28cm', color: '#555' }}>{form.noHpPengirim}</div>}
-                    <div style={{ fontSize: '0.27cm', color: '#555', marginTop: '0.05cm' }}>Balikpapan</div>
+                  <div style={{ flex:3, overflow:'hidden' }}>
+                    <div style={{ fontSize:'0.32cm', fontWeight:'bold', textTransform:'uppercase', marginBottom:'0.1cm' }}>Pengirim</div>
+                    <div style={{ fontSize:'0.46cm', fontWeight:'bold', lineHeight:1.2 }}>{form.namaPengirim}</div>
+                    {form.noHpPengirim && <div style={{ fontSize:'0.35cm' }}>{form.noHpPengirim}</div>}
                   </div>
                 </div>
 
                 {/* Footer */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', flexShrink: 0, borderTop: '1px solid #ccc', paddingTop: '0.1cm', fontSize: '0.28cm', color: '#555' }}>
-                  <span>{formatDate(form.tanggalPesanan)}</span>
-                  <span>shop.evcmercato.com</span>
+                <div style={{ display:'flex', justifyContent:'space-between', flexShrink:0, borderTop:'1px solid #ccc', paddingTop:'0.1cm', marginTop:'auto' }}>
+                  <span style={{ fontSize:'0.27cm', fontWeight:'bold' }}>{form.noPesanan ? `No. Pesanan: ${form.noPesanan}` : ''}</span>
+                  <span style={{ fontSize:'0.27cm' }}>Tgl: {formatDate(form.tanggalPesanan)}</span>
                 </div>
               </div>
             </div>
