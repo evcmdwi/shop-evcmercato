@@ -41,42 +41,89 @@ export default function CetakResiPage() {
   }
 
   const handlePrint = () => {
-    const content = printRef.current?.innerHTML
-    if (!content) return
+    if (!form.namaPenerima || !form.namaPengirim) return
     const win = window.open('', '_blank', 'width=600,height=700')
     if (!win) return
-    const barcodeScript = (form.ekspedisi === 'jnt' || form.ekspedisi === 'jne') && form.noResi
-      ? `<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
-         <script>setTimeout(function(){ try { JsBarcode("#barcode-svg","${form.noResi}",{format:"CODE128",width:2,height:40,displayValue:false,margin:0}); } catch(e){} }, 100);</script>`
-      : ''
+    const isJnt = form.ekspedisi === 'jnt'
+    const isJne = form.ekspedisi === 'jne'
+    const isGrab = form.ekspedisi === 'grab'
+    const hasResi = (isJnt || isJne) && form.noResi
+    const grabLabel = 'INSTAN / 2-3 JAM'
+    const baseUrl = window.location.origin
+    const noPesananText = form.noPesanan ? `No. Pesanan: ${form.noPesanan}` : ''
     win.document.write(`<!DOCTYPE html>
-<html><head>
+<html lang="id"><head>
+<meta charset="utf-8"/>
 <title>Resi ${form.noPesanan || 'Custom'}</title>
 <style>
 * { margin:0; padding:0; box-sizing:border-box; }
 body { display:flex; justify-content:center; align-items:center; min-height:100vh; background:#f5f5f5; font-family:system-ui,sans-serif; }
 @media print { body { background:white; } }
-.resi { width:10cm; height:10cm; border:2px solid black; background:white; display:flex; flex-direction:column; padding:0.2cm; overflow:hidden; }
-.header { display:flex; justify-content:space-between; align-items:center; height:1.4cm; margin-bottom:0.12cm; border-bottom:1px solid #ccc; padding-bottom:0.1cm; }
+.resi { width:10cm; height:10cm; border:2px solid black; background:white; display:flex; flex-direction:column; padding:0.2cm; overflow:hidden; box-sizing:border-box; }
+.header { display:flex; justify-content:space-between; align-items:center; flex-shrink:0; height:1.6cm; margin-bottom:0.15cm; border-bottom:1px solid #ccc; padding-bottom:0.1cm; }
+.header-left { display:flex; flex-direction:row; align-items:center; gap:0.15cm; }
+.header-left img { height:1.2cm; width:auto; }
 .header-left span { font-size:0.55cm; color:#333; font-weight:bold; }
-.courier-label { font-size:0.9cm; font-weight:900; letter-spacing:0.05cm; }
-.barcode-section { display:flex; flex-direction:column; align-items:center; flex-shrink:0; border-bottom:1px solid #ccc; margin-bottom:0.1cm; padding:0.05cm 0; max-height:2.0cm; overflow:hidden; }
-#barcode-svg { max-width:8cm; max-height:1.8cm; display:block; }
-.resi-number-text { font-size:0.3cm; font-family:monospace; font-weight:bold; text-align:center; margin-top:0.05cm; }
-.no-pesanan-text { font-size:0.32cm; font-family:monospace; font-weight:bold; text-align:center; border:1px dashed #999; padding:0.08cm; margin:0.08cm 0; }
+.header-right img { height:1.3cm; width:auto; }
+.courier-badge { font-size:0.35cm; font-weight:bold; text-align:center; margin-bottom:0.1cm; letter-spacing:0.05cm; }
+.barcode-section { display:flex; flex-direction:column; align-items:center; justify-content:center; flex-shrink:0; max-height:2.1cm; overflow:hidden; border-bottom:1px solid #ccc; margin-bottom:0.15cm; padding:0.05cm 0; }
+.barcode-section img { max-height:2.0cm; max-width:8.5cm; object-fit:contain; width:auto; }
+#barcode-svg { max-width:8cm; max-height:2.0cm; display:block; margin:0 auto; }
+.resi-number-text { font-size:0.32cm; font-family:monospace; font-weight:bold; text-align:center; letter-spacing:0.05cm; margin-top:0.1cm; }
+.grab-logo { height:1.6cm; width:auto; }
 .address-section { display:flex; flex:1; min-height:0; overflow:hidden; gap:0.15cm; margin-bottom:0.1cm; }
 .penerima { flex:7; border-right:1px solid #ccc; padding-right:0.15cm; }
 .pengirim { flex:3; }
-.addr-heading { font-size:0.3cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.08cm; }
-.addr-name { font-size:0.44cm; font-weight:bold; line-height:1.2; }
-.addr-phone { font-size:0.34cm; margin:0.06cm 0; }
-.addr-detail { font-size:0.27cm; line-height:1.4; color:#333; }
-.footer { display:flex; justify-content:space-between; flex-shrink:0; border-top:1px solid #ccc; padding-top:0.1cm; font-size:0.28cm; color:#555; }
+.addr-heading { font-size:0.32cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.1cm; }
+.addr-name { font-size:0.46cm; font-weight:bold; line-height:1.2; }
+.addr-phone { font-size:0.35cm; margin-bottom:0.06cm; }
+.addr-detail { font-size:0.28cm; line-height:1.4; color:#333; }
+.footer { display:flex; justify-content:space-between; flex-shrink:0; border-top:1px solid #ccc; padding-top:0.1cm; margin-top:auto; }
+.footer-left { font-size:0.27cm; font-weight:bold; }
+.footer-right { font-size:0.27cm; }
 </style>
-</head><body>${content}${barcodeScript}</body></html>`)
+</head><body>
+<div class="resi">
+  <div class="header">
+    <div class="header-left">
+      <img src="${baseUrl}/logo-evcmercato.jpg" alt="EVC Mercato"/>
+      <span>shop.evcmercato.com</span>
+    </div>
+    ${isJnt ? `<div class="header-right"><img src="${baseUrl}/logo-jnt.jpg" alt="JNT"/></div>` : ''}
+    ${isJne ? `<div class="header-right"><img src="${baseUrl}/logo-jne.svg" alt="JNE" style="height:1.3cm;width:auto;"/></div>` : ''}
+  </div>
+  <div class="barcode-section">
+    ${isGrab ? `<div class="courier-badge" style="color:#00B14F">${grabLabel}</div>` : ''}
+    ${hasResi ? `
+      <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/barcodes/JsBarcode.code128.min.js"></script>
+      <svg id="barcode-svg"></svg>
+      <div class="resi-number-text">${form.noResi}</div>
+      <script>try{JsBarcode("#barcode-svg","${form.noResi}",{format:"CODE128",width:2,height:40,displayValue:false,margin:0});}catch(e){document.getElementById("barcode-svg").style.display="none";}</script>
+    ` : ''}
+    ${isGrab ? `<img src="${baseUrl}/logo-grab-express.jpg" alt="Grab Express" class="grab-logo"/>` : ''}
+  </div>
+  <div class="address-section">
+    <div class="penerima">
+      <div class="addr-heading">Penerima</div>
+      <div class="addr-name">${form.namaPenerima}</div>
+      ${form.noPenerima ? `<div class="addr-phone">${form.noPenerima}</div>` : ''}
+      ${form.alamatPenerima ? `<div class="addr-detail">${form.alamatPenerima}</div>` : ''}
+    </div>
+    <div class="pengirim">
+      <div class="addr-heading">Pengirim</div>
+      <div class="addr-name">${form.namaPengirim}</div>
+      ${form.noHpPengirim ? `<div class="addr-phone">${form.noHpPengirim}</div>` : ''}
+    </div>
+  </div>
+  <div class="footer">
+    <div class="footer-left">${noPesananText}</div>
+    <div class="footer-right">Tgl: ${new Date(form.tanggalPesanan || Date.now()).toLocaleDateString('id-ID', {day:'2-digit',month:'short',year:'numeric'})}</div>
+  </div>
+</div>
+</body></html>`)
     win.document.close()
     win.focus()
-    setTimeout(() => { win.print() }, 400)
+    setTimeout(() => { win.print() }, 500)
   }
 
   const isComplete = form.namaPenerima && form.namaPengirim && (form.ekspedisi === 'grab' || form.noResi)
