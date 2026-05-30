@@ -90,7 +90,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
       <span>shop.evcmercato.com</span>
     </div>
     ${isJnt ? `<div class="header-right"><img src="${baseUrl}/logo-jnt.jpg" alt="JNT"/></div>` : ''}
-    ${isJne ? `<div class="header-right"><img src="${baseUrl}/logo-jne.svg" alt="JNE" style="height:1.3cm;width:auto;"/></div>` : ''}
+    ${isJne ? `<div class="header-right"><img src="${baseUrl}/logo-jne.svg" alt="JNE" style="height:0.9cm;width:auto;"/></div>` : ''}
   </div>
   <div class="barcode-section">
     ${isGrab ? `<div class="courier-badge" style="color:#00B14F">${grabLabel}</div>` : ''}
@@ -248,7 +248,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                   )}
                   {form.ekspedisi === 'jne' && (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img src="/logo-jne.svg" alt="JNE" style={{ height:'1.3cm', width:'auto' }} />
+                    <img src="/logo-jne.svg" alt="JNE" style={{ height:'0.9cm', width:'auto' }} />
                   )}
                 </div>
 
