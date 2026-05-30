@@ -206,7 +206,7 @@ function HistoryModal({ member, onClose }: HistoryModalProps) {
           ) : (
             messages.map((msg) => (
               <div key={msg.id} className="bg-slate-50 rounded-xl px-4 py-3 border border-slate-100">
-                <p className="text-sm text-slate-800 leading-relaxed">{msg.message}</p>
+                <p className="text-sm text-slate-800 leading-relaxed whitespace-pre-wrap">{msg.message}</p>
                 <div className="flex items-center justify-between mt-2">
                   <span className="text-xs text-slate-400">{formatDateTime(msg.sent_at)}</span>
                   <span
