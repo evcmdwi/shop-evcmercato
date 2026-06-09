@@ -16,9 +16,12 @@ export async function POST(req: NextRequest) {
     return new Response('Unauthorized', { status: 401 })
   }
 
+  // 2. Read raw body (must read before parsing — needed for LOTI forward)
+  let rawBody: string
   let payload: Record<string, unknown>
   try {
-    payload = await req.json()
+    rawBody = await req.text()
+    payload = JSON.parse(rawBody)
   } catch {
     return new Response('Bad Request', { status: 400 })
   }
@@ -33,6 +36,35 @@ export async function POST(req: NextRequest) {
 
   console.log('[webhook] Received + token OK:', { external_id, status })
 
+  // 3. ROUTER: forward LOTI events to LOTI webhook
+  if (external_id && external_id.startsWith('LOTI-')) {
+    const lotiUrl = process.env.LOTI_WEBHOOK_URL
+    if (!lotiUrl) {
+      console.error('[webhook] LOTI_WEBHOOK_URL not configured — cannot forward LOTI event')
+      return new Response('LOTI_WEBHOOK_URL not configured', { status: 500 })
+    }
+    console.log('[webhook] Forwarding LOTI event:', { external_id, status, lotiUrl })
+    try {
+      const lotiRes = await fetch(lotiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-callback-token': callbackToken ?? '',
+        },
+        body: rawBody, // forward raw body apa adanya
+      })
+      const lotiBody = await lotiRes.text()
+      console.log('[webhook] LOTI forward response:', lotiRes.status, lotiBody.slice(0, 100))
+      // Return same status to Xendit — kalau LOTI non-2xx, Xendit akan retry
+      return new Response(lotiBody, { status: lotiRes.status })
+    } catch (err) {
+      console.error('[webhook] LOTI forward failed (network):', err)
+      // Return 500 → Xendit akan retry
+      return new Response('LOTI forward failed', { status: 500 })
+    }
+  }
+
+  // 4. Process as EVC order (unchanged)
   try {
     await processWebhook(external_id, status, payment_method, paid_at)
   } catch (err) {
