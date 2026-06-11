@@ -37,6 +37,7 @@ export const metadata: Metadata = {
   title: "EVC Mercato",
   description: "Toko Online EVC Mercato — Distributor Resmi KKI Group, Terpercaya Sejak 2003.",
   verification: {
+    other: { "facebook-domain-verification": "df5haup43ns8ykggywuacbretc7hwy" },
     google: '-YVK8Cppb5yd2e9KGYSoAbsDtOE6jG7Qd4NIbSJWo_0',
   },
 };
