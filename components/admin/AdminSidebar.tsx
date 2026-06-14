@@ -70,6 +70,13 @@ const menuItems = [
     ),
   },
   {
+    href: '/sambers/leads',
+    label: 'Database Leads',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🎯</span>
+    ),
+  },
+  {
     href: '/sambers/chat',
     label: 'Chat Member',
     icon: (
