@@ -10,7 +10,8 @@ export async function GET(req: NextRequest) {
   const url = req.nextUrl
   const search = url.searchParams.get('search') || ''
   const page = parseInt(url.searchParams.get('page') || '1')
-  const limit = 20
+  const limitParam = parseInt(url.searchParams.get('limit') || '50')
+  const limit = Math.min(Math.max(limitParam, 1), 200) // clamp 1–200
   const offset = (page - 1) * limit
 
   const admin = getSupabaseAdmin()

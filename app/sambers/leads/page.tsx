@@ -266,6 +266,7 @@ export default function LeadsPage() {
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [search, setSearch] = useState('')
+  const [perPage, setPerPage] = useState(50)
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
@@ -280,10 +281,10 @@ export default function LeadsPage() {
   const [showBroadcast, setShowBroadcast] = useState(false)
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set())
 
-  const fetchLeads = useCallback(async (p = 1, q = '') => {
+  const fetchLeads = useCallback(async (p = 1, q = '', pp = perPage) => {
     setLoading(true)
     try {
-      const res = await fetch(`/api/sambers/leads?page=${p}&search=${encodeURIComponent(q)}`)
+      const res = await fetch(`/api/sambers/leads?page=${p}&search=${encodeURIComponent(q)}&limit=${pp}`)
       const data = await res.json()
       setLeads(data.data ?? [])
       setTotal(data.count ?? 0)
@@ -294,11 +295,11 @@ export default function LeadsPage() {
   }, [])
 
   useEffect(() => {
-    const t = setTimeout(() => { fetchLeads(1, search); setPage(1) }, 300)
+    const t = setTimeout(() => { fetchLeads(1, search, perPage); setPage(1) }, 300)
     return () => clearTimeout(t)
-  }, [search, fetchLeads])
+  }, [search, perPage, fetchLeads])
 
-  useEffect(() => { fetchLeads(page, search) }, [page]) // eslint-disable-line
+  useEffect(() => { fetchLeads(page, search, perPage) }, [page]) // eslint-disable-line
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -428,6 +429,15 @@ export default function LeadsPage() {
               <span className="font-semibold text-slate-700">Database Leads</span>
               <span className="ml-2 text-sm text-slate-400">({total} data)</span>
             </div>
+            <select
+              value={perPage}
+              onChange={e => { setPerPage(Number(e.target.value)); setPage(1) }}
+              className="text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#7FB300] text-slate-600">
+              <option value={20}>20/hal</option>
+              <option value={50}>50/hal</option>
+              <option value={100}>100/hal</option>
+              <option value={200}>200/hal</option>
+            </select>
             {someSelected && (
               <span className="text-sm text-[#7FB300] font-semibold">{selectedIds.size} dipilih</span>
             )}
