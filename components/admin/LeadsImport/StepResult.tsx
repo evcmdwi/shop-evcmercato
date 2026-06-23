@@ -66,6 +66,7 @@ export default function StepResult({ result, onReset }: StepResultProps) {
 
           {showSkipped && (
             <div className="mt-3 border border-amber-200 rounded-xl overflow-hidden">
+            <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="bg-amber-50 border-b border-amber-200 text-left">
@@ -84,6 +85,7 @@ export default function StepResult({ result, onReset }: StepResultProps) {
                   ))}
                 </tbody>
               </table>
+            </div>
             </div>
           )}
         </div>

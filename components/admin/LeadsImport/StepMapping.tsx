@@ -85,7 +85,49 @@ export default function StepMapping({ columns, onImport, importing }: StepMappin
         Tentukan kolom mana di file Excel yang berisi data apa. Sistem sudah mencoba mendeteksi otomatis.
       </p>
 
-      <div className="overflow-x-auto rounded-xl border border-slate-200">
+      {/* Mobile card layout (visible on small screens) */}
+      <div className="sm:hidden rounded-xl border border-slate-200 divide-y divide-slate-100">
+        {columns.map((col) => {
+          const currentVal = mapping[col.name] ?? 'ignore'
+          const used = usedFields(col.name)
+          return (
+            <div key={col.name} className="p-4 space-y-2">
+              <div className="flex items-center justify-between gap-2">
+                <span className="font-mono text-xs bg-slate-100 px-2 py-0.5 rounded-lg text-slate-800 truncate max-w-[50%]">
+                  {col.name}
+                </span>
+                <select
+                  value={currentVal}
+                  onChange={e => handleChange(col.name, e.target.value as FieldKey)}
+                  className={`min-w-[130px] text-sm border rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-2 focus:ring-[#7FB300] transition-colors
+                    ${currentVal === 'ignore' ? 'border-slate-200 text-slate-400' : 'border-[#7FB300] text-slate-800 bg-green-50'}`}
+                >
+                  {FIELD_OPTIONS.map(opt => (
+                    <option
+                      key={opt.value}
+                      value={opt.value}
+                      disabled={opt.value !== 'ignore' && opt.value !== currentVal && used.has(opt.value)}
+                    >
+                      {opt.label}
+                      {opt.value !== 'ignore' && opt.value !== currentVal && used.has(opt.value) ? ' (sudah dipakai)' : ''}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {col.samples.length > 0 ? (
+                <div className="text-xs text-slate-400 truncate">
+                  Contoh: {col.samples[0] || '—'}
+                </div>
+              ) : (
+                <div className="text-xs text-slate-300 italic">Contoh: —</div>
+              )}
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Desktop table layout (hidden on small screens) */}
+      <div className="hidden sm:block overflow-x-auto rounded-xl border border-slate-200">
         <table className="w-full text-sm">
           <thead>
             <tr className="bg-slate-50 border-b border-slate-200 text-left">
@@ -110,7 +152,7 @@ export default function StepMapping({ columns, onImport, importing }: StepMappin
                     {col.samples.length > 0 ? (
                       <div className="flex flex-col gap-0.5">
                         {col.samples.slice(0, 2).map((s, i) => (
-                          <span key={i} className="truncate max-w-[160px] block">{s || <em className="text-slate-300">kosong</em>}</span>
+                          <span key={i} className="truncate max-w-full block">{s || <em className="text-slate-300">kosong</em>}</span>
                         ))}
                       </div>
                     ) : (

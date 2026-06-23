@@ -90,7 +90,10 @@ export default function LeadsImportPage() {
                 ${step === s.key ? 'bg-white text-[#7FB300]' : currentStepNum > s.number ? 'bg-green-600 text-white' : 'bg-slate-300 text-white'}`}>
                 {currentStepNum > s.number ? '✓' : s.number}
               </span>
-              <span className="hidden sm:inline">{s.label}</span>
+              <span className="text-xs sm:text-sm">
+                <span className="sm:hidden">{s.key === 'upload' ? 'Upload' : s.key === 'mapping' ? 'Mapping' : 'Hasil'}</span>
+                <span className="hidden sm:inline">{s.label}</span>
+              </span>
             </div>
             {idx < STEP_META.length - 1 && (
               <div className={`h-0.5 w-6 sm:w-8 shrink-0 mx-1 ${currentStepNum > s.number + 1 ? 'bg-green-400' : currentStepNum > s.number ? 'bg-[#7FB300]' : 'bg-slate-200'}`} />
