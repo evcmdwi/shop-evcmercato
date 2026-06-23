@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
-import { broadcastPauseFlags } from '@/lib/broadcast-state'
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -42,7 +41,6 @@ export async function POST(
   }
 
   // Mark campaign as running
-  broadcastPauseFlags.delete(campaignId)
   await admin
     .from('broadcast_campaigns')
     .update({ status: 'running', started_at: new Date().toISOString() })
@@ -90,8 +88,14 @@ export async function POST(
         let processedCount = 0
 
         for (let i = 0; i < pendingLogs.length; i++) {
-          // Check pause flag
-          if (broadcastPauseFlags.get(campaignId)) {
+          // Check pause/stop status from DB (works across serverless instances)
+          const { data: currentCampaign } = await admin
+            .from('broadcast_campaigns')
+            .select('status')
+            .eq('id', campaignId)
+            .single()
+
+          if (currentCampaign?.status === 'paused' || currentCampaign?.status === 'stopped') {
             send({ type: 'paused', sent: processedCount, remaining: pendingLogs.length - i })
             break
           }
