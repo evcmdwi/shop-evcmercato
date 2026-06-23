@@ -1,8 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { broadcastPauseFlags } from '@/lib/broadcast-state'
-
 // POST /api/sambers/broadcast/[campaignId]/pause — pause broadcast
 export async function POST(
   _req: NextRequest,
@@ -29,10 +27,7 @@ export async function POST(
     return NextResponse.json({ error: `Campaign tidak sedang running (status: ${campaign.status})` }, { status: 400 })
   }
 
-  // Set in-memory pause flag (queue worker checks this)
-  broadcastPauseFlags.set(campaignId, true)
-
-  // Update DB status to paused
+  // Update DB status to paused — the running loop polls DB so no in-memory flag needed
   await admin
     .from('broadcast_campaigns')
     .update({ status: 'paused' })

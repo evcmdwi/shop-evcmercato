@@ -21,15 +21,20 @@ export async function POST(req: NextRequest) {
 
   const admin = getSupabaseAdmin()
 
-  // Fetch leads to get phone numbers
-  const { data: leads, error: leadsError } = await admin
+  // Fetch leads to get phone numbers, exclude converted (already members)
+  const { data: validLeads, error: leadsError } = await admin
     .from('leads')
     .select('id, phone')
     .in('id', lead_ids)
+    .neq('status', 'converted')
 
-  if (leadsError || !leads) {
+  if (leadsError || !validLeads) {
     return NextResponse.json({ error: 'Gagal mengambil data leads' }, { status: 500 })
   }
+
+  // Count excluded converted leads for info
+  const excludedCount = lead_ids.length - validLeads.length
+  const leads = validLeads
 
   // Create campaign
   const { data: campaign, error: campaignError } = await admin
@@ -58,7 +63,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Gagal membuat log broadcast', detail: logError.message }, { status: 500 })
   }
 
-  return NextResponse.json({ campaign }, { status: 201 })
+  return NextResponse.json({ campaign, excluded_converted: excludedCount }, { status: 201 })
 }
 
 // GET /api/sambers/broadcast/campaigns — list semua campaign + progress
