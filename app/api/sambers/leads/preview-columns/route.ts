@@ -1,39 +1,15 @@
-/**
- * POST /api/sambers/leads/preview-columns
- *
- * Receives a multipart XLSX file, parses headers + sample rows,
- * and returns column metadata for the mapping UI.
- *
- * NOTE: Full implementation by BENJI (backend).
- * This stub accepts the file and returns an error directing to BENJI's impl.
- * Once BENJI's implementation is in place, replace this file.
- *
- * Expected response shape:
- * {
- *   columns: Array<{
- *     name: string        // column header from XLSX row 1
- *     samples: string[]  // up to 3 sample values from data rows
- *   }>
- * }
- *
- * Error response:
- * { error: string }
- */
-
 import { NextRequest, NextResponse } from 'next/server'
+import * as XLSX from 'xlsx'
 import { checkAdminAuth } from '@/lib/admin-auth'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
-  // Auth check — admin only
   const auth = await checkAdminAuth()
   if (!auth.ok) {
-    return NextResponse.json({ error: auth.status === 403 ? 'Forbidden' : 'Unauthorized' }, { status: auth.status ?? 401 })
-  }
-
-  // Validate multipart/form-data
-  const contentType = req.headers.get('content-type') || ''
-  if (!contentType.includes('multipart/form-data')) {
-    return NextResponse.json({ error: 'Harus mengirim file dengan multipart/form-data' }, { status: 400 })
+    return NextResponse.json(
+      { error: auth.status === 403 ? 'Forbidden' : 'Unauthorized' },
+      { status: auth.status ?? 401 }
+    )
   }
 
   let formData: FormData
@@ -48,23 +24,70 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File tidak ditemukan dalam request' }, { status: 400 })
   }
 
-  // Type check
   if (!file.name.endsWith('.xlsx')) {
     return NextResponse.json({ error: 'Hanya file .xlsx yang diizinkan' }, { status: 400 })
   }
 
-  // Size check (5 MB)
   if (file.size > 5 * 1024 * 1024) {
     return NextResponse.json({ error: 'Ukuran file maksimal 5 MB' }, { status: 400 })
   }
 
-  // TODO (BENJI): Parse XLSX using xlsx / exceljs library and return real columns
-  // Implementation placeholder — replace with actual XLSX parsing
-  return NextResponse.json(
-    {
-      error: 'Backend belum siap. BENJI perlu mengimplementasi parsing XLSX di endpoint ini.',
-      hint: 'Install xlsx package: npm install xlsx, lalu gunakan XLSX.read(buffer) untuk parse file',
-    },
-    { status: 501 }
-  )
+  let rows: string[][]
+  try {
+    const buffer = Buffer.from(await file.arrayBuffer())
+    const workbook = XLSX.read(buffer, { type: 'buffer' })
+    const sheetName = workbook.SheetNames[0]
+    const worksheet = workbook.Sheets[sheetName]
+    rows = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as string[][]
+  } catch (err) {
+    console.error('[sambers/leads/preview-columns] XLSX parse error:', err)
+    return NextResponse.json({ error: 'Gagal membaca file Excel' }, { status: 500 })
+  }
+
+  if (rows.length === 0) {
+    return NextResponse.json({ error: 'File Excel kosong' }, { status: 400 })
+  }
+
+  // Store parsed rows in Supabase temp table (cross-Lambda safe)
+  const supabaseAdmin = getSupabaseAdmin()
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+
+  const { data: sessionRecord, error: insertError } = await supabaseAdmin
+    .from('xlsx_sessions')
+    .insert({ rows, expires_at: expiresAt })
+    .select('id')
+    .single()
+
+  if (insertError || !sessionRecord) {
+    console.error('[sambers/leads/preview-columns] Session insert error:', insertError)
+    return NextResponse.json({ error: 'Gagal menyimpan sesi upload' }, { status: 500 })
+  }
+
+  const sessionId = sessionRecord.id
+
+  // Build columns with samples (up to 3 data rows)
+  const headerRow = rows[0]
+  const dataRows = rows.slice(1, 4)  // up to 3 sample rows
+
+  const columns = headerRow.map((header, colIdx) => ({
+    name: String(header ?? '').trim() || `Kolom ${colIdx + 1}`,
+    samples: dataRows
+      .map(row => String(row[colIdx] ?? '').trim())
+      .filter(Boolean),
+  }))
+
+  const response = NextResponse.json({
+    columns,
+    total_rows: rows.length - 1,
+  })
+
+  // Set session id as cookie (httpOnly, 30 min)
+  response.cookies.set('xlsx_session', sessionId, {
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 30 * 60,
+    path: '/',
+  })
+
+  return response
 }
