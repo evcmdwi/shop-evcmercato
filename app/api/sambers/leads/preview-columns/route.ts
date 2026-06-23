@@ -21,14 +21,13 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { checkAdminAuth } from '@/lib/admin-auth'
 
 export async function POST(req: NextRequest) {
   // Auth check — admin only
-  const supabase = await createClient()
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  const auth = await checkAdminAuth()
+  if (!auth.ok) {
+    return NextResponse.json({ error: auth.status === 403 ? 'Forbidden' : 'Unauthorized' }, { status: auth.status ?? 401 })
   }
 
   // Validate multipart/form-data
