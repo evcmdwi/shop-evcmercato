@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
+import Link from 'next/link'
 
 interface Lead {
   id: string
@@ -356,8 +357,17 @@ export default function LeadsPage() {
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
-      <h1 className="text-2xl font-bold text-slate-800 mb-1">Database Leads</h1>
-      <p className="text-sm text-slate-500 mb-8">Kelola data leads prospek EVC Mercato</p>
+      <div className="flex items-start justify-between gap-4 mb-8">
+        <div>
+          <h1 className="text-2xl font-bold text-slate-800 mb-1">Database Leads</h1>
+          <p className="text-sm text-slate-500">Kelola data leads prospek EVC Mercato</p>
+        </div>
+        <Link
+          href="/sambers/leads/import"
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-[#7FB300] text-white text-sm font-semibold rounded-xl hover:bg-[#6B9700] transition-colors whitespace-nowrap shrink-0">
+          📥 Import Leads
+        </Link>
+      </div>
 
       {/* Form Tambah Lead */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 mb-8">
