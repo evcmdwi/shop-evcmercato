@@ -575,6 +575,7 @@ export default function BroadcastPage() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState('')
   const [activeCampaignId, setActiveCampaignId] = useState<string | null>(null)
+  const [excludedConverted, setExcludedConverted] = useState<number>(0)
 
   const MAX_CHARS = 1000
   const charCount = pesan.length
@@ -607,6 +608,7 @@ export default function BroadcastPage() {
       })
       const data = await res.json()
       if (!res.ok) { setError(data.error || 'Gagal membuat campaign'); return }
+      setExcludedConverted(data.excluded_converted ?? 0)
       setActiveCampaignId(data.campaign_id)
       setNamaCampaign('')
       setPesan('')
@@ -695,9 +697,16 @@ export default function BroadcastPage() {
                   📋 Pilih Leads
                 </button>
                 {selectedLeadIds.length > 0 ? (
-                  <span className="text-sm text-[#7FB300] font-semibold">
-                    ✅ {selectedLeadIds.length} leads dipilih
-                  </span>
+                  <div className="flex flex-col gap-1">
+                    <span className="text-sm text-[#7FB300] font-semibold">
+                      ✅ {selectedLeadIds.length} leads dipilih
+                    </span>
+                    {excludedConverted > 0 && (
+                      <span className="text-xs text-emerald-600">
+                        👤 {excludedConverted} leads dikecualikan karena sudah jadi member
+                      </span>
+                    )}
+                  </div>
                 ) : (
                   <span className="text-sm text-slate-400">Belum ada leads dipilih</span>
                 )}
