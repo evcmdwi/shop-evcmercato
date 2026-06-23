@@ -7,6 +7,7 @@ export interface ImportResult {
   imported: number
   skipped: number
   skippedLeads: { name: string; phone: string; reason: string }[]
+  errors?: string[]
 }
 
 interface StepResultProps {
@@ -88,6 +89,17 @@ export default function StepResult({ result, onReset }: StepResultProps) {
             </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Parse errors (skipped rows) */}
+      {result.errors && result.errors.length > 0 && (
+        <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+          <p className="text-sm font-semibold text-red-700 mb-2">⚠️ {result.errors.length} baris dilewati saat parsing:</p>
+          <ul className="text-xs text-red-600 space-y-0.5 max-h-32 overflow-y-auto">
+            {result.errors.slice(0, 20).map((e, i) => <li key={i}>• {e}</li>)}
+            {result.errors.length > 20 && <li className="text-red-400">...dan {result.errors.length - 20} lainnya</li>}
+          </ul>
         </div>
       )}
 

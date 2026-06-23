@@ -84,7 +84,23 @@ export async function POST(req: NextRequest) {
 
   // Process rows
   const rows = session.rows as string[][]
+  const headerRow = (rows[0] as unknown[]).map((h, i) => String(h ?? `Kolom ${i + 1}`).trim())
   const dataRows = rows.slice(1)  // skip header
+
+  // Resolve mapping keys: frontend sends column name as key (e.g. "Nama", "No HP")
+  // but earlier versions sent numeric index strings. Support both for backward compat.
+  const resolvedMapping: Record<number, string> = {}
+  for (const [key, fieldName] of Object.entries(mapping)) {
+    const colIdx = parseInt(key, 10)
+    if (!isNaN(colIdx)) {
+      resolvedMapping[colIdx] = fieldName
+    } else {
+      // Resolve by column name from header row
+      const idx = headerRow.findIndex(h => h === key)
+      if (idx !== -1) resolvedMapping[idx] = fieldName
+      // If not found, skip (unmapped/unknown column)
+    }
+  }
 
   const toProcess: { name: string; phone: string; city?: string }[] = []
   const parseErrors: string[] = []
@@ -93,9 +109,9 @@ export async function POST(req: NextRequest) {
     const row = dataRows[i]
     const record: Record<string, string> = {}
 
-    for (const [colIdxStr, fieldName] of Object.entries(mapping)) {
-      const colIdx = parseInt(colIdxStr, 10)
-      record[fieldName] = String(row[colIdx] ?? '').trim()
+    for (const [colIdxNum, fieldName] of Object.entries(resolvedMapping)) {
+      const colIdx = Number(colIdxNum)
+      record[fieldName] = String((row as unknown[])[colIdx] ?? '').trim()
     }
 
     const rawPhone = record['phone'] ?? ''

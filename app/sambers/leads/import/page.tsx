@@ -43,6 +43,7 @@ export default function LeadsImportPage() {
         imported: data.imported ?? 0,
         skipped: data.skipped ?? 0,
         skippedLeads: data.skippedLeads ?? [],
+        errors: data.errors ?? [],
       })
       setStep('result')
     } catch (err: unknown) {
