@@ -2,29 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
-// Re-use the same session store exported from preview-columns.
-// We inline it here to avoid cross-module import issues in Next.js edge/serverless.
-// Both files must use the SAME module instance, which is guaranteed in Node.js
-// dev/standalone servers (single process). For Vercel serverless both are co-located
-// in the same function bundle because they share the same route group.
-//
-// Workaround if they end up in separate bundles: migrate to Redis/Supabase temp table.
-// For now, in-process store is sufficient for the single-VPS deployment.
-import type { } from 'next/server'
-
-// ─── Shared in-memory session store ──────────────────────────────────────────
-// Declare global to survive Next.js hot-reload in dev
-declare global {
-  // eslint-disable-next-line no-var
-  var __xlsxSessionStore: Map<string, { rows: string[][]; expiresAt: number }> | undefined
-}
-
-if (!global.__xlsxSessionStore) {
-  global.__xlsxSessionStore = new Map()
-}
-const xlsxSessionStore = global.__xlsxSessionStore!
-// ─────────────────────────────────────────────────────────────────────────────
-
 const VALID_FIELDS = new Set(['name', 'phone', 'city', 'ignore'])
 
 function normalizePhone(raw: string): string {
@@ -58,11 +35,19 @@ export async function POST(req: NextRequest) {
     )
   }
 
-  const session = xlsxSessionStore.get(sessionKey)
-  if (!session || session.expiresAt < Date.now()) {
-    xlsxSessionStore.delete(sessionKey)
+  // Read session from Supabase temp table (cross-Lambda safe)
+  const admin = getSupabaseAdmin()
+
+  const { data: session, error: sessionError } = await admin
+    .from('xlsx_sessions')
+    .select('rows, expires_at')
+    .eq('id', sessionKey)
+    .gt('expires_at', new Date().toISOString())
+    .single()
+
+  if (sessionError || !session) {
     return NextResponse.json(
-      { error: 'Sesi upload telah expired. Silakan upload file lagi.' },
+      { error: 'Sesi upload tidak ditemukan atau sudah expired. Silakan upload file lagi.' },
       { status: 400 }
     )
   }
@@ -98,7 +83,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Process rows
-  const { rows } = session
+  const rows = session.rows as string[][]
   const dataRows = rows.slice(1)  // skip header
 
   const toProcess: { name: string; phone: string; city?: string }[] = []
@@ -150,8 +135,6 @@ export async function POST(req: NextRequest) {
       uniqueRows.push(row)
     }
   }
-
-  const admin = getSupabaseAdmin()
 
   // Check existing phones in DB
   const { data: existingRows, error: fetchError } = await admin
@@ -206,7 +189,7 @@ export async function POST(req: NextRequest) {
   }
 
   // Clear session after successful import
-  xlsxSessionStore.delete(sessionKey)
+  await admin.from('xlsx_sessions').delete().eq('id', sessionKey)
 
   const response = NextResponse.json({
     imported,

@@ -1,28 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import * as XLSX from 'xlsx'
 import { checkAdminAuth } from '@/lib/admin-auth'
-import { randomUUID } from 'crypto'
-
-// Shared in-memory session store — use global to survive Next.js hot-reload
-// and be accessible from import-xlsx route in the same process.
-declare global {
-  // eslint-disable-next-line no-var
-  var __xlsxSessionStore: Map<string, { rows: string[][]; expiresAt: number }> | undefined
-}
-
-if (!global.__xlsxSessionStore) {
-  global.__xlsxSessionStore = new Map()
-}
-const xlsxSessionStore = global.__xlsxSessionStore!
-
-const SESSION_TTL_MS = 30 * 60 * 1000  // 30 minutes
-
-function cleanExpiredSessions() {
-  const now = Date.now()
-  for (const [key, session] of xlsxSessionStore.entries()) {
-    if (session.expiresAt < now) xlsxSessionStore.delete(key)
-  }
-}
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 export async function POST(req: NextRequest) {
   const auth = await checkAdminAuth()
@@ -69,13 +48,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'File Excel kosong' }, { status: 400 })
   }
 
-  // Store parsed rows in session
-  cleanExpiredSessions()
-  const sessionKey = randomUUID()
-  xlsxSessionStore.set(sessionKey, {
-    rows,
-    expiresAt: Date.now() + SESSION_TTL_MS,
-  })
+  // Store parsed rows in Supabase temp table (cross-Lambda safe)
+  const supabaseAdmin = getSupabaseAdmin()
+  const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString()
+
+  const { data: sessionRecord, error: insertError } = await supabaseAdmin
+    .from('xlsx_sessions')
+    .insert({ rows, expires_at: expiresAt })
+    .select('id')
+    .single()
+
+  if (insertError || !sessionRecord) {
+    console.error('[sambers/leads/preview-columns] Session insert error:', insertError)
+    return NextResponse.json({ error: 'Gagal menyimpan sesi upload' }, { status: 500 })
+  }
+
+  const sessionId = sessionRecord.id
 
   // Build columns with samples (up to 3 data rows)
   const headerRow = rows[0]
@@ -93,8 +81,8 @@ export async function POST(req: NextRequest) {
     total_rows: rows.length - 1,
   })
 
-  // Set session key as cookie (httpOnly, 30 min)
-  response.cookies.set('xlsx_session', sessionKey, {
+  // Set session id as cookie (httpOnly, 30 min)
+  response.cookies.set('xlsx_session', sessionId, {
     httpOnly: true,
     sameSite: 'lax',
     maxAge: 30 * 60,
