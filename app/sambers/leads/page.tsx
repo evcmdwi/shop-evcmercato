@@ -27,8 +27,17 @@ const STATUS_COLOR: Record<string, string> = {
   new: 'bg-blue-100 text-blue-800',
   contacted: 'bg-yellow-100 text-yellow-800',
   interested: 'bg-green-100 text-green-800',
-  converted: 'bg-purple-100 text-purple-800',
+  converted: 'bg-emerald-100 text-emerald-800',
   not_interested: 'bg-gray-100 text-gray-600',
+}
+
+// Badge for converted (member) leads
+function MemberBadge() {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 text-xs font-semibold rounded-full border border-emerald-200">
+      👤 Member
+    </span>
+  )
 }
 
 // ─── SendWAModal ─────────────────────────────────────────────────────────────
@@ -121,7 +130,9 @@ function BroadcastModal({ leads, selectedIds, onClose }: {
   selectedIds: Set<string>
   onClose: () => void
 }) {
-  const selectedLeads = leads.filter(l => selectedIds.has(l.id))
+  // Exclude converted leads from broadcast
+  const selectedLeads = leads.filter(l => selectedIds.has(l.id) && l.status !== 'converted')
+  const convertedCount = leads.filter(l => selectedIds.has(l.id) && l.status === 'converted').length
   const [template, setTemplate] = useState(
     'Hai Kak {Nama}! 👋\n\nTerima kasih sudah tertarik dengan {Interest} di EVC Mercato.\nKami ingin menginfokan promo spesial untuk kamu...'
   )
@@ -195,6 +206,12 @@ function BroadcastModal({ leads, selectedIds, onClose }: {
 
         {phase === 'compose' && (
           <>
+            {convertedCount > 0 && (
+              <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-100 rounded-xl px-3 py-2 mb-3 text-xs text-emerald-700">
+                <span>👤</span>
+                <span><strong>{convertedCount} leads</strong> dikecualikan karena sudah jadi member</span>
+              </div>
+            )}
             <div className="flex gap-2 mb-3 flex-wrap">
               {['{Nama}', '{Kota}', '{Interest}'].map(tpl => (
                 <button key={tpl} onClick={() => insertTemplate(tpl)}
@@ -345,15 +362,17 @@ export default function LeadsPage() {
     })
   }
 
+  const selectableLeads = leads.filter(l => l.status !== 'converted')
+
   const toggleSelectAll = () => {
-    if (selectedIds.size === leads.length) {
+    if (selectedIds.size === selectableLeads.length && selectableLeads.length > 0) {
       setSelectedIds(new Set())
     } else {
-      setSelectedIds(new Set(leads.map(l => l.id)))
+      setSelectedIds(new Set(selectableLeads.map(l => l.id)))
     }
   }
 
-  const allSelected = leads.length > 0 && selectedIds.size === leads.length
+  const allSelected = selectableLeads.length > 0 && selectedIds.size === selectableLeads.length
   const someSelected = selectedIds.size > 0
 
   return (
@@ -480,11 +499,18 @@ export default function LeadsPage() {
               ) : leads.map(lead => (
                 <tr key={lead.id} className={`border-b border-slate-50 hover:bg-slate-50 ${selectedIds.has(lead.id) ? 'bg-green-50' : ''}`}>
                   <td className="px-4 py-3">
-                    <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)}
-                      className="rounded cursor-pointer accent-[#7FB300]" />
+                    {lead.status === 'converted' ? (
+                      <span title="Sudah jadi member — masuk broadcast member" className="block w-4 h-4 rounded border border-slate-200 bg-slate-100 cursor-not-allowed" />
+                    ) : (
+                      <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)}
+                        className="rounded cursor-pointer accent-[#7FB300]" />
+                    )}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="font-medium text-slate-900">{lead.nama}</div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-slate-900">{lead.nama}</span>
+                      {lead.status === 'converted' && <MemberBadge />}
+                    </div>
                     {lead.alamat && <div className="text-xs text-slate-400 truncate max-w-[160px]">{lead.alamat}</div>}
                   </td>
                   <td className="px-4 py-3 font-mono text-slate-700">{lead.phone}</td>

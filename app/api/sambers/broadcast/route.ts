@@ -38,15 +38,18 @@ export async function POST(req: NextRequest) {
 
   const admin = getSupabaseAdmin()
 
-  // Fetch leads to get phone numbers
+  // Fetch leads to get phone numbers, exclude converted (already members)
   const { data: leads, error: leadsError } = await admin
     .from('leads')
     .select('id, phone')
     .in('id', lead_ids)
+    .neq('status', 'converted')
 
   if (leadsError || !leads || leads.length === 0) {
-    return NextResponse.json({ error: 'Gagal mengambil data leads' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal mengambil data leads atau semua leads sudah jadi member' }, { status: 400 })
   }
+
+  const excludedConverted = lead_ids.length - leads.length
 
   // Create campaign
   const { data: campaign, error: campaignError } = await admin
@@ -79,5 +82,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Gagal membuat broadcast logs' }, { status: 500 })
   }
 
-  return NextResponse.json({ campaign_id: campaign.id, total: leads.length })
+  return NextResponse.json({ campaign_id: campaign.id, total: leads.length, excluded_converted: excludedConverted })
 }

@@ -24,10 +24,11 @@ export async function GET(req: NextRequest) {
 
   const contactedIds = (contacted ?? []).map((r) => r.lead_id as string)
 
-  // Fetch leads not in that set
+  // Fetch leads not in that set, and exclude converted (already members)
   let query = admin
     .from('leads')
     .select('id, nama, phone, kota, broadcast_count:id.count()')
+    .neq('status', 'converted')
     .order('created_at', { ascending: false })
     .limit(limit)
 
@@ -42,6 +43,7 @@ export async function GET(req: NextRequest) {
     const { data: fallback } = await admin
       .from('leads')
       .select('id, nama, phone, kota')
+      .neq('status', 'converted')
       .order('created_at', { ascending: false })
       .limit(limit)
     return NextResponse.json({ leads: fallback ?? [], note: 'fallback — exclusion query failed' })
