@@ -115,19 +115,28 @@ export async function POST(req: NextRequest) {
     }
 
     const rawPhone = record['phone'] ?? ''
-    if (!rawPhone) {
-      parseErrors.push(`Baris ${i + 2}: no HP kosong — dilewati`)
+    const rawName = record['name'] ?? ''
+
+    // Skip only if BOTH name AND phone are empty (truly blank row)
+    if (!rawPhone && !rawName) {
+      parseErrors.push(`Baris ${i + 2}: nama dan no HP kosong — dilewati`)
       continue
     }
 
-    const phone = normalizePhone(rawPhone)
-    if (!phone || phone.length < 8) {
-      parseErrors.push(`Baris ${i + 2}: no HP tidak valid "${rawPhone}" — dilewati`)
-      continue
+    let phone = ''
+    if (rawPhone) {
+      phone = normalizePhone(rawPhone)
+      if (phone.length > 0 && phone.length < 8) {
+        // Phone present but too short — log warning but still import with raw value
+        parseErrors.push(`Baris ${i + 2}: no HP "${rawPhone}" terlihat tidak valid (${phone.length} digit) — tetap diimport`)
+        phone = rawPhone // keep raw so row isn't lost
+      }
+    } else {
+      parseErrors.push(`Baris ${i + 2}: no HP kosong (nama: "${rawName}") — diimport tanpa nomor`)
     }
 
     toProcess.push({
-      name: record['name'] ?? '',
+      name: rawName,
       phone,
       city: record['city'] || undefined,
     })
@@ -142,32 +151,35 @@ export async function POST(req: NextRequest) {
     })
   }
 
-  // Dedup in-batch (keep first occurrence)
+  // Dedup in-batch (keep first occurrence); rows with empty phone are never deduped
   const seenPhones = new Set<string>()
   const uniqueRows: typeof toProcess = []
   for (const row of toProcess) {
-    if (!seenPhones.has(row.phone)) {
-      seenPhones.add(row.phone)
+    if (!row.phone || !seenPhones.has(row.phone)) {
+      if (row.phone) seenPhones.add(row.phone)
       uniqueRows.push(row)
     }
   }
 
-  // Check existing phones in DB
-  const { data: existingRows, error: fetchError } = await admin
-    .from('leads')
-    .select('phone')
-    .in('phone', uniqueRows.map(r => r.phone))
+  // Check existing phones in DB (only for rows that have a phone)
+  const phonesToCheck = uniqueRows.map(r => r.phone).filter(Boolean)
+  const existingPhones = new Set<string>()
+  if (phonesToCheck.length > 0) {
+    const { data: existingRows, error: fetchError } = await admin
+      .from('leads')
+      .select('phone')
+      .in('phone', phonesToCheck)
 
-  if (fetchError) {
-    console.error('[sambers/leads/import-xlsx] DB fetch error:', fetchError)
-    return NextResponse.json({ error: 'Gagal cek data existing: ' + fetchError.message }, { status: 500 })
+    if (fetchError) {
+      console.error('[sambers/leads/import-xlsx] DB fetch error:', fetchError)
+      return NextResponse.json({ error: 'Gagal cek data existing: ' + fetchError.message }, { status: 500 })
+    }
+    ;(existingRows ?? []).forEach((r: { phone: string }) => existingPhones.add(r.phone))
   }
 
-  const existingPhones = new Set((existingRows ?? []).map((r: { phone: string }) => r.phone))
-
-  const toInsert = uniqueRows.filter(r => !existingPhones.has(r.phone))
+  const toInsert = uniqueRows.filter(r => !r.phone || !existingPhones.has(r.phone))
   const skippedLeads: SkippedLead[] = uniqueRows
-    .filter(r => existingPhones.has(r.phone))
+    .filter(r => r.phone && existingPhones.has(r.phone))
     .map(r => ({ name: r.name, phone: r.phone, reason: 'phone already exists' }))
 
   let imported = 0
