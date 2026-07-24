@@ -598,6 +598,7 @@ function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void 
                 <th className="px-4 py-3 font-semibold text-slate-600 text-center">Sent</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-center">Failed</th>
                 <th className="px-4 py-3 font-semibold text-slate-600">Status</th>
+                <th className="px-4 py-3 font-semibold text-slate-600">Aksi</th>
               </tr>
             </thead>
             <tbody>
@@ -621,6 +622,24 @@ function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void 
                     <td className="px-4 py-3 text-center text-green-600 font-semibold">{c.sent}</td>
                     <td className="px-4 py-3 text-center text-red-500 font-semibold">{c.failed}</td>
                     <td className="px-4 py-3">{statusBadge(c.status)}</td>
+                    <td className="px-4 py-3">
+                      {(c.status === 'draft' || c.status === 'paused') && (
+                        <button
+                          onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
+                          className="px-3 py-1 text-xs bg-[#7FB300] text-white font-semibold rounded-lg hover:bg-[#6B9700] transition-colors whitespace-nowrap"
+                        >
+                          ▶️ {c.status === 'paused' ? 'Resume' : 'Mulai'}
+                        </button>
+                      )}
+                      {c.status === 'running' && (
+                        <button
+                          onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
+                          className="px-3 py-1 text-xs bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap"
+                        >
+                          👁 Monitor
+                        </button>
+                      )}
+                    </td>
                   </tr>
                   {expandedId === c.id && (
                     <tr key={`${c.id}-detail`}>
