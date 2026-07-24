@@ -29,14 +29,14 @@ interface Campaign {
   total_leads: number
   sent: number
   failed: number
-  status: 'running' | 'paused' | 'done' | 'stopped'
+  status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   created_at: string
   logs?: CampaignLog[]
 }
 
 interface CampaignStatus {
   campaign_id: string
-  status: 'running' | 'paused' | 'done' | 'stopped'
+  status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   total: number
   sent: number
   failed: number
