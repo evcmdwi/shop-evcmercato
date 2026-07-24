@@ -453,13 +453,13 @@ function CampaignProgress({
 
       {/* Control buttons */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {/* START — campaign draft/paused dan loop tidak sedang berjalan */}
-        {!running && (status.status === 'draft' || status.status === 'paused') && (
+        {/* START — campaign draft/paused/running tapi loop browser mati */}
+        {!running && (status.status === 'draft' || status.status === 'paused' || status.status === 'running') && (
           <button
             onClick={status.status === 'paused' ? () => { handleAction('resume'); handleStart() } : handleStart}
             className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors"
           >
-            {status.status === 'paused' ? '▶️ Resume' : '▶️ Mulai Kirim'}
+            {status.status === 'paused' ? '▶️ Resume' : status.status === 'running' ? '▶️ Lanjutkan' : '▶️ Mulai Kirim'}
           </button>
         )}
         {/* PAUSE — loop sedang berjalan */}
