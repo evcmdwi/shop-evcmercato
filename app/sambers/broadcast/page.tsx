@@ -691,6 +691,111 @@ function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void 
   )
 }
 
+// ─── TestSendPanel ───────────────────────────────────────────────────────────
+
+function TestSendPanel({ message }: { message: string }) {
+  const [nama, setNama] = useState('')
+  const [phone, setPhone] = useState('')
+  const [kota, setKota] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<{ ok: boolean; msg: string } | null>(null)
+
+  const handleTest = async () => {
+    if (!nama.trim() || !phone.trim()) return
+    if (!message.trim() || message.trim().length < 5) {
+      setResult({ ok: false, msg: 'Isi pesan dulu sebelum test kirim' })
+      return
+    }
+    setLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/sambers/broadcast/test-send', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, nama, kota, message }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        setResult({ ok: false, msg: data.error || 'Gagal kirim' })
+      } else {
+        setResult({ ok: true, msg: `✅ Pesan test berhasil dikirim ke ${phone}` })
+      }
+    } catch {
+      setResult({ ok: false, msg: 'Network error' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Preview pesan dengan variabel dirender
+  const preview = message
+    .replace(/\{Nama\}/g, nama || '{Nama}')
+    .replace(/\{Kota\}/g, kota || '{Kota}')
+    .replace(/\{Interest\}/g, '')
+
+  return (
+    <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-6">
+      <h3 className="font-bold text-amber-800 mb-3">🧪 Test Kirim — Preview Pesan</h3>
+      <p className="text-xs text-amber-700 mb-4">Kirim ke 1 nomor dulu untuk lihat tampilan akhir sebelum broadcast ke semua leads.</p>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">Nama Penerima *</label>
+          <input
+            type="text"
+            value={nama}
+            onChange={e => setNama(e.target.value)}
+            placeholder="Contoh: Budi"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">No WA *</label>
+          <input
+            type="text"
+            value={phone}
+            onChange={e => setPhone(e.target.value)}
+            placeholder="08xxxxxxxxxx"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+        <div>
+          <label className="block text-xs font-semibold text-slate-600 mb-1">Kota (opsional)</label>
+          <input
+            type="text"
+            value={kota}
+            onChange={e => setKota(e.target.value)}
+            placeholder="Contoh: Balikpapan"
+            className="w-full border border-slate-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-400"
+          />
+        </div>
+      </div>
+
+      {/* Preview */}
+      {message.trim().length > 0 && (
+        <div className="bg-white border border-amber-100 rounded-xl px-4 py-3 mb-4">
+          <p className="text-xs font-semibold text-slate-500 mb-1">👁 Preview pesan:</p>
+          <p className="text-sm text-slate-700 whitespace-pre-wrap">{preview}</p>
+        </div>
+      )}
+
+      {result && (
+        <div className={`text-sm px-4 py-2 rounded-xl mb-3 ${result.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-600'}`}>
+          {result.msg}
+        </div>
+      )}
+
+      <button
+        onClick={handleTest}
+        disabled={loading || !nama.trim() || !phone.trim() || message.trim().length < 5}
+        className="px-4 py-2 bg-amber-500 text-white text-sm font-semibold rounded-xl hover:bg-amber-600 disabled:opacity-50 transition-colors"
+      >
+        {loading ? '⏳ Mengirim...' : '📤 Kirim Test WA'}
+      </button>
+    </div>
+  )
+}
+
 // ─── Main Page ────────────────────────────────────────────────────────────────
 
 export default function BroadcastPage() {
@@ -847,6 +952,9 @@ export default function BroadcastPage() {
                 )}
               </div>
             </div>
+
+            {/* Test Kirim */}
+            <TestSendPanel message={pesan} />
 
             {/* Submit */}
             <div className="pt-2">
