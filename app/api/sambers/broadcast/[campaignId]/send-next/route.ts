@@ -47,10 +47,10 @@ export async function POST(
       .eq('id', campaignId)
   }
 
-  // Ambil 1 pending log berikutnya
+  // Ambil 1 pending log berikutnya + data lead untuk personalisasi
   const { data: nextLog, error: logError } = await admin
     .from('broadcast_logs')
-    .select('id, lead_id, phone')
+    .select('id, lead_id, phone, leads(nama, kota, interest)')
     .eq('campaign_id', campaignId)
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
@@ -66,8 +66,15 @@ export async function POST(
     return NextResponse.json({ done: true, status: 'done' })
   }
 
-  // Kirim WA
-  const result = await sendWhatsApp({ to: nextLog.phone, message: campaign.message })
+  // Render variabel personalisasi dari data lead
+  const lead = nextLog.leads as { nama?: string; kota?: string; interest?: string } | null
+  const renderedMessage = campaign.message
+    .replace(/\{Nama\}/g, lead?.nama?.trim() || '')
+    .replace(/\{Kota\}/g, lead?.kota?.trim() || '')
+    .replace(/\{Interest\}/g, lead?.interest?.trim() || '')
+
+  // Kirim WA dengan pesan yang sudah dirender
+  const result = await sendWhatsApp({ to: nextLog.phone, message: renderedMessage })
   const success = result.success
   const now = new Date().toISOString()
 
