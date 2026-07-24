@@ -29,14 +29,14 @@ interface Campaign {
   total_leads: number
   sent: number
   failed: number
-  status: 'running' | 'paused' | 'done' | 'stopped'
+  status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   created_at: string
   logs?: CampaignLog[]
 }
 
 interface CampaignStatus {
   campaign_id: string
-  status: 'running' | 'paused' | 'done' | 'stopped'
+  status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   total: number
   sent: number
   failed: number
@@ -261,7 +261,11 @@ function CampaignProgress({
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
+  const [running, setRunning] = useState(false)
+  const [coolingMsg, setCoolingMsg] = useState('')
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const abortRef = useRef(false)
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -272,6 +276,7 @@ function CampaignProgress({
       setLoading(false)
       if (data.status === 'done' || data.status === 'stopped') {
         if (intervalRef.current) clearInterval(intervalRef.current)
+        setRunning(false)
       }
     } catch {
       setLoading(false)
@@ -281,8 +286,99 @@ function CampaignProgress({
   useEffect(() => {
     fetchStatus()
     intervalRef.current = setInterval(fetchStatus, 5000)
-    return () => { if (intervalRef.current) clearInterval(intervalRef.current) }
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current)
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
+      abortRef.current = true
+    }
   }, [fetchStatus])
+
+  // Client-driven broadcast loop
+  const runLoop = useCallback(async () => {
+    abortRef.current = false
+    setRunning(true)
+    setCoolingMsg('')
+
+    while (!abortRef.current) {
+      try {
+        const res = await fetch(`/api/sambers/broadcast/${campaignId}/send-next`, {
+          method: 'POST',
+        })
+        const data = await res.json()
+
+        // Refresh status display
+        await fetchStatus()
+
+        if (data.done || data.status === 'done') {
+          setCoolingMsg('')
+          setRunning(false)
+          break
+        }
+
+        if (data.paused) {
+          setCoolingMsg('')
+          setRunning(false)
+          break
+        }
+
+        if (data.nextDelayMs && data.nextDelayMs > 0) {
+          const delaySec = Math.round(data.nextDelayMs / 1000)
+          if (data.isCooling) {
+            setCoolingMsg(`☕ Cooling break ${delaySec}s (tiap 10 pesan)`)
+          } else {
+            setCoolingMsg(`⏳ Menunggu ${delaySec}s sebelum pesan berikutnya...`)
+          }
+
+          await new Promise<void>((resolve) => {
+            timeoutRef.current = setTimeout(() => {
+              setCoolingMsg('')
+              resolve()
+            }, data.nextDelayMs)
+          })
+        }
+      } catch {
+        // network error — tunggu 10 detik lalu retry
+        setCoolingMsg('⚠️ Network error, retry dalam 10s...')
+        await new Promise<void>((resolve) => {
+          timeoutRef.current = setTimeout(() => {
+            setCoolingMsg('')
+            resolve()
+          }, 10000)
+        })
+      }
+    }
+  }, [campaignId, fetchStatus])
+
+  const handleStart = () => {
+    runLoop()
+  }
+
+  const handlePause = async () => {
+    abortRef.current = true
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setCoolingMsg('')
+    setRunning(false)
+    await fetch(`/api/sambers/broadcast/${campaignId}/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'pause' }),
+    })
+    fetchStatus()
+  }
+
+  const handleStop = async () => {
+    if (!confirm('Hentikan campaign ini?')) return
+    abortRef.current = true
+    if (timeoutRef.current) clearTimeout(timeoutRef.current)
+    setCoolingMsg('')
+    setRunning(false)
+    await fetch(`/api/sambers/broadcast/${campaignId}/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'stop' }),
+    })
+    fetchStatus()
+  }
 
   const handleAction = async (action: 'pause' | 'resume' | 'stop') => {
     await fetch(`/api/sambers/broadcast/${campaignId}/action`, {
@@ -348,33 +444,44 @@ function CampaignProgress({
         </p>
       </div>
 
+      {/* Cooling / waiting message */}
+      {coolingMsg && (
+        <div className="bg-amber-50 text-amber-700 text-xs px-4 py-2.5 rounded-xl mb-3 font-medium">
+          {coolingMsg}
+        </div>
+      )}
+
       {/* Control buttons */}
       <div className="flex gap-2 mb-6 flex-wrap">
-        {status.status === 'running' && (
+        {/* START — campaign draft/paused dan loop tidak sedang berjalan */}
+        {!running && (status.status === 'draft' || status.status === 'paused') && (
           <button
-            onClick={() => handleAction('pause')}
+            onClick={status.status === 'paused' ? () => { handleAction('resume'); handleStart() } : handleStart}
+            className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors"
+          >
+            {status.status === 'paused' ? '▶️ Resume' : '▶️ Mulai Kirim'}
+          </button>
+        )}
+        {/* PAUSE — loop sedang berjalan */}
+        {running && (
+          <button
+            onClick={handlePause}
             className="px-4 py-2 text-sm bg-yellow-50 text-yellow-700 font-semibold rounded-xl border border-yellow-200 hover:bg-yellow-100 transition-colors"
           >
             ⏸️ Pause
           </button>
         )}
-        {status.status === 'paused' && (
+        {/* STOP */}
+        {(running || status.status === 'running' || status.status === 'paused') && (
           <button
-            onClick={() => handleAction('resume')}
-            className="px-4 py-2 text-sm bg-green-50 text-green-700 font-semibold rounded-xl border border-green-200 hover:bg-green-100 transition-colors"
-          >
-            ▶️ Resume
-          </button>
-        )}
-        {(status.status === 'running' || status.status === 'paused') && (
-          <button
-            onClick={() => { if (confirm('Hentikan campaign ini?')) handleAction('stop') }}
+            onClick={handleStop}
             className="px-4 py-2 text-sm bg-red-50 text-red-600 font-semibold rounded-xl border border-red-200 hover:bg-red-100 transition-colors"
           >
             🛑 Stop
           </button>
         )}
-        {(status.status === 'done' || status.status === 'stopped') && (
+        {/* SELESAI */}
+        {!running && (status.status === 'done' || status.status === 'stopped') && (
           <button
             onClick={onDone}
             className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors"
