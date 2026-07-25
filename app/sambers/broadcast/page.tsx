@@ -547,19 +547,30 @@ function CampaignProgress({
 
 // ─── CampaignHistory ──────────────────────────────────────────────────────────
 
-function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void }) {
+function CampaignHistory({ onViewDetail, refreshKey }: { onViewDetail: (id: string) => void; refreshKey?: number }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<CampaignLog[] | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
 
-  useEffect(() => {
+  const loadCampaigns = useCallback(() => {
+    setLoading(true)
     fetch('/api/sambers/broadcast')
       .then(r => r.json())
       .then(d => setCampaigns(d.campaigns ?? []))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { loadCampaigns() }, [loadCampaigns, refreshKey])
+
+  // Auto-refresh tiap 30 detik kalau ada campaign running
+  useEffect(() => {
+    const hasRunning = campaigns.some(c => c.status === 'running')
+    if (!hasRunning) return
+    const t = setInterval(loadCampaigns, 30000)
+    return () => clearInterval(t)
+  }, [campaigns, loadCampaigns])
 
   const handleRowClick = async (id: string) => {
     if (expandedId === id) { setExpandedId(null); setDetail(null); return }
@@ -593,8 +604,15 @@ function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void 
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
-      <div className="px-6 py-4 border-b border-slate-100">
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <h2 className="font-bold text-slate-800">📂 Riwayat Campaign</h2>
+        <button
+          onClick={loadCampaigns}
+          disabled={loading}
+          className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 disabled:opacity-40 transition-colors"
+        >
+          <span className={loading ? 'animate-spin' : ''}>🔄</span> Refresh
+        </button>
       </div>
 
       {loading ? (
@@ -823,6 +841,7 @@ export default function BroadcastPage() {
   const [excludedConverted, setExcludedConverted] = useState<number>(0)
   const [nextBatchLoading, setNextBatchLoading] = useState(false)
   const [nextBatchError, setNextBatchError] = useState('')
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
 
   const MAX_CHARS = 1000
   const charCount = pesan.length
@@ -1044,14 +1063,14 @@ export default function BroadcastPage() {
           )}
           <CampaignProgress
             campaignId={activeCampaignId}
-            onDone={() => setActiveCampaignId(null)}
+            onDone={() => { setActiveCampaignId(null); setHistoryRefreshKey(k => k + 1) }}
             onNextBatch={handleNextBatch}
           />
         </>
       )}
 
       {/* Section 3: Riwayat */}
-      <CampaignHistory onViewDetail={setActiveCampaignId} />
+      <CampaignHistory onViewDetail={setActiveCampaignId} refreshKey={historyRefreshKey} />
 
       {/* Modal */}
       {showLeadsModal && (
