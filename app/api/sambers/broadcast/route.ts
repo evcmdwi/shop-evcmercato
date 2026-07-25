@@ -17,6 +17,25 @@ export async function GET(_req: NextRequest) {
 
   if (error) return NextResponse.json({ error: 'Gagal mengambil campaigns' }, { status: 500 })
 
+  // Self-heal: campaign stuck 'running' padahal tidak ada lagi pending log
+  const runningCampaigns = (campaigns ?? []).filter((c) => c.status === 'running')
+  if (runningCampaigns.length > 0) {
+    for (const rc of runningCampaigns) {
+      const { count: pendingCount } = await admin
+        .from('broadcast_logs')
+        .select('*', { count: 'exact', head: true })
+        .eq('campaign_id', rc.id)
+        .eq('status', 'pending')
+      if ((pendingCount ?? 1) === 0) {
+        await admin
+          .from('broadcast_campaigns')
+          .update({ status: 'done', finished_at: new Date().toISOString() })
+          .eq('id', rc.id)
+        rc.status = 'done'
+      }
+    }
+  }
+
   // Normalize field names untuk frontend
   const normalized = (campaigns ?? []).map((c) => ({
     id: c.id,
