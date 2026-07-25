@@ -36,6 +36,8 @@ interface Campaign {
 
 interface CampaignStatus {
   campaign_id: string
+  name?: string
+  message?: string
   status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   total: number
   sent: number
@@ -255,9 +257,11 @@ function LeadsModal({
 function CampaignProgress({
   campaignId,
   onDone,
+  onNextBatch,
 }: {
   campaignId: string
   onDone: () => void
+  onNextBatch?: (message: string) => void
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -482,12 +486,22 @@ function CampaignProgress({
         )}
         {/* SELESAI */}
         {!running && (status.status === 'done' || status.status === 'stopped') && (
-          <button
-            onClick={onDone}
-            className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors"
-          >
-            ✅ Selesai — Buat Campaign Baru
-          </button>
+          <>
+            <button
+              onClick={onDone}
+              className="px-4 py-2 text-sm bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-colors"
+            >
+              ✅ Buat Campaign Baru
+            </button>
+            {status.status === 'done' && onNextBatch && (
+              <button
+                onClick={() => onNextBatch(status.message ?? '')}
+                className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors flex items-center gap-1.5"
+              >
+                ⚡ Kirim ke 50 Berikutnya
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -807,6 +821,8 @@ export default function BroadcastPage() {
   const [error, setError] = useState('')
   const [activeCampaignId, setActiveCampaignId] = useState<string | null>(null)
   const [excludedConverted, setExcludedConverted] = useState<number>(0)
+  const [nextBatchLoading, setNextBatchLoading] = useState(false)
+  const [nextBatchError, setNextBatchError] = useState('')
 
   const MAX_CHARS = 1000
   const charCount = pesan.length
@@ -814,6 +830,48 @@ export default function BroadcastPage() {
   const handleConfirmLeads = (ids: string[]) => {
     setSelectedLeadIds(ids)
     setShowLeadsModal(false)
+  }
+
+  // Handler: buat campaign baru dengan pesan sama ke 50 leads berikutnya
+  const handleNextBatch = async (originalMessage: string) => {
+    setNextBatchLoading(true)
+    setNextBatchError('')
+    try {
+      // Ambil 50 leads uncontacted berikutnya
+      const res = await fetch('/api/sambers/broadcast/leads-uncontacted?limit=50')
+      const data = await res.json()
+      const leads: { id: string }[] = data.leads ?? []
+
+      if (leads.length === 0) {
+        setNextBatchError('Tidak ada lagi leads yang belum dihubungi 🎉')
+        setNextBatchLoading(false)
+        return
+      }
+
+      // Buat campaign baru otomatis
+      const now = new Date()
+      const label = `Batch ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+      const createRes = await fetch('/api/sambers/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nama: label,
+          pesan: originalMessage,
+          lead_ids: leads.map((l) => l.id),
+        }),
+      })
+      const createData = await createRes.json()
+      if (!createRes.ok) {
+        setNextBatchError(createData.error || 'Gagal membuat campaign batch berikutnya')
+        return
+      }
+
+      setActiveCampaignId(createData.campaign_id)
+    } catch {
+      setNextBatchError('Network error — coba lagi')
+    } finally {
+      setNextBatchLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -972,10 +1030,24 @@ export default function BroadcastPage() {
 
       {/* Section 2: Progress */}
       {activeCampaignId && (
-        <CampaignProgress
-          campaignId={activeCampaignId}
-          onDone={() => setActiveCampaignId(null)}
-        />
+        <>
+          {nextBatchError && (
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl mb-4">
+              {nextBatchError}
+              <button onClick={() => setNextBatchError('')} className="ml-2 text-red-400 hover:text-red-600">×</button>
+            </div>
+          )}
+          {nextBatchLoading && (
+            <div className="bg-blue-50 text-blue-700 text-sm px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
+              <span className="animate-spin">⏳</span> Menyiapkan batch berikutnya...
+            </div>
+          )}
+          <CampaignProgress
+            campaignId={activeCampaignId}
+            onDone={() => setActiveCampaignId(null)}
+            onNextBatch={handleNextBatch}
+          />
+        </>
       )}
 
       {/* Section 3: Riwayat */}
