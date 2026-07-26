@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest) {
 
   const { data: campaigns, error } = await admin
     .from('broadcast_campaigns')
-    .select('id, name, status, total_leads, sent_count, failed_count, created_at, started_at, finished_at')
+    .select('id, name, message, status, total_leads, sent_count, failed_count, created_at, started_at, finished_at')
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -40,7 +40,7 @@ export async function GET(_req: NextRequest) {
   const normalized = (campaigns ?? []).map((c) => ({
     id: c.id,
     nama: c.name,
-    pesan: '',
+    pesan: c.message ?? '',
     total_leads: c.total_leads,
     sent: c.sent_count,
     failed: c.failed_count,
