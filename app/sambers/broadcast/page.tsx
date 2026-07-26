@@ -261,7 +261,7 @@ function CampaignProgress({
 }: {
   campaignId: string
   onDone: () => void
-  onNextBatch?: (message: string) => void
+  onNextBatch?: (campaignId: string, message: string) => void
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -495,7 +495,7 @@ function CampaignProgress({
             </button>
             {status.status === 'done' && onNextBatch && (
               <button
-                onClick={() => onNextBatch(status.message ?? '')}
+                onClick={() => onNextBatch(campaignId, status.message ?? '')}
                 className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors flex items-center gap-1.5"
               >
                 ⚡ Kirim ke 50 Berikutnya
@@ -553,7 +553,7 @@ function CampaignHistory({
   refreshKey,
 }: {
   onViewDetail: (id: string) => void
-  onNextBatch?: (message: string) => void
+  onNextBatch?: (campaignId: string, message: string) => void
   refreshKey?: number
 }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -561,6 +561,8 @@ function CampaignHistory({
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<CampaignLog[] | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteError, setDeleteError] = useState('')
 
   const loadCampaigns = useCallback(() => {
     setLoading(true)
@@ -596,6 +598,27 @@ function CampaignHistory({
   // Find campaign pesan by id
   const getCampaignPesan = (id: string) => campaigns.find(c => c.id === id)?.pesan ?? ''
 
+  const handleDelete = async (e: React.MouseEvent, id: string, nama: string) => {
+    e.stopPropagation()
+    setDeleteError('')
+    if (!confirm(`Hapus campaign "${nama}"?\n\nSemua log pengiriman campaign ini akan ikut terhapus.`)) return
+    setDeletingId(id)
+    try {
+      const res = await fetch(`/api/sambers/broadcast/${id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) {
+        setDeleteError(data.error || 'Gagal menghapus campaign')
+      } else {
+        if (expandedId === id) { setExpandedId(null); setDetail(null) }
+        loadCampaigns()
+      }
+    } catch {
+      setDeleteError('Network error — coba lagi')
+    } finally {
+      setDeletingId(null)
+    }
+  }
+
   const statusBadge = (status: string) => {
     const cfg: Record<string, string> = {
       running: 'bg-green-100 text-green-700',
@@ -625,6 +648,13 @@ function CampaignHistory({
           <span className={loading ? 'animate-spin' : ''}>🔄</span> Refresh
         </button>
       </div>
+
+      {deleteError && (
+        <div className="mx-6 mt-4 bg-red-50 text-red-700 text-sm px-4 py-2.5 rounded-xl flex items-center justify-between">
+          <span>❌ {deleteError}</span>
+          <button onClick={() => setDeleteError('')} className="text-red-400 hover:text-red-600 ml-2">×</button>
+        </div>
+      )}
 
       {loading ? (
         <p className="text-center py-8 text-slate-400 text-sm">Memuat riwayat...</p>
@@ -685,10 +715,19 @@ function CampaignHistory({
                         )}
                         {c.status === 'done' && onNextBatch && (
                           <button
-                            onClick={e => { e.stopPropagation(); onNextBatch(c.pesan) }}
+                            onClick={e => { e.stopPropagation(); onNextBatch(c.id, c.pesan) }}
                             className="px-3 py-1 text-xs bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors whitespace-nowrap"
                           >
                             ⚡ 50 Berikutnya
+                          </button>
+                        )}
+                        {c.status !== 'running' && (
+                          <button
+                            onClick={e => handleDelete(e, c.id, c.nama)}
+                            disabled={deletingId === c.id}
+                            className="px-3 py-1 text-xs bg-red-50 text-red-600 font-semibold rounded-lg hover:bg-red-100 border border-red-200 transition-colors whitespace-nowrap disabled:opacity-50"
+                          >
+                            {deletingId === c.id ? '⏳' : '🗑️ Hapus'}
                           </button>
                         )}
                       </div>
@@ -882,12 +921,13 @@ export default function BroadcastPage() {
   }
 
   // Handler: buat campaign baru dengan pesan sama ke 50 leads berikutnya
-  const handleNextBatch = async (originalMessage: string) => {
+  // campaign_id digunakan untuk exclude leads yang sudah ada di campaign yang sama
+  const handleNextBatch = async (sourceCampaignId: string, originalMessage: string) => {
     setNextBatchLoading(true)
     setNextBatchError('')
     try {
-      // Ambil 50 leads uncontacted berikutnya
-      const res = await fetch('/api/sambers/broadcast/leads-uncontacted?limit=50')
+      // Ambil 50 leads yang belum ada di campaign sumber
+      const res = await fetch(`/api/sambers/broadcast/leads-uncontacted?limit=50&campaign_id=${sourceCampaignId}`)
       const data = await res.json()
       const leads: { id: string }[] = data.leads ?? []
 
@@ -1100,7 +1140,11 @@ export default function BroadcastPage() {
       )}
 
       {/* Section 3: Riwayat */}
-      <CampaignHistory onViewDetail={setActiveCampaignId} onNextBatch={handleNextBatch} refreshKey={historyRefreshKey} />
+      <CampaignHistory
+        onViewDetail={setActiveCampaignId}
+        onNextBatch={(campaignId, message) => handleNextBatch(campaignId, message)}
+        refreshKey={historyRefreshKey}
+      />
 
       {/* Modal */}
       {showLeadsModal && (
