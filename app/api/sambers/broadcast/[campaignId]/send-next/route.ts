@@ -124,6 +124,14 @@ export async function POST(
     }
   }
 
+  // Auto-mark done di DB ketika tidak ada sisa pending
+  if (remaining === 0) {
+    await admin
+      .from('broadcast_campaigns')
+      .update({ status: 'done', finished_at: new Date().toISOString() })
+      .eq('id', campaignId)
+  }
+
   return NextResponse.json({
     done: remaining === 0,
     status: remaining === 0 ? 'done' : 'running',

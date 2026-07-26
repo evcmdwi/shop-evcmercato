@@ -15,7 +15,7 @@ export async function GET(
 
   const { data: campaign, error } = await admin
     .from('broadcast_campaigns')
-    .select('id, name, status, total_leads, sent_count, failed_count, started_at, finished_at')
+    .select('id, name, message, status, total_leads, sent_count, failed_count, started_at, finished_at')
     .eq('id', campaignId)
     .single()
 
@@ -25,9 +25,28 @@ export async function GET(
 
   const pending = campaign.total_leads - campaign.sent_count - campaign.failed_count
 
+  // Ambil logs terbaru (max 100)
+  const { data: rawLogs } = await admin
+    .from('broadcast_logs')
+    .select('id, lead_id, phone, status, sent_at, error_message, leads(nama)')
+    .eq('campaign_id', campaignId)
+    .order('created_at', { ascending: true })
+    .limit(100)
+
+  const logs = (rawLogs ?? []).map((l) => ({
+    id: l.id,
+    lead_id: l.lead_id,
+    nama: (l.leads as { nama?: string } | null)?.nama ?? '—',
+    phone: l.phone,
+    status: l.status as 'sent' | 'failed' | 'pending',
+    sent_at: l.sent_at ?? null,
+    error: l.error_message ?? undefined,
+  }))
+
   return NextResponse.json({
     campaign_id: campaign.id,
     name: campaign.name,
+    message: campaign.message,
     status: campaign.status,
     total: campaign.total_leads,
     sent: campaign.sent_count,
@@ -35,5 +54,6 @@ export async function GET(
     pending,
     started_at: campaign.started_at,
     finished_at: campaign.finished_at,
+    logs,
   })
 }

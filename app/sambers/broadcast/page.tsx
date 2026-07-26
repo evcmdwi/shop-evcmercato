@@ -36,6 +36,8 @@ interface Campaign {
 
 interface CampaignStatus {
   campaign_id: string
+  name?: string
+  message?: string
   status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   total: number
   sent: number
@@ -255,9 +257,11 @@ function LeadsModal({
 function CampaignProgress({
   campaignId,
   onDone,
+  onNextBatch,
 }: {
   campaignId: string
   onDone: () => void
+  onNextBatch?: (message: string) => void
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -482,12 +486,22 @@ function CampaignProgress({
         )}
         {/* SELESAI */}
         {!running && (status.status === 'done' || status.status === 'stopped') && (
-          <button
-            onClick={onDone}
-            className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors"
-          >
-            ✅ Selesai — Buat Campaign Baru
-          </button>
+          <>
+            <button
+              onClick={onDone}
+              className="px-4 py-2 text-sm bg-slate-700 text-white font-semibold rounded-xl hover:bg-slate-600 transition-colors"
+            >
+              ✅ Buat Campaign Baru
+            </button>
+            {status.status === 'done' && onNextBatch && (
+              <button
+                onClick={() => onNextBatch(status.message ?? '')}
+                className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors flex items-center gap-1.5"
+              >
+                ⚡ Kirim ke 50 Berikutnya
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -533,19 +547,30 @@ function CampaignProgress({
 
 // ─── CampaignHistory ──────────────────────────────────────────────────────────
 
-function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void }) {
+function CampaignHistory({ onViewDetail, refreshKey }: { onViewDetail: (id: string) => void; refreshKey?: number }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
   const [detail, setDetail] = useState<CampaignLog[] | null>(null)
   const [loadingDetail, setLoadingDetail] = useState(false)
 
-  useEffect(() => {
+  const loadCampaigns = useCallback(() => {
+    setLoading(true)
     fetch('/api/sambers/broadcast')
       .then(r => r.json())
       .then(d => setCampaigns(d.campaigns ?? []))
       .finally(() => setLoading(false))
   }, [])
+
+  useEffect(() => { loadCampaigns() }, [loadCampaigns, refreshKey])
+
+  // Auto-refresh tiap 30 detik kalau ada campaign running
+  useEffect(() => {
+    const hasRunning = campaigns.some(c => c.status === 'running')
+    if (!hasRunning) return
+    const t = setInterval(loadCampaigns, 30000)
+    return () => clearInterval(t)
+  }, [campaigns, loadCampaigns])
 
   const handleRowClick = async (id: string) => {
     if (expandedId === id) { setExpandedId(null); setDetail(null); return }
@@ -579,8 +604,15 @@ function CampaignHistory({ onViewDetail }: { onViewDetail: (id: string) => void 
 
   return (
     <div className="bg-white rounded-2xl shadow-sm border border-slate-100">
-      <div className="px-6 py-4 border-b border-slate-100">
+      <div className="px-6 py-4 border-b border-slate-100 flex items-center justify-between">
         <h2 className="font-bold text-slate-800">📂 Riwayat Campaign</h2>
+        <button
+          onClick={loadCampaigns}
+          disabled={loading}
+          className="text-xs text-slate-400 hover:text-slate-600 flex items-center gap-1 disabled:opacity-40 transition-colors"
+        >
+          <span className={loading ? 'animate-spin' : ''}>🔄</span> Refresh
+        </button>
       </div>
 
       {loading ? (
@@ -807,6 +839,9 @@ export default function BroadcastPage() {
   const [error, setError] = useState('')
   const [activeCampaignId, setActiveCampaignId] = useState<string | null>(null)
   const [excludedConverted, setExcludedConverted] = useState<number>(0)
+  const [nextBatchLoading, setNextBatchLoading] = useState(false)
+  const [nextBatchError, setNextBatchError] = useState('')
+  const [historyRefreshKey, setHistoryRefreshKey] = useState(0)
 
   const MAX_CHARS = 1000
   const charCount = pesan.length
@@ -814,6 +849,48 @@ export default function BroadcastPage() {
   const handleConfirmLeads = (ids: string[]) => {
     setSelectedLeadIds(ids)
     setShowLeadsModal(false)
+  }
+
+  // Handler: buat campaign baru dengan pesan sama ke 50 leads berikutnya
+  const handleNextBatch = async (originalMessage: string) => {
+    setNextBatchLoading(true)
+    setNextBatchError('')
+    try {
+      // Ambil 50 leads uncontacted berikutnya
+      const res = await fetch('/api/sambers/broadcast/leads-uncontacted?limit=50')
+      const data = await res.json()
+      const leads: { id: string }[] = data.leads ?? []
+
+      if (leads.length === 0) {
+        setNextBatchError('Tidak ada lagi leads yang belum dihubungi 🎉')
+        setNextBatchLoading(false)
+        return
+      }
+
+      // Buat campaign baru otomatis
+      const now = new Date()
+      const label = `Batch ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
+      const createRes = await fetch('/api/sambers/broadcast', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          nama: label,
+          pesan: originalMessage,
+          lead_ids: leads.map((l) => l.id),
+        }),
+      })
+      const createData = await createRes.json()
+      if (!createRes.ok) {
+        setNextBatchError(createData.error || 'Gagal membuat campaign batch berikutnya')
+        return
+      }
+
+      setActiveCampaignId(createData.campaign_id)
+    } catch {
+      setNextBatchError('Network error — coba lagi')
+    } finally {
+      setNextBatchLoading(false)
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -972,14 +1049,28 @@ export default function BroadcastPage() {
 
       {/* Section 2: Progress */}
       {activeCampaignId && (
-        <CampaignProgress
-          campaignId={activeCampaignId}
-          onDone={() => setActiveCampaignId(null)}
-        />
+        <>
+          {nextBatchError && (
+            <div className="bg-red-50 text-red-700 text-sm px-4 py-3 rounded-xl mb-4">
+              {nextBatchError}
+              <button onClick={() => setNextBatchError('')} className="ml-2 text-red-400 hover:text-red-600">×</button>
+            </div>
+          )}
+          {nextBatchLoading && (
+            <div className="bg-blue-50 text-blue-700 text-sm px-4 py-3 rounded-xl mb-4 flex items-center gap-2">
+              <span className="animate-spin">⏳</span> Menyiapkan batch berikutnya...
+            </div>
+          )}
+          <CampaignProgress
+            campaignId={activeCampaignId}
+            onDone={() => { setActiveCampaignId(null); setHistoryRefreshKey(k => k + 1) }}
+            onNextBatch={handleNextBatch}
+          />
+        </>
       )}
 
       {/* Section 3: Riwayat */}
-      <CampaignHistory onViewDetail={setActiveCampaignId} />
+      <CampaignHistory onViewDetail={setActiveCampaignId} refreshKey={historyRefreshKey} />
 
       {/* Modal */}
       {showLeadsModal && (
