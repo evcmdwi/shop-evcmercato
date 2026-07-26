@@ -547,7 +547,15 @@ function CampaignProgress({
 
 // ─── CampaignHistory ──────────────────────────────────────────────────────────
 
-function CampaignHistory({ onViewDetail, refreshKey }: { onViewDetail: (id: string) => void; refreshKey?: number }) {
+function CampaignHistory({
+  onViewDetail,
+  onNextBatch,
+  refreshKey,
+}: {
+  onViewDetail: (id: string) => void
+  onNextBatch?: (message: string) => void
+  refreshKey?: number
+}) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [expandedId, setExpandedId] = useState<string | null>(null)
@@ -584,6 +592,9 @@ function CampaignHistory({ onViewDetail, refreshKey }: { onViewDetail: (id: stri
       setLoadingDetail(false)
     }
   }
+
+  // Find campaign pesan by id
+  const getCampaignPesan = (id: string) => campaigns.find(c => c.id === id)?.pesan ?? ''
 
   const statusBadge = (status: string) => {
     const cfg: Record<string, string> = {
@@ -655,27 +666,46 @@ function CampaignHistory({ onViewDetail, refreshKey }: { onViewDetail: (id: stri
                     <td className="px-4 py-3 text-center text-red-500 font-semibold">{c.failed}</td>
                     <td className="px-4 py-3">{statusBadge(c.status)}</td>
                     <td className="px-4 py-3">
-                      {(c.status === 'draft' || c.status === 'paused') && (
-                        <button
-                          onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
-                          className="px-3 py-1 text-xs bg-[#7FB300] text-white font-semibold rounded-lg hover:bg-[#6B9700] transition-colors whitespace-nowrap"
-                        >
-                          ▶️ {c.status === 'paused' ? 'Resume' : 'Mulai'}
-                        </button>
-                      )}
-                      {c.status === 'running' && (
-                        <button
-                          onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
-                          className="px-3 py-1 text-xs bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap"
-                        >
-                          👁 Monitor
-                        </button>
-                      )}
+                      <div className="flex flex-col gap-1">
+                        {(c.status === 'draft' || c.status === 'paused') && (
+                          <button
+                            onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
+                            className="px-3 py-1 text-xs bg-[#7FB300] text-white font-semibold rounded-lg hover:bg-[#6B9700] transition-colors whitespace-nowrap"
+                          >
+                            ▶️ {c.status === 'paused' ? 'Resume' : 'Mulai'}
+                          </button>
+                        )}
+                        {c.status === 'running' && (
+                          <button
+                            onClick={e => { e.stopPropagation(); onViewDetail(c.id) }}
+                            className="px-3 py-1 text-xs bg-blue-50 text-blue-700 font-semibold rounded-lg hover:bg-blue-100 transition-colors whitespace-nowrap"
+                          >
+                            👁 Monitor
+                          </button>
+                        )}
+                        {c.status === 'done' && onNextBatch && (
+                          <button
+                            onClick={e => { e.stopPropagation(); onNextBatch(c.pesan) }}
+                            className="px-3 py-1 text-xs bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors whitespace-nowrap"
+                          >
+                            ⚡ 50 Berikutnya
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                   {expandedId === c.id && (
                     <tr key={`${c.id}-detail`}>
-                      <td colSpan={6} className="bg-slate-50 px-6 py-4">
+                      <td colSpan={7} className="bg-slate-50 px-6 py-4">
+                        {/* Isi Pesan */}
+                        {getCampaignPesan(c.id) && (
+                          <div className="mb-4">
+                            <p className="text-xs font-semibold text-slate-500 mb-1">💬 Isi Pesan:</p>
+                            <div className="bg-white border border-slate-200 rounded-xl px-4 py-3">
+                              <p className="text-sm text-slate-700 whitespace-pre-wrap">{getCampaignPesan(c.id)}</p>
+                            </div>
+                          </div>
+                        )}
                         {loadingDetail ? (
                           <p className="text-xs text-slate-400 text-center py-2">Memuat log...</p>
                         ) : !detail || detail.length === 0 ? (
@@ -1070,7 +1100,7 @@ export default function BroadcastPage() {
       )}
 
       {/* Section 3: Riwayat */}
-      <CampaignHistory onViewDetail={setActiveCampaignId} refreshKey={historyRefreshKey} />
+      <CampaignHistory onViewDetail={setActiveCampaignId} onNextBatch={handleNextBatch} refreshKey={historyRefreshKey} />
 
       {/* Modal */}
       {showLeadsModal && (
