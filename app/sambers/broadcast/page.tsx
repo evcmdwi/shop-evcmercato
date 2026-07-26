@@ -261,7 +261,7 @@ function CampaignProgress({
 }: {
   campaignId: string
   onDone: () => void
-  onNextBatch?: (message: string) => void
+  onNextBatch?: (campaignId: string, message: string) => void
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -495,7 +495,7 @@ function CampaignProgress({
             </button>
             {status.status === 'done' && onNextBatch && (
               <button
-                onClick={() => onNextBatch(status.message ?? '')}
+                onClick={() => onNextBatch(campaignId, status.message ?? '')}
                 className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors flex items-center gap-1.5"
               >
                 ⚡ Kirim ke 50 Berikutnya
@@ -553,7 +553,7 @@ function CampaignHistory({
   refreshKey,
 }: {
   onViewDetail: (id: string) => void
-  onNextBatch?: (message: string) => void
+  onNextBatch?: (campaignId: string, message: string) => void
   refreshKey?: number
 }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -685,7 +685,7 @@ function CampaignHistory({
                         )}
                         {c.status === 'done' && onNextBatch && (
                           <button
-                            onClick={e => { e.stopPropagation(); onNextBatch(c.pesan) }}
+                            onClick={e => { e.stopPropagation(); onNextBatch(c.id, c.pesan) }}
                             className="px-3 py-1 text-xs bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors whitespace-nowrap"
                           >
                             ⚡ 50 Berikutnya
@@ -882,12 +882,13 @@ export default function BroadcastPage() {
   }
 
   // Handler: buat campaign baru dengan pesan sama ke 50 leads berikutnya
-  const handleNextBatch = async (originalMessage: string) => {
+  // campaign_id digunakan untuk exclude leads yang sudah ada di campaign yang sama
+  const handleNextBatch = async (sourceCampaignId: string, originalMessage: string) => {
     setNextBatchLoading(true)
     setNextBatchError('')
     try {
-      // Ambil 50 leads uncontacted berikutnya
-      const res = await fetch('/api/sambers/broadcast/leads-uncontacted?limit=50')
+      // Ambil 50 leads yang belum ada di campaign sumber
+      const res = await fetch(`/api/sambers/broadcast/leads-uncontacted?limit=50&campaign_id=${sourceCampaignId}`)
       const data = await res.json()
       const leads: { id: string }[] = data.leads ?? []
 
@@ -1100,7 +1101,11 @@ export default function BroadcastPage() {
       )}
 
       {/* Section 3: Riwayat */}
-      <CampaignHistory onViewDetail={setActiveCampaignId} onNextBatch={handleNextBatch} refreshKey={historyRefreshKey} />
+      <CampaignHistory
+        onViewDetail={setActiveCampaignId}
+        onNextBatch={(campaignId, message) => handleNextBatch(campaignId, message)}
+        refreshKey={historyRefreshKey}
+      />
 
       {/* Modal */}
       {showLeadsModal && (
