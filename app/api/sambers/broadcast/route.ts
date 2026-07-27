@@ -11,7 +11,7 @@ export async function GET(_req: NextRequest) {
 
   const { data: campaigns, error } = await admin
     .from('broadcast_campaigns')
-    .select('id, name, message, status, total_leads, sent_count, failed_count, created_at, started_at, finished_at')
+    .select('id, name, message, status, total_leads, sent_count, failed_count, created_at, started_at, finished_at, parent_campaign_id')
     .order('created_at', { ascending: false })
     .limit(20)
 
@@ -46,6 +46,7 @@ export async function GET(_req: NextRequest) {
     failed: c.failed_count,
     status: c.status,
     created_at: c.created_at,
+    parent_campaign_id: c.parent_campaign_id ?? null,
   }))
 
   return NextResponse.json({ campaigns: normalized })
@@ -57,7 +58,7 @@ export async function POST(req: NextRequest) {
   if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const body = await req.json()
-  const { nama, pesan, lead_ids } = body as { nama: string; pesan: string; lead_ids: string[] }
+  const { nama, pesan, lead_ids, parent_campaign_id } = body as { nama: string; pesan: string; lead_ids: string[]; parent_campaign_id?: string }
 
   if (!nama?.trim()) return NextResponse.json({ error: 'nama wajib diisi' }, { status: 400 })
   if (!pesan?.trim() || pesan.trim().length < 5)
@@ -90,6 +91,7 @@ export async function POST(req: NextRequest) {
       message: pesan.trim(),
       status: 'draft',
       total_leads: leads.length,
+      ...(parent_campaign_id ? { parent_campaign_id } : {}),
     })
     .select('id')
     .single()

@@ -3,8 +3,9 @@ import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 // GET /api/sambers/broadcast/leads-uncontacted?limit=50&campaign_id=<id>
-// Returns leads that have NOT been included in the specified campaign.
-// If campaign_id is omitted, excludes leads already sent in ANY campaign.
+// Returns leads that have NOT been included in the specified campaign GROUP.
+// A campaign group = the root campaign + all its child batches (parent_campaign_id).
+// If campaign_id is omitted, excludes leads already sent (status='sent') in ANY campaign.
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -15,9 +16,35 @@ export async function GET(req: NextRequest) {
 
   const admin = getSupabaseAdmin()
 
-  // Step 1: Get lead_ids already in the target campaign (all statuses)
-  // If campaign_id provided → exclude leads in that campaign
-  // If not → exclude leads ever successfully sent in any campaign
+  // Step 1: Resolve the campaign GROUP (root + all children)
+  // so we exclude leads that have been in any batch of the same campaign.
+  let groupCampaignIds: string[] = []
+
+  if (campaignId) {
+    // Fetch the source campaign to find its root
+    const { data: sourceCampaign, error: srcErr } = await admin
+      .from('broadcast_campaigns')
+      .select('id, parent_campaign_id')
+      .eq('id', campaignId)
+      .single()
+
+    if (!srcErr && sourceCampaign) {
+      const rootId: string = (sourceCampaign.parent_campaign_id as string | null) ?? sourceCampaign.id
+
+      // Fetch all campaigns in the group: root itself + all children of root
+      const { data: groupCampaigns } = await admin
+        .from('broadcast_campaigns')
+        .select('id')
+        .or(`id.eq.${rootId},parent_campaign_id.eq.${rootId}`)
+
+      groupCampaignIds = (groupCampaigns ?? []).map((c) => c.id as string)
+    } else {
+      // Fallback: just use the requested campaign_id
+      groupCampaignIds = [campaignId]
+    }
+  }
+
+  // Step 2: Collect excluded lead_ids from the group
   const BATCH = 1000
   let page = 0
   const excludedIds = new Set<string>()
@@ -29,11 +56,11 @@ export async function GET(req: NextRequest) {
       .select('lead_id')
       .range(page * BATCH, (page + 1) * BATCH - 1)
 
-    if (campaignId) {
-      // Exclude leads already in THIS campaign (any status)
-      q = q.eq('campaign_id', campaignId)
+    if (groupCampaignIds.length > 0) {
+      // Exclude leads in ANY campaign within this group (any status)
+      q = q.in('campaign_id', groupCampaignIds)
     } else {
-      // Fallback: exclude leads ever successfully sent
+      // No campaign_id provided → exclude leads ever successfully sent in any campaign
       q = q.eq('status', 'sent')
     }
 
@@ -49,7 +76,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Gagal mengambil data broadcast logs' }, { status: 500 })
   }
 
-  // Step 2: Fetch leads in pages, filter excluded in JS (avoids URL length limit)
+  // Step 3: Fetch leads in pages, filter excluded in JS (avoids URL length limit)
   let allLeads: { id: string; nama: string; phone: string; kota: string | null }[] = []
   let leadsPage = 0
   const PAGE_SIZE = 500
@@ -69,7 +96,7 @@ export async function GET(req: NextRequest) {
     if (allLeads.length > 5000) break // safety cap
   }
 
-  // Step 3: Filter & slice
+  // Step 4: Filter & slice
   const result = allLeads
     .filter(l => !excludedIds.has(l.id))
     .slice(0, limit)
@@ -79,5 +106,6 @@ export async function GET(req: NextRequest) {
     leads: result,
     excluded_count: excludedIds.size,
     campaign_id: campaignId,
+    group_campaign_ids: groupCampaignIds,
   })
 }

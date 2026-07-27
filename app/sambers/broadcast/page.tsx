@@ -31,6 +31,7 @@ interface Campaign {
   failed: number
   status: 'draft' | 'running' | 'paused' | 'done' | 'stopped'
   created_at: string
+  parent_campaign_id?: string | null
   logs?: CampaignLog[]
 }
 
@@ -261,7 +262,7 @@ function CampaignProgress({
 }: {
   campaignId: string
   onDone: () => void
-  onNextBatch?: (campaignId: string, message: string) => void
+  onNextBatch?: (campaignId: string, message: string, parentCampaignId?: string | null) => void
 }) {
   const [status, setStatus] = useState<CampaignStatus | null>(null)
   const [loading, setLoading] = useState(true)
@@ -495,7 +496,7 @@ function CampaignProgress({
             </button>
             {status.status === 'done' && onNextBatch && (
               <button
-                onClick={() => onNextBatch(campaignId, status.message ?? '')}
+                onClick={() => onNextBatch(campaignId, status.message ?? '', null)}
                 className="px-4 py-2 text-sm bg-[#7FB300] text-white font-semibold rounded-xl hover:bg-[#6B9700] transition-colors flex items-center gap-1.5"
               >
                 ⚡ Kirim ke 50 Berikutnya
@@ -553,7 +554,7 @@ function CampaignHistory({
   refreshKey,
 }: {
   onViewDetail: (id: string) => void
-  onNextBatch?: (campaignId: string, message: string) => void
+  onNextBatch?: (campaignId: string, message: string, parentCampaignId?: string | null) => void
   refreshKey?: number
 }) {
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
@@ -715,7 +716,7 @@ function CampaignHistory({
                         )}
                         {c.status === 'done' && onNextBatch && (
                           <button
-                            onClick={e => { e.stopPropagation(); onNextBatch(c.id, c.pesan) }}
+                            onClick={e => { e.stopPropagation(); onNextBatch(c.id, c.pesan, c.parent_campaign_id) }}
                             className="px-3 py-1 text-xs bg-emerald-500 text-white font-semibold rounded-lg hover:bg-emerald-600 transition-colors whitespace-nowrap"
                           >
                             ⚡ 50 Berikutnya
@@ -921,12 +922,13 @@ export default function BroadcastPage() {
   }
 
   // Handler: buat campaign baru dengan pesan sama ke 50 leads berikutnya
-  // campaign_id digunakan untuk exclude leads yang sudah ada di campaign yang sama
-  const handleNextBatch = async (sourceCampaignId: string, originalMessage: string) => {
+  // Menggunakan parent_campaign_id untuk exclude semua leads di group campaign yang sama
+  // (induk + semua batch sebelumnya), bukan hanya satu campaign.
+  const handleNextBatch = async (sourceCampaignId: string, originalMessage: string, parentCampaignId?: string | null) => {
     setNextBatchLoading(true)
     setNextBatchError('')
     try {
-      // Ambil 50 leads yang belum ada di campaign sumber
+      // Ambil 50 leads yang belum ada di group campaign sumber (induk + semua batch)
       const res = await fetch(`/api/sambers/broadcast/leads-uncontacted?limit=50&campaign_id=${sourceCampaignId}`)
       const data = await res.json()
       const leads: { id: string }[] = data.leads ?? []
@@ -937,7 +939,12 @@ export default function BroadcastPage() {
         return
       }
 
-      // Buat campaign baru otomatis
+      // Root campaign untuk group ini:
+      // Kalau sourceCampaign sudah punya parent → root = parentCampaignId
+      // Kalau sourceCampaign adalah root sendiri (tidak punya parent) → root = sourceCampaignId
+      const rootCampaignId = parentCampaignId ?? sourceCampaignId
+
+      // Buat campaign baru otomatis, linkkan ke root sebagai parent
       const now = new Date()
       const label = `Batch ${now.toLocaleDateString('id-ID', { day: '2-digit', month: 'short' })} ${now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}`
       const createRes = await fetch('/api/sambers/broadcast', {
@@ -947,6 +954,7 @@ export default function BroadcastPage() {
           nama: label,
           pesan: originalMessage,
           lead_ids: leads.map((l) => l.id),
+          parent_campaign_id: rootCampaignId,
         }),
       })
       const createData = await createRes.json()
@@ -1142,7 +1150,7 @@ export default function BroadcastPage() {
       {/* Section 3: Riwayat */}
       <CampaignHistory
         onViewDetail={setActiveCampaignId}
-        onNextBatch={(campaignId, message) => handleNextBatch(campaignId, message)}
+        onNextBatch={(campaignId, message, parentCampaignId) => handleNextBatch(campaignId, message, parentCampaignId)}
         refreshKey={historyRefreshKey}
       />
 
