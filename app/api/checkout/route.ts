@@ -17,7 +17,12 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     console.log('[checkout] delivery_note:', JSON.stringify(body.delivery_note))
     const {
-      address_id,
+      address_id: address_id_raw,
+      // Inline address fields — digunakan bila address_id tidak dikirim
+      // (UX improvement: user tidak perlu klik "Tambah Alamat" dulu)
+      inline_recipient_name,
+      inline_phone,
+      inline_full_address,
       delivery_note,
       selected_item_ids,
       shipping_district_id,
@@ -36,22 +41,79 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       )
     }
-    if (!address_id) {
-      return NextResponse.json({ error: 'Alamat pengiriman wajib dipilih' }, { status: 400 })
+
+    // Validasi: wajib ada address_id ATAU inline address (recipient + phone + full_address + district)
+    const hasInlineAddress =
+      !address_id_raw &&
+      inline_recipient_name &&
+      inline_phone &&
+      inline_full_address &&
+      shipping_district_id
+
+    if (!address_id_raw && !hasInlineAddress) {
+      return NextResponse.json(
+        { error: 'Alamat pengiriman wajib dipilih atau diisi lengkap (nama, telepon, alamat, kecamatan)' },
+        { status: 400 }
+      )
     }
 
     const admin = getSupabaseAdmin()
 
-    // 3. Validate address belongs to user
-    const { data: address, error: addrError } = await admin
-      .from('addresses')
-      .select('*')
-      .eq('id', address_id)
-      .eq('user_id', user.id)
-      .single()
+    // 3. Resolve address — dari DB (address_id) atau auto-save inline address
+    let address: {
+      id: string
+      recipient_name: string
+      phone: string
+      full_address: string
+      city: string | null
+      province: string | null
+      postal_code: string | null
+      district_id: string | null
+      district?: string | null
+    }
 
-    if (addrError || !address) {
-      return NextResponse.json({ error: 'Alamat tidak valid' }, { status: 400 })
+    let address_id: string
+
+    if (address_id_raw) {
+      // Flow lama: validasi address milik user
+      const { data: existingAddress, error: addrError } = await admin
+        .from('addresses')
+        .select('*')
+        .eq('id', address_id_raw)
+        .eq('user_id', user.id)
+        .single()
+
+      if (addrError || !existingAddress) {
+        return NextResponse.json({ error: 'Alamat tidak valid' }, { status: 400 })
+      }
+      address = existingAddress
+      address_id = address_id_raw
+    } else {
+      // Flow baru: auto-save inline address ke DB (Option B)
+      // User tidak perlu klik "Tambah Alamat" secara eksplisit
+      const { data: newAddress, error: insertAddrError } = await admin
+        .from('addresses')
+        .insert({
+          user_id: user.id,
+          recipient_name: inline_recipient_name,
+          phone: inline_phone,
+          full_address: inline_full_address,
+          district_id: shipping_district_id || null,
+          district: shipping_district_name || null,
+          city: shipping_regency_name || null,
+          province: shipping_province_name || null,
+          postal_code: null, // tidak wajib untuk inline checkout
+          is_default: false,
+        })
+        .select('*')
+        .single()
+
+      if (insertAddrError || !newAddress) {
+        console.error('[checkout] auto-save address error:', insertAddrError)
+        return NextResponse.json({ error: 'Gagal menyimpan alamat pengiriman' }, { status: 500 })
+      }
+      address = newAddress
+      address_id = newAddress.id
     }
 
     // 4. Get cart items
