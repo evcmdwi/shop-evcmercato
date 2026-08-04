@@ -20,6 +20,8 @@ interface SessionAddress {
   province_id: string
   province_name: string
   full_address: string
+  recipient_name: string
+  phone: string
 }
 
 function formatRupiah(amount: number) {
@@ -58,6 +60,8 @@ export default function CheckoutPage() {
   // Session address — inline form without saving to DB
   const [sessionAddress, setSessionAddress] = useState<SessionAddress | null>(null)
   const [sessionFullAddress, setSessionFullAddress] = useState('')
+  const [sessionRecipientName, setSessionRecipientName] = useState('')
+  const [sessionPhone, setSessionPhone] = useState('')
   const [showInlineForm, setShowInlineForm] = useState(false)
 
   const fetchAddresses = useCallback(async () => {
@@ -119,7 +123,12 @@ export default function CheckoutPage() {
       setSessionAddress(null)
       return
     }
-    setSessionAddress(prev => ({ ...addr, full_address: prev?.full_address ?? sessionFullAddress }))
+    setSessionAddress(prev => ({
+      ...addr,
+      full_address: prev?.full_address ?? sessionFullAddress,
+      recipient_name: prev?.recipient_name ?? sessionRecipientName,
+      phone: prev?.phone ?? sessionPhone,
+    }))
   }
 
   const handleSessionFullAddressChange = (val: string) => {
@@ -127,11 +136,21 @@ export default function CheckoutPage() {
     setSessionAddress(prev => prev ? { ...prev, full_address: val } : null)
   }
 
+  const handleSessionRecipientNameChange = (val: string) => {
+    setSessionRecipientName(val)
+    setSessionAddress(prev => prev ? { ...prev, recipient_name: val } : null)
+  }
+
+  const handleSessionPhoneChange = (val: string) => {
+    setSessionPhone(val)
+    setSessionAddress(prev => prev ? { ...prev, phone: val } : null)
+  }
+
   // Determine effective address for shipping rates
   const effectiveDistrictId = selectedAddress?.district_id ?? sessionAddress?.district_id ?? null
 
-  // canPay: either a saved address is selected OR session address has district + full_address
-  const sessionAddressReady = !!(sessionAddress?.district_id && sessionAddress?.full_address?.trim())
+  // canPay: either a saved address is selected OR session address has district + full_address + name + phone
+  const sessionAddressReady = !!(sessionAddress?.district_id && sessionAddress?.full_address?.trim() && sessionAddress?.recipient_name?.trim() && sessionAddress?.phone?.trim())
   const canPay = (!!selectedAddressId || sessionAddressReady) && !loadingCart
 
   useEffect(() => {
@@ -197,17 +216,16 @@ export default function CheckoutPage() {
       if (selectedAddressId) {
         checkoutPayload.address_id = selectedAddressId
       } else if (sessionAddress) {
-        // Inline session address — sent directly without address_id
-        // ⚠️ BENJI: API must support address_id=null with inline address fields
-        checkoutPayload.inline_address = {
-          district_id: sessionAddress.district_id,
-          district_name: sessionAddress.district_name,
-          regency_id: sessionAddress.regency_id,
-          regency_name: sessionAddress.regency_name,
-          province_id: sessionAddress.province_id,
-          province_name: sessionAddress.province_name,
-          full_address: sessionAddress.full_address,
-        }
+        // Inline session address — matches BENJI API contract (auto-save option)
+        checkoutPayload.inline_recipient_name = sessionAddress.recipient_name
+        checkoutPayload.inline_phone = sessionAddress.phone
+        checkoutPayload.inline_full_address = sessionAddress.full_address
+        checkoutPayload.shipping_district_id = sessionAddress.district_id
+        checkoutPayload.shipping_district_name = sessionAddress.district_name
+        checkoutPayload.shipping_regency_id = sessionAddress.regency_id
+        checkoutPayload.shipping_regency_name = sessionAddress.regency_name
+        checkoutPayload.shipping_province_id = sessionAddress.province_id
+        checkoutPayload.shipping_province_name = sessionAddress.province_name
       }
       const res = await fetch('/api/checkout', {
         method: 'POST',
@@ -278,6 +296,28 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500 mb-3">Isi alamat pengiriman untuk melanjutkan checkout.</p>
                   {/* Inline quick-address form — no DB save required */}
                   <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Nama Penerima <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          value={sessionRecipientName}
+                          onChange={(e) => handleSessionRecipientNameChange(e.target.value)}
+                          placeholder="Nama lengkap"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">No. Telepon <span className="text-red-500">*</span></label>
+                        <input
+                          type="tel"
+                          value={sessionPhone}
+                          onChange={(e) => handleSessionPhoneChange(e.target.value)}
+                          placeholder="08xx"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                        />
+                      </div>
+                    </div>
                     <div>
                       <label className="block text-xs font-medium text-gray-600 mb-1">Kecamatan <span className="text-red-500">*</span></label>
                       <AddressAutocomplete
@@ -592,6 +632,18 @@ export default function CheckoutPage() {
                           <div className="flex items-center gap-2 text-xs">
                             <span className="text-amber-700">⬜</span>
                             <span className="text-amber-800 font-medium">Isi alamat lengkap</span>
+                          </div>
+                        )}
+                        {!sessionAddress?.recipient_name?.trim() && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Isi nama penerima</span>
+                          </div>
+                        )}
+                        {!sessionAddress?.phone?.trim() && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Isi nomor telepon</span>
                           </div>
                         )}
                       </div>
