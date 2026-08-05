@@ -113,7 +113,7 @@ export default function AddressAutocomplete({ value, onChange, error }: Props) {
           <button
             type="button"
             onClick={handleReset}
-            className="text-xs text-[#7FB300] font-semibold border border-[#7FB300] rounded-lg px-3 py-1 hover:bg-[#E8F4D1] transition-colors whitespace-nowrap mt-1"
+            className="text-xs text-[#7FB300] font-semibold border border-[#7FB300] rounded-lg px-3 py-2 min-h-[44px] hover:bg-[#E8F4D1] transition-colors whitespace-nowrap mt-1 flex items-center"
           >
             Ganti
           </button>

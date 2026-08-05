@@ -251,7 +251,7 @@ export default function CheckoutPage() {
   const loading = loadingAddresses || loadingCart
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8 lg:pb-8 pb-28">
+    <div className="min-h-screen bg-gray-50 pb-28 lg:pb-8">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Checkout</h1>
 
@@ -296,7 +296,7 @@ export default function CheckoutPage() {
                   <p className="text-sm text-gray-500 mb-3">Isi alamat pengiriman untuk melanjutkan checkout.</p>
                   {/* Inline quick-address form — no DB save required */}
                   <div className="space-y-3">
-                    <div className="grid grid-cols-2 gap-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
                         <label className="block text-xs font-medium text-gray-600 mb-1">Nama Penerima <span className="text-red-500">*</span></label>
                         <input
@@ -304,7 +304,7 @@ export default function CheckoutPage() {
                           value={sessionRecipientName}
                           onChange={(e) => handleSessionRecipientNameChange(e.target.value)}
                           placeholder="Nama lengkap"
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
                         />
                       </div>
                       <div>
@@ -314,7 +314,7 @@ export default function CheckoutPage() {
                           value={sessionPhone}
                           onChange={(e) => handleSessionPhoneChange(e.target.value)}
                           placeholder="08xx"
-                          className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
                         />
                       </div>
                     </div>
@@ -338,8 +338,9 @@ export default function CheckoutPage() {
                         rows={2}
                         value={sessionFullAddress}
                         onChange={(e) => handleSessionFullAddressChange(e.target.value)}
+                        onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
                         placeholder="Nama jalan, nomor rumah, RT/RW, dll."
-                        className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] resize-none"
+                        className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] resize-none"
                       />
                     </div>
                     {sessionAddressReady && (
@@ -672,7 +673,17 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
+            {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 lg:hidden">
+        <button
+          onClick={handlePay}
+          disabled={paying || !canPay}
+          className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-semibold text-base disabled:opacity-40"
+        >
+          {canPay ? `Bayar Sekarang ${formatRupiah(totalAmount)}` : '⬜ Lengkapi alamat dulu'}
+        </button>
       </div>
+    </div>
 
 
 {/* Modal AddressForm */}
