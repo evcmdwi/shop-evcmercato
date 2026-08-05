@@ -7,9 +7,22 @@ import Link from 'next/link'
 import { ChevronDown, Plus, CheckCircle2, Loader2 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import AddressForm from '@/components/AddressForm'
+import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { toast } from '@/components/Toast'
 import type { Address } from '@/types/address'
 import type { Cart } from '@/hooks/useCart'
+
+interface SessionAddress {
+  district_id: string
+  district_name: string
+  regency_id: string
+  regency_name: string
+  province_id: string
+  province_name: string
+  full_address: string
+  recipient_name: string
+  phone: string
+}
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat('id-ID', {
@@ -43,6 +56,13 @@ export default function CheckoutPage() {
   const [loadingRates, setLoadingRates] = useState(false)
   const [selectedCartItemIds, setSelectedCartItemIds] = useState<string[]>([])
   const [extraPointPromo, setExtraPointPromo] = useState<{ multiplier: number; ends_at: string } | null>(null)
+
+  // Session address — inline form without saving to DB
+  const [sessionAddress, setSessionAddress] = useState<SessionAddress | null>(null)
+  const [sessionFullAddress, setSessionFullAddress] = useState('')
+  const [sessionRecipientName, setSessionRecipientName] = useState('')
+  const [sessionPhone, setSessionPhone] = useState('')
+  const [showInlineForm, setShowInlineForm] = useState(false)
 
   const fetchAddresses = useCallback(async () => {
     const res = await fetch('/api/addresses')
@@ -90,19 +110,62 @@ export default function CheckoutPage() {
 
   const selectedAddress = addresses.find((a) => a.id === selectedAddressId) ?? null
 
+  // Auto-show inline form if no saved addresses
   useEffect(() => {
-    if (!selectedAddress?.district_id) {
+    if (!loadingAddresses && addresses.length === 0) {
+      setShowInlineForm(true)
+    }
+  }, [loadingAddresses, addresses.length])
+
+  // Sync sessionAddress when autocomplete or full_address changes
+  const handleSessionDistrictChange = (addr: { district_id: string; district_name: string; regency_id: string; regency_name: string; province_id: string; province_name: string } | null) => {
+    if (!addr) {
+      setSessionAddress(null)
+      return
+    }
+    setSessionAddress(prev => ({
+      ...addr,
+      full_address: prev?.full_address ?? sessionFullAddress,
+      recipient_name: prev?.recipient_name ?? sessionRecipientName,
+      phone: prev?.phone ?? sessionPhone,
+    }))
+  }
+
+  const handleSessionFullAddressChange = (val: string) => {
+    setSessionFullAddress(val)
+    setSessionAddress(prev => prev ? { ...prev, full_address: val } : null)
+  }
+
+  const handleSessionRecipientNameChange = (val: string) => {
+    setSessionRecipientName(val)
+    setSessionAddress(prev => prev ? { ...prev, recipient_name: val } : null)
+  }
+
+  const handleSessionPhoneChange = (val: string) => {
+    setSessionPhone(val)
+    setSessionAddress(prev => prev ? { ...prev, phone: val } : null)
+  }
+
+  // Determine effective address for shipping rates
+  const effectiveDistrictId = selectedAddress?.district_id ?? sessionAddress?.district_id ?? null
+
+  // canPay: either a saved address is selected OR session address has district + full_address + name + phone
+  const sessionAddressReady = !!(sessionAddress?.district_id && sessionAddress?.full_address?.trim() && sessionAddress?.recipient_name?.trim() && sessionAddress?.phone?.trim())
+  const canPay = (!!selectedAddressId || sessionAddressReady) && !loadingCart
+
+  useEffect(() => {
+    if (!effectiveDistrictId) {
       setShippingRates(null)
       setShippingMethod('reguler')
       return
     }
     setLoadingRates(true)
-    fetch(`/api/shipping-rates/${selectedAddress.district_id}`)
+    fetch(`/api/shipping-rates/${effectiveDistrictId}`)
       .then(r => r.json())
       .then(d => { setShippingRates(d); setShippingMethod('reguler') })
       .catch(() => setShippingRates(null))
       .finally(() => setLoadingRates(false))
-  }, [selectedAddress?.district_id]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [effectiveDistrictId]) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Filter to only selected items (if selection was passed from cart page)
   const checkoutItems = selectedCartItemIds.length > 0
@@ -135,25 +198,39 @@ export default function CheckoutPage() {
   const totalBayar = totalAmount
 
   const handlePay = async () => {
-    if (!selectedAddressId) {
-      toast.show({ message: 'Pilih alamat pengiriman terlebih dahulu', type: 'error' })
+    if (!selectedAddressId && !sessionAddressReady) {
+      toast.show({ message: 'Isi kecamatan dan alamat lengkap terlebih dahulu', type: 'error' })
       return
     }
     setPaying(true)
     try {
       // Baca langsung dari DOM - paling reliable, tidak terpengaruh React state
       const domNote = (document.getElementById('checkout-delivery-note') as HTMLInputElement)?.value?.trim() || null
+      const checkoutPayload: Record<string, unknown> = {
+        delivery_note: domNote,
+        terms_accepted: true,
+        selected_item_ids: selectedCartItemIds.length > 0 ? selectedCartItemIds : null,
+        shipping_method: shippingMethod,
+        shipping_base_rate: selectedMethodData?.base_rate ?? 10000,
+      }
+      if (selectedAddressId) {
+        checkoutPayload.address_id = selectedAddressId
+      } else if (sessionAddress) {
+        // Inline session address — matches BENJI API contract (auto-save option)
+        checkoutPayload.inline_recipient_name = sessionAddress.recipient_name
+        checkoutPayload.inline_phone = sessionAddress.phone
+        checkoutPayload.inline_full_address = sessionAddress.full_address
+        checkoutPayload.shipping_district_id = sessionAddress.district_id
+        checkoutPayload.shipping_district_name = sessionAddress.district_name
+        checkoutPayload.shipping_regency_id = sessionAddress.regency_id
+        checkoutPayload.shipping_regency_name = sessionAddress.regency_name
+        checkoutPayload.shipping_province_id = sessionAddress.province_id
+        checkoutPayload.shipping_province_name = sessionAddress.province_name
+      }
       const res = await fetch('/api/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          address_id: selectedAddressId,
-          delivery_note: domNote,
-          terms_accepted: true,
-          selected_item_ids: selectedCartItemIds.length > 0 ? selectedCartItemIds : null,
-          shipping_method: shippingMethod,
-          shipping_base_rate: selectedMethodData?.base_rate ?? 10000,
-        }),
+        body: JSON.stringify(checkoutPayload),
       })
       const json = await res.json()
       if (res.ok && json.data?.xendit_invoice_url) {
@@ -174,7 +251,7 @@ export default function CheckoutPage() {
   const loading = loadingAddresses || loadingCart
 
   return (
-    <div className="min-h-screen bg-gray-50 pb-8 lg:pb-8 pb-28">
+    <div className="min-h-screen bg-gray-50 pb-28 lg:pb-8">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Checkout</h1>
 
@@ -189,10 +266,14 @@ export default function CheckoutPage() {
                 <div className="flex items-center gap-3">
                   <button
                     onClick={() => setShowAddressModal(true)}
-                    className="flex items-center gap-1 text-sm text-[#7FB300] font-medium hover:opacity-80"
+                    className={`flex items-center gap-1 text-sm font-medium hover:opacity-80 transition-colors ${
+                      sessionAddressReady
+                        ? 'text-gray-400 border border-gray-200 rounded-lg px-2 py-0.5 text-xs'
+                        : 'text-[#7FB300]'
+                    }`}
                   >
                     <Plus className="w-4 h-4" />
-                    Tambah
+                    {sessionAddressReady ? 'Simpan Alamat' : 'Tambah'}
                   </button>
                   <Link
                     href="/profile/alamat?kembali=/checkout"
@@ -212,11 +293,64 @@ export default function CheckoutPage() {
                 </div>
               ) : addresses.length === 0 ? (
                 <div>
-                  <p className="text-sm text-gray-500 mb-3">Belum ada alamat. Tambahkan alamat pengiriman kamu.</p>
-                  <AddressForm
-                    onSuccess={() => { fetchAddresses(); }}
-                    onCancel={() => {}}
-                  />
+                  <p className="text-sm text-gray-500 mb-3">Isi alamat pengiriman untuk melanjutkan checkout.</p>
+                  {/* Inline quick-address form — no DB save required */}
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">Nama Penerima <span className="text-red-500">*</span></label>
+                        <input
+                          type="text"
+                          value={sessionRecipientName}
+                          onChange={(e) => handleSessionRecipientNameChange(e.target.value)}
+                          placeholder="Nama lengkap"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">No. Telepon <span className="text-red-500">*</span></label>
+                        <input
+                          type="tel"
+                          value={sessionPhone}
+                          onChange={(e) => handleSessionPhoneChange(e.target.value)}
+                          placeholder="08xx"
+                          className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]"
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Kecamatan <span className="text-red-500">*</span></label>
+                      <AddressAutocomplete
+                        value={sessionAddress ? {
+                          district_id: sessionAddress.district_id,
+                          district_name: sessionAddress.district_name,
+                          regency_id: sessionAddress.regency_id,
+                          regency_name: sessionAddress.regency_name,
+                          province_id: sessionAddress.province_id,
+                          province_name: sessionAddress.province_name,
+                        } : null}
+                        onChange={handleSessionDistrictChange}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-medium text-gray-600 mb-1">Alamat Lengkap <span className="text-red-500">*</span></label>
+                      <textarea
+                        rows={2}
+                        value={sessionFullAddress}
+                        onChange={(e) => handleSessionFullAddressChange(e.target.value)}
+                        onFocus={(e) => e.target.scrollIntoView({ behavior: 'smooth', block: 'center' })}
+                        placeholder="Nama jalan, nomor rumah, RT/RW, dll."
+                        className="w-full border border-gray-200 rounded-xl px-3 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] resize-none"
+                      />
+                    </div>
+                    {sessionAddressReady && (
+                      <div className="flex items-center gap-2 bg-[#E8F4D1] border border-[#7FB300] rounded-xl px-3 py-2">
+                        <CheckCircle2 className="w-4 h-4 text-[#7FB300] flex-shrink-0" />
+                        <p className="text-xs text-[#4a6e00] font-medium">Alamat siap — kamu bisa langsung bayar! 🎉</p>
+                      </div>
+                    )}
+                    <p className="text-xs text-gray-400">Klik &quot;Simpan Alamat&quot; di atas kalau mau simpan ke profil.</p>
+                  </div>
                 </div>
               ) : (
                 <>
@@ -485,29 +619,39 @@ export default function CheckoutPage() {
                       {' '}dan memahami pembelian ini tidak memberikan fasilitas member KKI (PV, BV, PR, Komisi).
                     </p>
 
-                    {/* Bayar Sekarang button */}
                     {/* Checklist kelengkapan sebelum bayar */}
-                    {(!selectedAddressId || loadingCart) && !paying && (
+                    {!canPay && !paying && (
                       <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1.5">
                         <p className="text-xs font-semibold text-amber-800 mb-1">Sebelum checkout, lengkapi:</p>
-                        <div className="flex items-center gap-2 text-xs">
-                          <span className={selectedAddressId ? 'text-green-600' : 'text-amber-700'}>
-                            {selectedAddressId ? '✅' : '⬜'}
-                          </span>
-                          <span className={selectedAddressId ? 'text-gray-500 line-through' : 'text-amber-800 font-medium'}>
-                            Alamat pengiriman
-                          </span>
-                          {!selectedAddressId && (
-                            <a href="/profile/alamat?kembali=/checkout" className="text-[#7FB300] underline text-xs ml-auto">
-                              Tambah →
-                            </a>
-                          )}
-                        </div>
+                        {!sessionAddress?.district_id && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Pilih kecamatan tujuan</span>
+                          </div>
+                        )}
+                        {sessionAddress?.district_id && !sessionAddress?.full_address?.trim() && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Isi alamat lengkap</span>
+                          </div>
+                        )}
+                        {!sessionAddress?.recipient_name?.trim() && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Isi nama penerima</span>
+                          </div>
+                        )}
+                        {!sessionAddress?.phone?.trim() && !selectedAddressId && (
+                          <div className="flex items-center gap-2 text-xs">
+                            <span className="text-amber-700">⬜</span>
+                            <span className="text-amber-800 font-medium">Isi nomor telepon</span>
+                          </div>
+                        )}
                       </div>
                     )}
                     <button
                       onClick={handlePay}
-                      disabled={paying || !selectedAddressId || loadingCart}
+                      disabled={paying || !canPay}
                       className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
                     >
                       {paying ? (
@@ -515,8 +659,8 @@ export default function CheckoutPage() {
                           <Loader2 className="w-5 h-5 animate-spin" />
                           Memproses...
                         </>
-                      ) : !selectedAddressId ? (
-                        '⬜ Alamat belum diisi'
+                      ) : !canPay ? (
+                        '⬜ Lengkapi alamat'
                       ) : loadingCart ? (
                         'Memuat...'
                       ) : (
@@ -529,7 +673,17 @@ export default function CheckoutPage() {
             </div>
           </div>
         </div>
+            {/* Mobile sticky CTA */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 lg:hidden">
+        <button
+          onClick={handlePay}
+          disabled={paying || !canPay}
+          className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-semibold text-base disabled:opacity-40"
+        >
+          {canPay ? `Bayar Sekarang ${formatRupiah(totalAmount)}` : '⬜ Lengkapi alamat dulu'}
+        </button>
       </div>
+    </div>
 
 
 {/* Modal AddressForm */}
