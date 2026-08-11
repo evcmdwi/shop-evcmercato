@@ -76,7 +76,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
 .pengirim { flex:3; }
 .addr-heading { font-size:0.32cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.1cm; }
 .addr-name { font-size:0.46cm; font-weight:bold; line-height:1.2; }
-.addr-phone { font-size:0.42cm; font-weight:bold; margin-bottom:0.06cm; }
+.addr-phone { font-size:0.42cm; font-weight:bold; margin-bottom:0.06cm; word-break:break-all; overflow-wrap:break-word; white-space:normal; }
 .addr-detail { font-size:0.34cm; font-weight:bold; line-height:1.4; color:#222; }
 .footer { display:flex; justify-content:space-between; flex-shrink:0; border-top:1px solid #ccc; padding-top:0.1cm; margin-top:auto; }
 .footer-left { font-size:0.27cm; font-weight:bold; }
