@@ -76,8 +76,8 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
 .pengirim { flex:3; }
 .addr-heading { font-size:0.32cm; font-weight:bold; text-transform:uppercase; margin-bottom:0.1cm; }
 .addr-name { font-size:0.46cm; font-weight:bold; line-height:1.2; }
-.addr-phone { font-size:0.35cm; margin-bottom:0.06cm; }
-.addr-detail { font-size:0.28cm; line-height:1.4; color:#333; }
+.addr-phone { font-size:0.42cm; font-weight:bold; margin-bottom:0.06cm; }
+.addr-detail { font-size:0.34cm; font-weight:bold; line-height:1.4; color:#222; }
 .footer { display:flex; justify-content:space-between; flex-shrink:0; border-top:1px solid #ccc; padding-top:0.1cm; margin-top:auto; }
 .footer-left { font-size:0.27cm; font-weight:bold; }
 .footer-right { font-size:0.27cm; }
@@ -107,7 +107,7 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
       <div class="addr-heading">Penerima</div>
       <div class="addr-name">${form.namaPenerima}</div>
       ${form.noPenerima ? `<div class="addr-phone">${form.noPenerima}</div>` : ''}
-      ${form.alamatPenerima ? `<div class="addr-detail">${form.alamatPenerima}</div>` : ''}
+      ${form.alamatPenerima ? `<div class="addr-detail">${form.alamatPenerima.replace(/\n/g,'<br/>')}</div>` : ''}
     </div>
     <div class="pengirim">
       <div class="addr-heading">Pengirim</div>
@@ -274,13 +274,13 @@ body { display:flex; justify-content:center; align-items:center; min-height:100v
                   <div style={{ flex:7, borderRight:'1px solid #ccc', paddingRight:'0.15cm', overflow:'hidden' }}>
                     <div style={{ fontSize:'0.32cm', fontWeight:'bold', textTransform:'uppercase', marginBottom:'0.1cm' }}>Penerima</div>
                     <div style={{ fontSize:'0.46cm', fontWeight:'bold', lineHeight:1.2 }}>{form.namaPenerima}</div>
-                    {form.noPenerima && <div style={{ fontSize:'0.35cm', marginBottom:'0.06cm' }}>{form.noPenerima}</div>}
-                    {form.alamatPenerima && <div style={{ fontSize:'0.28cm', lineHeight:1.4, color:'#333' }}>{form.alamatPenerima}</div>}
+                    {form.noPenerima && <div style={{ fontSize:'0.42cm', fontWeight:'bold', marginBottom:'0.06cm' }}>{form.noPenerima}</div>}
+                    {form.alamatPenerima && <div style={{ fontSize:'0.34cm', fontWeight:'bold', lineHeight:1.4, color:'#222' }}>{form.alamatPenerima}</div>}
                   </div>
                   <div style={{ flex:3, overflow:'hidden' }}>
                     <div style={{ fontSize:'0.32cm', fontWeight:'bold', textTransform:'uppercase', marginBottom:'0.1cm' }}>Pengirim</div>
                     <div style={{ fontSize:'0.46cm', fontWeight:'bold', lineHeight:1.2 }}>{form.namaPengirim}</div>
-                    {form.noHpPengirim && <div style={{ fontSize:'0.35cm' }}>{form.noHpPengirim}</div>}
+                    {form.noHpPengirim && <div style={{ fontSize:'0.42cm', fontWeight:'bold' }}>{form.noHpPengirim}</div>}
                   </div>
                 </div>
 
