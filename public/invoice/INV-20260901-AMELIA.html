@@ -35,13 +35,21 @@
       gap: 20px;
     }
 
-    .brand h1 {
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .brand-logo svg {
+      display: block;
+    }
+    .brand-text h1 {
       font-size: 22px;
       font-weight: 800;
       color: #ffffff;
       letter-spacing: -0.5px;
     }
-    .brand p {
+    .brand-text p {
       font-size: 12px;
       color: #94a3b8;
       margin-top: 2px;
@@ -308,8 +316,19 @@
     <!-- HEADER -->
     <div class="header">
       <div class="brand">
-        <h1>EVC Mercato</h1>
-        <p>shop.evcmercato.com · Balikpapan, Kalimantan Timur</p>
+        <div class="brand-logo">
+          <!-- EVC Mercato green logo -->
+          <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <rect width="52" height="52" rx="12" fill="#16a34a"/>
+            <text x="50%" y="54%" dominant-baseline="middle" text-anchor="middle"
+              font-family="Inter, Arial, sans-serif" font-weight="800" font-size="17"
+              letter-spacing="-0.5" fill="#ffffff">EVC</text>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>EVC Mercato</h1>
+          <p>shop.evcmercato.com · Balikpapan, Kalimantan Timur</p>
+        </div>
       </div>
       <div class="badge-invoice">INVOICE</div>
     </div>
@@ -430,9 +449,9 @@
           Info: shop.evcmercato.com
         </div>
         <div class="stamp">
-          <div class="stamp-box">
-            Hormat kami,
-            <strong>EVC Mercato</strong>
+          <div style="text-align:right; font-size:13px; color:#64748b; line-height:1.8;">
+            Hormat kami,<br>
+            <strong style="font-size:15px; color:#0f172a;">EVC Mercato</strong>
           </div>
         </div>
       </div>
