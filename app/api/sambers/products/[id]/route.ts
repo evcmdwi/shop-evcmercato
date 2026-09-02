@@ -62,6 +62,14 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       productData.image_url = images[0] || null
     }
 
+    // If product has_variants, do NOT overwrite products.price with 0.
+    // Price lives in product_variants. If there's a single "Default" variant,
+    // sync products.price from that variant price after variant upsert.
+    const isVariantProduct = productData.has_variants === true
+    if (isVariantProduct) {
+      delete productData.price
+    }
+
     const { data: product, error } = await admin
       .from('products')
       .update(productData)
@@ -134,10 +142,28 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       }
     }
 
+    // If single "Default" variant, sync products.price from that variant so
+    // the admin list shows the correct price.
+    if (variants && Array.isArray(variants)) {
+      const defaultVariants = variants.filter(
+        (v: any) => v.name?.toLowerCase() === 'default'
+      )
+      if (defaultVariants.length === 1 && variants.length === 1) {
+        const syncPrice = Number(defaultVariants[0].price)
+        if (!isNaN(syncPrice) && syncPrice > 0) {
+          await admin
+            .from('products')
+            .update({ price: syncPrice })
+            .eq('id', id)
+        }
+      }
+    }
+
     // Invalidate product page and catalog cache
     const productSlug = slugify(product.name)
     revalidatePath(`/katalog/${productSlug}`)
     revalidatePath('/katalog')
+    revalidatePath('/sambers/produk')
 
     return NextResponse.json({ ...product, message: 'Produk berhasil diperbarui' })
   } catch (err) {

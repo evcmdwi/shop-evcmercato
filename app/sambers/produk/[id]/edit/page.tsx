@@ -87,16 +87,29 @@ export default function EditProdukPage() {
             : []
         setImages(imgs)
         setInitialSoldCount(product.initial_sold_count ?? 0)
-        setHasVariants(product.has_variants ?? false)
+        const productHasVariants = product.has_variants ?? false
+        setHasVariants(productHasVariants)
         if (product.product_variants && product.product_variants.length > 0) {
-          setVariants(
-            product.product_variants.map((v: { name: string; price: number; stock: number; image_url?: string | null }) => ({
+          const mappedVariants = product.product_variants.map(
+            (v: { name: string; price: number; stock: number; image_url?: string | null }) => ({
               name: v.name,
               price: String(v.price),
               stock: String(v.stock),
               image_url: v.image_url ?? '',
-            }))
+            })
           )
+          setVariants(mappedVariants)
+
+          // If product was migrated to has_variants but has a single "Default" variant,
+          // read price from that variant so the price field shows the real price.
+          if (productHasVariants) {
+            const defaultVariant = product.product_variants.find(
+              (v: { name: string; price: number }) => v.name?.toLowerCase() === 'default'
+            )
+            if (defaultVariant) {
+              setForm((prev) => ({ ...prev, price: String(defaultVariant.price) }))
+            }
+          }
         }
         setCategories(cats.data ?? [])
       })
@@ -170,6 +183,7 @@ export default function EditProdukPage() {
         throw new Error(err.error ?? 'Gagal memperbarui produk')
       }
       toast('Produk berhasil diperbarui', 'success')
+      router.refresh()
       router.push('/sambers/produk')
     } catch (e: unknown) {
       toast(e instanceof Error ? e.message : 'Gagal memperbarui produk', 'error')
