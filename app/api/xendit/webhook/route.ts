@@ -64,7 +64,13 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  // 4. Process as EVC order (unchanged)
+  // 4. ROUTER: PAYLINK- prefix → update payment_links table
+  if (external_id && external_id.startsWith('PAYLINK-')) {
+    await processPaymentLink(external_id, status, paid_at)
+    return NextResponse.json({ received: true })
+  }
+
+  // 5. Process as EVC order (unchanged)
   try {
     await processWebhook(external_id, status, payment_method, paid_at)
   } catch (err) {
@@ -74,6 +80,18 @@ export async function POST(req: NextRequest) {
 
   console.log('[webhook] done', { orderId: external_id, status, ms: Date.now() - t0 })
   return NextResponse.json({ received: true })
+}
+
+async function processPaymentLink(externalId: string, status: string, paidAt: string) {
+  const admin = getSupabaseAdmin()
+  const updates: Record<string, unknown> = { status: status.toLowerCase(), updated_at: new Date().toISOString() }
+  if (status === 'PAID') updates.paid_at = paidAt || new Date().toISOString()
+  const { error } = await admin
+    .from('payment_links')
+    .update(updates)
+    .eq('external_id', externalId)
+  if (error) console.error('[webhook] payment_links update failed:', error.message)
+  else console.log('[webhook] payment_links updated:', externalId, status)
 }
 
 async function processWebhook(
