@@ -179,7 +179,7 @@ export default function PaymentLinkPage() {
       const res = await fetch('/api/sambers/payment-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amountNum, description: description.trim() }),
+        body: JSON.stringify({ nominal: amountNum, deskripsi: description.trim() }),
       })
       const data = await res.json()
       if (!res.ok) {
