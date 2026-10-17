@@ -144,7 +144,7 @@ export default function KeranjangPage() {
 
   if (loading) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-8">
+      <div className="w-full max-w-2xl mx-auto px-4 py-8">
         <div className="h-6 w-48 bg-gray-200 rounded animate-pulse mb-6" />
         <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
           <CartItemSkeleton />
@@ -156,7 +156,7 @@ export default function KeranjangPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-8 pb-52">
+    <div className="w-full max-w-2xl mx-auto px-4 py-6 pb-60">
       <h1 className="text-xl font-bold text-gray-900 mb-6">
         Keranjang Saya
         {itemCount > 0 && (
@@ -234,7 +234,7 @@ export default function KeranjangPage() {
                 <div className="flex-1 min-w-0 flex flex-col gap-1">
                   <p className="text-sm font-semibold text-gray-900 line-clamp-2 leading-snug">{item.product.name}</p>
                   {item.variant && (
-                    <p className="text-xs text-gray-500">{item.variant.name}</p>
+                    <p className="text-xs text-gray-500 break-words">{item.variant.name}</p>
                   )}
                   <p className="text-sm font-medium" style={{ color: '#7FB300' }}>
                     {formatRupiah(item.display_price)}
@@ -260,12 +260,8 @@ export default function KeranjangPage() {
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => {
-                            const maxQty = item.variant?.stock ?? Infinity
-                            handleQuantityChange(item, item.quantity + 1)
-                            if (item.quantity >= maxQty) return
-                          }}
-                          disabled={updating[item.id]}
+                          onClick={() => handleQuantityChange(item, item.quantity + 1)}
+                          disabled={updating[item.id] || item.quantity >= (item.variant?.stock ?? Infinity)}
                           className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center text-gray-600 hover:bg-gray-50 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
                           aria-label="Tambah"
                         >
@@ -274,20 +270,21 @@ export default function KeranjangPage() {
                       </div>
                     )}
 
-                    {/* Subtotal */}
-                    <span className="text-xs text-gray-500 ml-1">
-                      = {formatRupiah(item.subtotal)}
-                    </span>
-
                     {/* Remove */}
                     <button
                       onClick={() => handleRemove(item.id)}
-                      className="ml-auto p-1.5 rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+                      className="ml-auto w-10 h-10 flex items-center justify-center rounded-lg text-gray-400 hover:text-red-500 hover:bg-red-50 transition-colors"
                       aria-label="Hapus"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
+
+                  {item.quantity > 1 && (
+                    <p className="text-xs text-gray-500">
+                      Subtotal <span className="font-semibold text-gray-700">{formatRupiah(item.subtotal)}</span>
+                    </p>
+                  )}
                 </div>
               </div>
             ))}
@@ -297,7 +294,7 @@ export default function KeranjangPage() {
 
       {/* Sticky bottom bar */}
       {(!cart || cart.items.length === 0) ? (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 py-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="max-w-2xl mx-auto">
             <Link
               href="/katalog"
@@ -309,13 +306,13 @@ export default function KeranjangPage() {
           </div>
         </div>
       ) : (
-        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 py-4">
+        <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-100 shadow-lg z-40 px-4 pt-3 pb-[max(1rem,env(safe-area-inset-bottom))]">
           <div className="max-w-2xl mx-auto flex flex-col gap-3">
             <div className="flex items-center justify-between text-sm">
               <span className="text-gray-600">
                 {selectedCount > 0 ? `${selectedCount} produk dipilih` : 'Belum ada produk dipilih'}
               </span>
-              <span className="text-lg font-bold" style={{ color: '#7FB300' }}>
+              <span className="text-lg font-bold whitespace-nowrap" style={{ color: '#7FB300' }}>
                 {formatRupiah(selectedSubtotal)}
               </span>
             </div>
