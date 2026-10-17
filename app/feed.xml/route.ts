@@ -85,6 +85,7 @@ export async function GET() {
       product_certifications(authority, cert_name, cert_code)
     `)
     .eq('is_active', true)
+    .eq('product_variants.is_active', true) // varian nonaktif = sudah dibuang di Sambers
     .order('sort_order', { ascending: true })
 
   if (error) {

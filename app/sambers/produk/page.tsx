@@ -296,7 +296,7 @@ export default function AdminProdukPage() {
                     </tr>
 
                     {/* Variant sub-rows */}
-                    {(product.product_variants ?? []).map((variant) => (
+                    {(product.product_variants ?? []).filter((v) => v.is_active).map((variant) => (
                       <tr key={`variant-${variant.id}`} className="bg-gray-50 border-t border-gray-100">
                         <td className="px-4 py-2 align-middle"></td>
                         <td className="px-4 py-2 align-middle pl-10">

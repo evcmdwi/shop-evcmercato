@@ -83,61 +83,64 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     }
 
     if (variants && Array.isArray(variants)) {
-      // Step 1: Get existing variants (preserve affiliate_pv_value by name)
-      const { data: existingVariants } = await admin
+      // Varian diperbarui DI TEMPAT (cocok lewat id, lalu nama) — JANGAN hapus+buat
+      // ulang: order_items/point_promos/point_redemptions kehilangan variant_id
+      // (FK SET NULL) dan commission_line_items menolak penghapusan (FK) → simpan gagal.
+      // Varian yang dibuang dari form hanya dinonaktifkan agar riwayat tetap utuh.
+      const { data: existingVariants, error: exError } = await admin
         .from('product_variants')
-        .select('id, name, affiliate_pv_value')
+        .select('id, name')
         .eq('product_id', id)
-
-      // Build pv map by name to restore after re-insert
-      const pvByName: Record<string, number> = {}
-      for (const ev of existingVariants ?? []) {
-        if (ev.affiliate_pv_value) pvByName[ev.name] = ev.affiliate_pv_value
+      if (exError) {
+        return NextResponse.json({ error: exError.message }, { status: 500 })
       }
+      const existing = existingVariants ?? []
+      const byId = new Map(existing.map((v) => [v.id as string, v]))
+      const byName = new Map(existing.map((v) => [String(v.name).trim().toLowerCase(), v]))
+      const kept = new Set<string>()
 
-      const existingIds = (existingVariants ?? []).map((v: any) => v.id)
-
-      if (existingIds.length > 0) {
-        // Step 2: Delete cart_items referencing these variants (FK constraint)
-        await admin
-          .from('cart_items')
-          .delete()
-          .in('variant_id', existingIds)
-
-        // Step 3: Now safe to delete variants
-        const { error: delError } = await admin
-          .from('product_variants')
-          .delete()
-          .eq('product_id', id)
-
-        if (delError) {
-          console.error('[products PATCH] delete variants error:', delError.message)
-          return NextResponse.json({ error: delError.message }, { status: 500 })
-        }
-      }
-
-      // Step 4: Insert new variants
-      if (variants.length > 0) {
-        const variantData = variants.map((v: any, i: number) => ({
-          product_id: id,
-          name: v.name,
+      for (const [i, v] of (variants as Record<string, unknown>[]).entries()) {
+        const fields: Record<string, unknown> = {
+          name: String(v.name ?? '').trim(),
           price: Number(v.price),
           stock: Number(v.stock),
-          sku: v.sku || null,
           image_url: v.image_url || null,
           sort_order: i,
           is_active: true,
-          // Preserve affiliate_pv_value from existing variant with same name
-          affiliate_pv_value: pvByName[v.name] ?? v.affiliate_pv_value ?? 0,
-        }))
+        }
+        if ('sku' in v) fields.sku = v.sku || null
+        const match =
+          (typeof v.id === 'string' && byId.get(v.id)) || byName.get(String(fields.name).toLowerCase())
 
-        const { error: insError } = await admin
+        if (match && !kept.has(match.id)) {
+          kept.add(match.id)
+          const { error: upError } = await admin.from('product_variants').update(fields).eq('id', match.id)
+          if (upError) {
+            console.error('[products PATCH] update variant error:', upError.message)
+            return NextResponse.json({ error: upError.message }, { status: 500 })
+          }
+        } else {
+          const { error: insError } = await admin
+            .from('product_variants')
+            .insert({ ...fields, product_id: id, affiliate_pv_value: Number(v.affiliate_pv_value ?? 0) })
+          if (insError) {
+            console.error('[products PATCH] insert variant error:', insError.message)
+            return NextResponse.json({ error: insError.message }, { status: 500 })
+          }
+        }
+      }
+
+      const removedIds = existing.map((v) => v.id as string).filter((vid) => !kept.has(vid))
+      if (removedIds.length > 0) {
+        // Varian nonaktif tidak bisa dibeli → keluarkan dari keranjang.
+        await admin.from('cart_items').delete().in('variant_id', removedIds)
+        const { error: offError } = await admin
           .from('product_variants')
-          .insert(variantData)
-
-        if (insError) {
-          console.error('[products PATCH] insert variants error:', insError.message)
-          return NextResponse.json({ error: insError.message }, { status: 500 })
+          .update({ is_active: false })
+          .in('id', removedIds)
+        if (offError) {
+          console.error('[products PATCH] deactivate variants error:', offError.message)
+          return NextResponse.json({ error: offError.message }, { status: 500 })
         }
       }
     }

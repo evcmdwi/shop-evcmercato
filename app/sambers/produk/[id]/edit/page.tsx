@@ -14,6 +14,7 @@ interface Category {
 }
 
 interface VariantRow {
+  id?: string
   name: string
   price: string
   stock: string
@@ -91,9 +92,15 @@ export default function EditProdukPage() {
         setSearchKeywords(product.search_keywords ?? '')
         const productHasVariants = product.has_variants ?? false
         setHasVariants(productHasVariants)
-        if (product.product_variants && product.product_variants.length > 0) {
-          const mappedVariants = product.product_variants.map(
-            (v: { name: string; price: number; stock: number; image_url?: string | null }) => ({
+        if (product.product_variants && product.product_variants.some((v: { is_active?: boolean }) => v.is_active !== false)) {
+          // Hanya varian aktif; varian yang dibuang dulu tersimpan nonaktif (riwayat pesanan).
+          type ApiVariant = { id: string; name: string; price: number; stock: number; image_url?: string | null; is_active?: boolean; sort_order?: number | null }
+          const activeVariants = (product.product_variants as ApiVariant[])
+            .filter((v) => v.is_active !== false)
+            .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          const mappedVariants = activeVariants.map(
+            (v) => ({
+              id: v.id,
               name: v.name,
               price: String(v.price),
               stock: String(v.stock),
@@ -171,7 +178,7 @@ export default function EditProdukPage() {
           initial_sold_count: initialSoldCount,
           search_keywords: searchKeywords.trim() || null,
           variants: hasVariants
-            ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
+            ? variants.map((v) => ({ id: v.id, name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
             : [],
           // Merchant Center fields
           gtin: form.gtin || null,

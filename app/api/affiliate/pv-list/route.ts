@@ -25,6 +25,7 @@ export async function GET() {
       'id, name, has_variants, product_variants(id, name, price, affiliate_pv_value, is_default)',
     )
     .eq('is_active', true)
+    .eq('product_variants.is_active', true) // varian nonaktif = sudah dibuang di Sambers
     .order('sort_order', { ascending: true })
 
   return NextResponse.json({ products: products ?? [] })
