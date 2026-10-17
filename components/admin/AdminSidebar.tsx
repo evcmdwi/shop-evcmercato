@@ -42,6 +42,13 @@ const menuItems = [
     ),
   },
   {
+    href: '/sambers/payment-link',
+    label: 'Payment Link',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">💳</span>
+    ),
+  },
+  {
     href: '/sambers/pengiriman',
     label: 'Pengiriman',
     icon: (
@@ -109,13 +116,6 @@ const menuItems = [
     label: 'Landing Pages',
     icon: (
       <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📄</span>
-    ),
-  },
-  {
-    href: '/sambers/payment-link',
-    label: 'Payment Link',
-    icon: (
-      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">💳</span>
     ),
   },
 ]
