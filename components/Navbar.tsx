@@ -74,7 +74,7 @@ function HeaderSearch() {
       <input
         type="search"
         name="q"
-        placeholder="Cari Natesh, SGF, Wholegrains…"
+        placeholder="Cari Natesh, SGF, FITSOL…"
         aria-label="Cari produk"
         className="h-11 w-full rounded-xl border border-transparent bg-evc-ground pl-10 pr-3 text-base text-evc-ink placeholder:text-evc-muted focus:border-evc-green focus:outline-none"
       />

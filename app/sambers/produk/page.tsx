@@ -76,6 +76,7 @@ export default function AdminProdukPage() {
   const [filterStatus, setFilterStatus] = useState('')
   const [deleteId, setDeleteId] = useState<string | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [togglingId, setTogglingId] = useState<string | null>(null)
 
   const fetchProducts = useCallback(async () => {
     setLoading(true)
@@ -109,6 +110,27 @@ export default function AdminProdukPage() {
       .then((j) => setCategories(j.data ?? []))
       .catch(() => {})
   }, [])
+
+  // Hanya kirim is_active — PATCH tanpa `variants` tidak menyentuh varian/harga.
+  async function handleToggleActive(product: Product) {
+    const next = !product.is_active
+    if (!next && !window.confirm(`Nonaktifkan "${product.name}"?\nProduk disembunyikan dari toko, data & riwayat pesanan tetap aman.`)) return
+    setTogglingId(product.id)
+    try {
+      const res = await fetch(`/api/sambers/products/${product.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: next }),
+      })
+      if (!res.ok) throw new Error()
+      setProducts((list) => list.map((p) => (p.id === product.id ? { ...p, is_active: next } : p)))
+      toast(next ? 'Produk diaktifkan' : 'Produk dinonaktifkan', 'success')
+    } catch {
+      toast('Gagal mengubah status produk', 'error')
+    } finally {
+      setTogglingId(null)
+    }
+  }
 
   async function handleDelete() {
     if (!deleteId) return
@@ -243,7 +265,7 @@ export default function AdminProdukPage() {
                           {product.is_active ? 'Aktif' : 'Nonaktif'}
                         </span>
                       </td>
-                      <td className="px-4 py-3 align-middle w-24">
+                      <td className="px-4 py-3 align-middle">
                         <div className="flex gap-2">
                           <Link
                             href={`/sambers/produk/${product.id}/edit`}
@@ -252,6 +274,17 @@ export default function AdminProdukPage() {
                           >
                             Edit
                           </Link>
+                          <button
+                            onClick={() => handleToggleActive(product)}
+                            disabled={togglingId === product.id}
+                            className={`px-2 py-1 rounded text-xs whitespace-nowrap transition-colors disabled:opacity-50 ${
+                              product.is_active
+                                ? 'bg-slate-100 text-slate-600 hover:bg-slate-600 hover:text-white'
+                                : 'bg-emerald-50 text-[#1D9E75] hover:bg-[#1D9E75] hover:text-white'
+                            }`}
+                          >
+                            {togglingId === product.id ? '…' : product.is_active ? 'Nonaktifkan' : 'Aktifkan'}
+                          </button>
                           <button
                             onClick={() => setDeleteId(product.id)}
                             className="px-2 py-1 rounded text-xs bg-red-50 text-red-500 hover:bg-red-500 hover:text-white transition-colors"

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { revalidatePath } from 'next/cache'
+import { revalidatePath, revalidateTag } from 'next/cache'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { slugify } from '@/lib/utils'
@@ -164,6 +164,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     revalidatePath(`/katalog/${productSlug}`)
     revalidatePath('/katalog')
     revalidatePath('/sambers/produk')
+    revalidateTag('home-data', { expire: 0 }) // daftar produk beranda (app/page.tsx)
 
     return NextResponse.json({ ...product, message: 'Produk berhasil diperbarui' })
   } catch (err) {

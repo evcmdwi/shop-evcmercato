@@ -44,7 +44,7 @@ const getHomeData = unstable_cache(
     return { featured, reviews }
   },
   ['home-data-v1'],
-  { revalidate: 600 }
+  { revalidate: 600, tags: ['home-data'] }
 )
 
 export default async function HomePage() {

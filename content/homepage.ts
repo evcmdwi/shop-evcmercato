@@ -30,7 +30,7 @@ export const COMPARISON_ROWS: { label: string; marketplace: CompareCell; evc: Co
 
 export const NEED_CARDS: { title: string; desc: string; href: string }[] = [
   { title: 'Kewanitaan', desc: 'Pembalut & pantyliner Natesh', href: '/katalog?category=natesh' },
-  { title: 'Nutrisi harian', desc: 'SGF, Wholegrains, susu, sereal', href: '/katalog?category=suplemen' },
+  { title: 'Nutrisi harian', desc: 'SGF, Vitayang, susu kedelai', href: '/katalog?category=suplemen' },
   { title: 'Perawatan wajah', desc: 'Kristine Ko, Glanz, Beautyzen', href: '/katalog?category=kecantikan' },
   { title: 'Paket hemat', desc: 'Stok 30–60 hari, lebih irit', href: '/katalog?q=paket' },
 ]
