@@ -15,13 +15,15 @@ export default function ProductImageCarousel({ images, productName, variantImage
   // Foto varian tampil sampai pembeli mengklik thumbnail; ganti varian → tampil lagi.
   const [showVariant, setShowVariant] = useState(true)
   const [prevVariantImage, setPrevVariantImage] = useState(variantImage)
+  // Foto varian yang gagal dimuat (file hilang) → kembali ke foto produk.
+  const [brokenVariant, setBrokenVariant] = useState<string | null>(null)
   if (variantImage !== prevVariantImage) {
     setPrevVariantImage(variantImage)
     setShowVariant(true)
   }
 
   const validImages = (images ?? []).filter(Boolean)
-  const variantActive = !!variantImage && showVariant
+  const variantActive = !!variantImage && showVariant && brokenVariant !== variantImage
   const displayMainImage = variantActive ? variantImage : validImages[selectedIndex]
 
   if (validImages.length === 0 && !variantImage) {
@@ -46,6 +48,9 @@ export default function ProductImageCarousel({ images, productName, variantImage
           className="object-cover transition-opacity duration-200"
           sizes="(max-width: 768px) 100vw, 50vw"
           priority={selectedIndex === 0}
+          onError={() => {
+            if (variantActive) setBrokenVariant(variantImage ?? null)
+          }}
         />
       </div>
 

@@ -123,21 +123,10 @@ export default function ImageUploader({ value, onChange, maxImages = 5, label }:
     }
   }
 
-  const handleDelete = async (urlToDelete: string, index: number) => {
-    const newUrls = value.filter((_, i) => i !== index)
-    onChange(newUrls)
-
-    if (urlToDelete.includes('supabase.co')) {
-      try {
-        await fetch('/api/sambers/delete-image', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: urlToDelete }),
-        })
-      } catch {
-        console.error('Failed to delete image from storage')
-      }
-    }
+  // Hanya lepas dari form. File di storage TIDAK dihapus: bila form batal disimpan
+  // atau foto dipakai produk lain (mis. foto SGF di 4 produk), foto di toko jadi rusak.
+  const handleDelete = (_urlToDelete: string, index: number) => {
+    onChange(value.filter((_, i) => i !== index))
   }
 
   const isBusy = isCompressing || uploading

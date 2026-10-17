@@ -89,7 +89,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       // Varian yang dibuang dari form hanya dinonaktifkan agar riwayat tetap utuh.
       const { data: existingVariants, error: exError } = await admin
         .from('product_variants')
-        .select('id, name')
+        .select('id, name, image_url')
         .eq('product_id', id)
       if (exError) {
         return NextResponse.json({ error: exError.message }, { status: 500 })
@@ -109,8 +109,12 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
           is_active: true,
         }
         if ('sku' in v) fields.sku = v.sku || null
+        // Cocokkan: id → nama → foto yang sama (nama diganti dari form tanpa id,
+        // mis. tab Sambers versi lama) — agar tak membuat varian dobel tanpa PV/riwayat.
         const match =
-          (typeof v.id === 'string' && byId.get(v.id)) || byName.get(String(fields.name).toLowerCase())
+          (typeof v.id === 'string' && byId.get(v.id)) ||
+          byName.get(String(fields.name).toLowerCase()) ||
+          (fields.image_url ? existing.find((e) => !kept.has(e.id) && e.image_url === fields.image_url) : undefined)
 
         if (match && !kept.has(match.id)) {
           kept.add(match.id)

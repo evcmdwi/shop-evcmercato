@@ -1,119 +1,133 @@
 'use client'
 import { useState, useRef } from 'react'
 import Image from 'next/image'
+import { compressProductImage } from '@/lib/utils/image-compression'
 
 interface VariantImageUploaderProps {
   value: string
   onChange: (url: string) => void
 }
 
+const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp']
+
+/** Foto varian: klik atau tarik-lepas (drag & drop) file; foto lama bisa langsung ditimpa. */
 export default function VariantImageUploader({ value, onChange }: VariantImageUploaderProps) {
   const [uploading, setUploading] = useState(false)
+  const [dragging, setDragging] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-
-    if (file.size > 5 * 1024 * 1024) {
-      setError('File terlalu besar. Maks 5 MB.')
-      if (fileInputRef.current) fileInputRef.current.value = ''
+  const uploadFile = async (file: File) => {
+    if (!ACCEPTED.includes(file.type)) {
+      setError('Format tidak didukung. Gunakan JPEG, PNG, atau WebP.')
       return
     }
-    if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) {
-      setError('Format tidak didukung. Gunakan JPEG, PNG, atau WebP.')
-      if (fileInputRef.current) fileInputRef.current.value = ''
+    if (file.size > 5 * 1024 * 1024) {
+      setError('File terlalu besar. Maks 5 MB.')
       return
     }
 
     setUploading(true)
     setError(null)
-
     try {
+      // Kompres seperti foto produk (WebP, maks 1200px) — gagal kompres → file asli.
+      const upload = await compressProductImage(file).then((r) => r.compressedFile).catch(() => file)
       const formData = new FormData()
-      formData.append('file', file)
+      formData.append('file', upload)
 
-      const res = await fetch('/api/sambers/upload', {
-        method: 'POST',
-        body: formData,
-      })
-
+      const res = await fetch('/api/sambers/upload', { method: 'POST', body: formData })
       const data = await res.json()
-
       if (!res.ok) {
         setError(data.error || 'Upload gagal')
         return
       }
-
       onChange(data.url)
     } catch {
       setError('Gagal upload gambar. Coba lagi.')
     } finally {
       setUploading(false)
-      if (fileInputRef.current) fileInputRef.current.value = ''
     }
   }
 
-  const handleDelete = async () => {
-    const urlToDelete = value
-    onChange('')
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) uploadFile(file)
+    e.target.value = ''
+  }
 
-    if (urlToDelete.includes('supabase.co')) {
-      try {
-        await fetch('/api/sambers/delete-image', {
-          method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url: urlToDelete }),
-        })
-      } catch {
-        console.error('Failed to delete image from storage')
-      }
-    }
+  // stopPropagation: baris varian juga draggable (ubah urutan) — jangan ikut bereaksi.
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!uploading) setDragging(true)
+  }
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation()
+    setDragging(false)
+  }
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragging(false)
+    if (uploading) return
+    const file = Array.from(e.dataTransfer.files)[0]
+    if (file) uploadFile(file)
+  }
+
+  // Hanya lepas dari form. File di storage TIDAK dihapus: bila form batal disimpan
+  // atau foto dipakai di tempat lain, menghapusnya membuat foto rusak di toko.
+  const handleDelete = () => {
+    onChange('')
   }
 
   return (
     <div className="flex items-center gap-2">
-      {value ? (
-        <div className="relative group w-10 h-10 shrink-0">
-          <Image
-            src={value}
-            alt="Foto varian"
-            fill
-            className="object-cover rounded border border-gray-200"
-          />
+      <div className="relative group shrink-0">
+        <button
+          type="button"
+          onClick={() => fileInputRef.current?.click()}
+          onDragOver={handleDragOver}
+          onDragEnter={handleDragOver}
+          onDragLeave={handleDragLeave}
+          onDrop={handleDrop}
+          disabled={uploading}
+          title={value ? 'Klik atau tarik foto baru ke sini untuk mengganti' : 'Klik atau tarik foto ke sini'}
+          className={`relative flex h-14 w-14 items-center justify-center overflow-hidden rounded-lg border-2 text-center text-[10px] leading-tight transition-colors ${
+            dragging
+              ? 'border-[#7FB300] bg-[#E8F4D1] text-[#5B8400]'
+              : value
+              ? 'border-gray-200'
+              : 'border-dashed border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1]'
+          } ${uploading ? 'cursor-wait opacity-60' : 'cursor-pointer'}`}
+        >
+          {value && <Image src={value} alt="Foto varian" fill sizes="56px" className="object-cover" />}
+          {uploading ? (
+            <span className="relative rounded bg-white/80 px-1 text-gray-600">Upload…</span>
+          ) : dragging ? (
+            <span className="relative rounded bg-white/80 px-1">Lepas</span>
+          ) : (
+            !value && <span>Tarik / klik foto</span>
+          )}
+        </button>
+        {value && !uploading && (
           <button
             type="button"
             onClick={handleDelete}
-            className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"
+            aria-label="Lepas foto varian"
+            className="absolute -right-1.5 -top-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100"
           >
             ×
           </button>
-        </div>
-      ) : (
-        <>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            onChange={handleFileChange}
-            disabled={uploading}
-            className="hidden"
-            id={`variant-upload-${Math.random().toString(36).slice(2)}`}
-          />
-          <label
-            htmlFor={fileInputRef.current?.id}
-            onClick={() => fileInputRef.current?.click()}
-            className={`inline-flex items-center gap-1 px-2 py-1 rounded border border-dashed text-xs cursor-pointer
-              ${uploading
-                ? 'border-gray-300 text-gray-400 cursor-not-allowed'
-                : 'border-[#7FB300] text-[#7FB300] hover:bg-[#E8F4D1]'
-              }`}
-          >
-            {uploading ? '⏳' : '📷'}
-          </label>
-        </>
-      )}
+        )}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept={ACCEPTED.join(',')}
+          onChange={handleFileChange}
+          disabled={uploading}
+          className="hidden"
+        />
+      </div>
       {error && <p className="text-xs text-red-500">{error}</p>}
     </div>
   )
