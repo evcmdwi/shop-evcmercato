@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { sendWhatsApp } from '@/lib/whatsapp'
+import { paymentLinkCreatedMessage } from '@/lib/whatsapp-templates/payment-link-created'
 
 // POST /api/sambers/payment-link — create a new Xendit payment link
 export async function POST(req: NextRequest) {
@@ -90,7 +92,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    return NextResponse.json(data, { status: 201 })
+    // Kirim link ke WA pembeli — hasilnya ditampilkan ke admin (gagal → salin manual).
+    let wa_link_sent: boolean | null = null
+    if (no_wa) {
+      const res = await sendWhatsApp({ to: no_wa, message: paymentLinkCreatedMessage(nominal, deskripsi, invoice.invoice_url) })
+      wa_link_sent = res.success
+      if (!res.success) console.error('[payment-link] WA link failed:', external_id, res.error)
+    }
+
+    return NextResponse.json({ ...data, wa_link_sent }, { status: 201 })
   } catch (err) {
     console.error('[payment-link] Unexpected error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })

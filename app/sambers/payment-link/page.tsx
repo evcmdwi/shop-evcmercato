@@ -134,6 +134,7 @@ export default function PaymentLinkPage() {
   const [generating, setGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
+  const [waLinkSent, setWaLinkSent] = useState<{ no: string; ok: boolean } | null>(null)
 
   // History state
   const [history, setHistory] = useState<PaymentLink[]>([])
@@ -178,6 +179,7 @@ export default function PaymentLinkPage() {
     e.preventDefault()
     setFormError(null)
     setGeneratedUrl(null)
+    setWaLinkSent(null)
 
     const amountNum = Number(amount)
     if (!amountNum || amountNum < 1000) {
@@ -212,6 +214,7 @@ export default function PaymentLinkPage() {
         return
       }
       setGeneratedUrl(url)
+      if (typeof data.wa_link_sent === 'boolean') setWaLinkSent({ no: data.no_wa, ok: data.wa_link_sent })
       // Reset form
       setAmount('')
       setDescription('')
@@ -290,7 +293,7 @@ export default function PaymentLinkPage() {
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50 focus:border-[#7FB300]"
             />
             <p className="text-xs text-gray-400 mt-1">
-              Jika diisi, sistem mengirim WA terima kasih otomatis setelah pembayaran lunas.
+              Jika diisi, sistem langsung mengirim payment link ke WA ini, lalu WA terima kasih setelah lunas.
             </p>
           </div>
 
@@ -333,6 +336,13 @@ export default function PaymentLinkPage() {
         {generatedUrl && (
           <div className="mt-5 p-4 bg-green-50 border border-green-200 rounded-xl space-y-2">
             <p className="text-sm font-medium text-green-800">✅ Payment link berhasil dibuat!</p>
+            {waLinkSent && (
+              <p className={`text-xs ${waLinkSent.ok ? 'text-green-700' : 'text-red-600'}`}>
+                {waLinkSent.ok
+                  ? `📲 Link sudah dikirim ke WA ${waLinkSent.no}`
+                  : `⚠️ Gagal kirim WA ke ${waLinkSent.no} — salin link di bawah dan kirim manual`}
+              </p>
+            )}
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
               <a
                 href={generatedUrl}
