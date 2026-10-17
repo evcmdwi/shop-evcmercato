@@ -1,7 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { emitOrderExpired } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
+import { sendWhatsApp } from '@/lib/whatsapp'
+import { paymentLinkPaidMessage } from '@/lib/whatsapp-templates/payment-link-paid'
 
 // Initialize listeners (needed for EXPIRED/FAILED paths)
 setupEventListeners()
@@ -90,8 +92,35 @@ async function processPaymentLink(externalId: string, status: string, paidAt: st
     .from('payment_links')
     .update(updates)
     .eq('external_id', externalId)
-  if (error) console.error('[webhook] payment_links update failed:', error.message)
-  else console.log('[webhook] payment_links updated:', externalId, status)
+  if (error) {
+    console.error('[webhook] payment_links update failed:', error.message)
+    return
+  }
+  console.log('[webhook] payment_links updated:', externalId, status)
+
+  if (status !== 'PAID' && status !== 'SETTLED') return
+  // Klaim kirim WA sekali saja (Xendit bisa mengirim ulang webhook yang sama).
+  const { data: claimed } = await admin
+    .from('payment_links')
+    .update({ wa_sent_at: new Date().toISOString() })
+    .eq('external_id', externalId)
+    .is('wa_sent_at', null)
+    .not('no_wa', 'is', null)
+    .select('no_wa, paid_at')
+    .maybeSingle()
+  if (!claimed?.no_wa) return
+
+  // Kirim setelah respons ke Xendit — Fonnte bisa lambat (retry s/d 30 dtk).
+  after(async () => {
+    const res = await sendWhatsApp({
+      to: claimed.no_wa,
+      message: paymentLinkPaidMessage(claimed.paid_at ?? new Date().toISOString()),
+    })
+    if (!res.success) {
+      console.error('[webhook] payment link WA failed:', externalId, res.error)
+      await admin.from('payment_links').update({ wa_sent_at: null }).eq('external_id', externalId)
+    }
+  })
 }
 
 async function processWebhook(

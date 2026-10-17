@@ -11,6 +11,8 @@ interface PaymentLink {
   id: string
   deskripsi: string
   nominal: number
+  no_wa: string | null
+  wa_sent_at: string | null
   status: PLStatus
   payment_url: string
   created_at: string
@@ -39,6 +41,15 @@ function StatusBadge({ status }: { status: PLStatus }) {
     <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${cls}`}>
       {label}
     </span>
+  )
+}
+
+function WaInfo({ item }: { item: PaymentLink }) {
+  if (!item.no_wa) return null
+  return (
+    <p className="text-xs text-gray-400 mt-0.5 whitespace-nowrap">
+      WA {item.no_wa}{item.wa_sent_at ? ' · terkirim ✓' : ''}
+    </p>
   )
 }
 
@@ -90,6 +101,7 @@ function HistoryCard({ item }: { item: PaymentLink }) {
         <div>
           <p className="text-sm font-medium text-gray-800">{item.deskripsi || '—'}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatDate(item.created_at)}</p>
+          <WaInfo item={item} />
         </div>
         <StatusBadge status={item.status} />
       </div>
@@ -118,6 +130,7 @@ export default function PaymentLinkPage() {
   // Form state
   const [amount, setAmount] = useState('')
   const [description, setDescription] = useState('')
+  const [noWa, setNoWa] = useState('')
   const [generating, setGenerating] = useState(false)
   const [generatedUrl, setGeneratedUrl] = useState<string | null>(null)
   const [formError, setFormError] = useState<string | null>(null)
@@ -175,13 +188,18 @@ export default function PaymentLinkPage() {
       setFormError('Deskripsi wajib diisi')
       return
     }
+    const noWaDigits = noWa.replace(/\D/g, '')
+    if (noWaDigits && !/^(0|62)8\d{7,12}$/.test(noWaDigits)) {
+      setFormError('No. WhatsApp tidak valid (contoh: 081234567890)')
+      return
+    }
 
     setGenerating(true)
     try {
       const res = await fetch('/api/sambers/payment-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ nominal: amountNum, deskripsi: description.trim() }),
+        body: JSON.stringify({ nominal: amountNum, deskripsi: description.trim(), no_wa: noWaDigits || null }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -197,6 +215,7 @@ export default function PaymentLinkPage() {
       // Reset form
       setAmount('')
       setDescription('')
+      setNoWa('')
       // Refresh history
       loadHistory()
     } catch (e) {
@@ -254,6 +273,25 @@ export default function PaymentLinkPage() {
               maxLength={200}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50 focus:border-[#7FB300]"
             />
+          </div>
+
+          {/* No. WhatsApp */}
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              No. WhatsApp Pembeli <span className="text-gray-400 font-normal">(opsional)</span>
+            </label>
+            <input
+              type="tel"
+              inputMode="tel"
+              value={noWa}
+              onChange={e => setNoWa(e.target.value)}
+              placeholder="081234567890"
+              maxLength={20}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]/50 focus:border-[#7FB300]"
+            />
+            <p className="text-xs text-gray-400 mt-1">
+              Jika diisi, sistem mengirim WA terima kasih otomatis setelah pembayaran lunas.
+            </p>
           </div>
 
           {/* Error */}
@@ -358,8 +396,9 @@ export default function PaymentLinkPage() {
                       <td className="px-4 py-3 text-gray-500 whitespace-nowrap">
                         {formatDate(item.created_at)}
                       </td>
-                      <td className="px-4 py-3 text-gray-800 max-w-[200px] truncate">
-                        {item.deskripsi || '—'}
+                      <td className="px-4 py-3 text-gray-800 max-w-[200px]">
+                        <p className="truncate">{item.deskripsi || '—'}</p>
+                        <WaInfo item={item} />
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
                         {formatRupiah(item.nominal)}

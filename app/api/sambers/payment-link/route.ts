@@ -11,14 +11,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { nominal, deskripsi: rawDeskripsi } = body as { nominal: unknown; deskripsi: unknown }
+    const { nominal, deskripsi: rawDeskripsi, no_wa: rawNoWa } = body as { nominal: unknown; deskripsi: unknown; no_wa: unknown }
     const deskripsi = typeof rawDeskripsi === 'string' ? rawDeskripsi.trim() : ''
+    // Opsional — nomor WA pembeli untuk pesan "terima kasih" saat lunas.
+    const no_wa = typeof rawNoWa === 'string' ? rawNoWa.replace(/\D/g, '') : ''
 
     if (typeof nominal !== 'number' || !Number.isInteger(nominal) || nominal < 1000) {
       return NextResponse.json({ error: 'Nominal minimal Rp 1.000 (bilangan bulat)' }, { status: 400 })
     }
     if (!deskripsi || deskripsi.length > 200) {
       return NextResponse.json({ error: 'Deskripsi wajib diisi (maks. 200 karakter)' }, { status: 400 })
+    }
+    if (no_wa && !/^(0|62)8\d{7,12}$/.test(no_wa)) {
+      return NextResponse.json({ error: 'No. WhatsApp tidak valid (contoh: 081234567890)' }, { status: 400 })
     }
 
     const xenditKey = process.env.XENDIT_SECRET_KEY
@@ -66,13 +71,14 @@ export async function POST(req: NextRequest) {
         external_id,
         nominal,
         deskripsi,
+        no_wa: no_wa || null,
         xendit_invoice_id: invoice.id,
         payment_url: invoice.invoice_url,
         status: 'pending',
         created_by: auth.userId ?? null,
         expired_at: invoice.expiry_date ?? null,
       })
-      .select('id, external_id, payment_url, nominal, deskripsi, status, created_at')
+      .select('id, external_id, payment_url, nominal, deskripsi, no_wa, status, created_at')
       .single()
 
     if (error) {
@@ -102,7 +108,7 @@ export async function GET(_req: NextRequest) {
     const admin = getSupabaseAdmin()
     const { data, error } = await admin
       .from('payment_links')
-      .select('id, external_id, nominal, deskripsi, payment_url, status, created_by, paid_at, expired_at, created_at, updated_at')
+      .select('id, external_id, nominal, deskripsi, no_wa, wa_sent_at, payment_url, status, created_by, paid_at, expired_at, created_at, updated_at')
       .order('created_at', { ascending: false })
       .limit(50)
 
