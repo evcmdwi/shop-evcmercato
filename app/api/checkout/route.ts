@@ -3,6 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { createInvoice } from '@/lib/xendit'
 import { TERMS_VERSION } from '@/lib/constants/terms'
+import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
 
 export async function POST(req: NextRequest) {
   try {
@@ -33,8 +34,12 @@ export async function POST(req: NextRequest) {
       shipping_province_name,
       terms_accepted,
       shipping_method = 'reguler',
-      shipping_base_rate = 10000,
     } = body
+    // shipping_base_rate dari browser SENGAJA diabaikan — tarif dihitung server
+    // dari shipping_rates sesuai kecamatan alamat (lihat langkah 3b).
+    if (!isShippingMethod(shipping_method)) {
+      return NextResponse.json({ error: 'Metode pengiriman tidak valid' }, { status: 400 })
+    }
     if (!terms_accepted) {
       return NextResponse.json(
         { error: 'Centang persetujuan Syarat & Ketentuan untuk melanjutkan pembayaran' },
@@ -116,6 +121,16 @@ export async function POST(req: NextRequest) {
       address_id = newAddress.id
     }
 
+    // 3b. Tarif ongkir dari server (bukan dari browser)
+    const rateDistrictId = address.district_id || shipping_district_id || null
+    const shipping_base_rate = await resolveShippingRate(admin, rateDistrictId, shipping_method)
+    if (shipping_base_rate === null) {
+      return NextResponse.json(
+        { error: `Pengiriman ${shipping_method === 'instan' ? 'Instan' : 'Sameday'} belum tersedia untuk kecamatan ini — pilih metode lain` },
+        { status: 400 }
+      )
+    }
+
     // 4. Get cart items
     const { data: cart } = await admin
       .from('carts')
@@ -177,7 +192,7 @@ export async function POST(req: NextRequest) {
     }, 0)
 
     const shippingDiscount = subtotal >= 80000 ? 10000 : 0
-    const shippingCostFinal = Math.max(0, (shipping_base_rate as number) - shippingDiscount)
+    const shippingCostFinal = Math.max(0, shipping_base_rate - shippingDiscount)
     const shipping_cost = shippingCostFinal
     const service_fee = 3000
     const shipping_cost_discount = shippingDiscount
@@ -231,8 +246,8 @@ export async function POST(req: NextRequest) {
         shipping_city: address.city,
         shipping_province: address.province,
         shipping_postal_code: address.postal_code,
-        shipping_method: (shipping_method as string) || 'reguler',
-        shipping_base_rate: shipping_base_rate as number,
+        shipping_method,
+        shipping_base_rate,
         shipping_discount: shippingDiscount,
         points_earned: Math.floor(subtotal / 1000),
         terms_accepted_at: new Date().toISOString(),
