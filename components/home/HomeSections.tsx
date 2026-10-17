@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { ShieldCheck, MessageCircle, ChevronRight } from 'lucide-react'
+import { MessageCircle, ChevronRight } from 'lucide-react'
 import ProductCard from '@/components/ProductCard'
 import type { ProductWithCategory } from '@/types/product'
 import {
@@ -8,6 +8,7 @@ import {
   FIRST_ORDER_OFFER_TEXT,
   NEED_CARDS,
   PAYMENT_METHODS,
+  PROMO_BANNER,
   SIGNUP_STEPS,
   WA_ADMIN_URL,
   type CompareCell,
@@ -27,10 +28,23 @@ function withBold(text: string) {
 export function TrustStrip() {
   return (
     <div className="bg-evc-green text-white">
-      <p className="mx-auto flex max-w-[1200px] items-center justify-center gap-2 px-4 py-2 text-center text-xs font-semibold md:text-sm">
-        <ShieldCheck className="h-4 w-4 shrink-0" strokeWidth={2} aria-hidden />
-        Mitra Usaha Resmi KKI Group sejak 2003 · Produk original
-      </p>
+      <div className="mx-auto flex max-w-[1200px] flex-col items-center justify-center gap-1.5 px-4 py-2 text-center font-extrabold md:flex-row md:gap-5">
+        <p className="flex flex-wrap items-center justify-center gap-x-1.5 whitespace-nowrap text-[10px] min-[400px]:text-[11px] min-[400px]:tracking-wide md:text-sm md:gap-x-4">
+          {PROMO_BANNER.items.map((item, i) => (
+            <span key={item} className="flex items-center gap-1.5 md:gap-4">
+              {i > 0 && <span aria-hidden className="opacity-60">·</span>}
+              {item}
+            </span>
+          ))}
+        </p>
+        <Link
+          href={PROMO_BANNER.cta.href}
+          prefetch={false}
+          className="inline-flex min-h-[32px] items-center rounded-full bg-white px-3 text-[11px] font-extrabold text-evc-green hover:bg-evc-green-tint md:text-xs"
+        >
+          {PROMO_BANNER.cta.label} →
+        </Link>
+      </div>
     </div>
   )
 }

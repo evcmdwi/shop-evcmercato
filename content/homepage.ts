@@ -2,6 +2,12 @@
 
 export const WA_ADMIN_URL = 'https://wa.me/6285820852908'
 
+/** Banner promo paling atas beranda (menggantikan strip "Mitra Usaha Resmi KKI Group"). */
+export const PROMO_BANNER = {
+  items: ['GRATIS ONGKIR', 'GRATIS BIAYA ADMIN', 'INSTAN DARI 20 KOTA'],
+  cta: { label: 'COBA SEKARANG', href: '/katalog' },
+}
+
 /**
  * Penawaran pesanan pertama. Kosongkan ('') untuk menyembunyikan kalimatnya —
  * kartu sambutan tetap tampil dengan judul + tombol. Logika bonusnya di checkout
