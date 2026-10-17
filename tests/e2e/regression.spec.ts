@@ -45,7 +45,7 @@ test.describe('Regression Tests — Bug fixes', () => {
     await page.waitForTimeout(2000)
     // Cek hanya product images dari Supabase Storage (bukan icon/SVG/placeholder)
     const failedImages = await page.evaluate(() => {
-      const imgs = Array.from(document.querySelectorAll('img[src*="supabase"]'))
+      const imgs = Array.from(document.querySelectorAll<HTMLImageElement>('img[src*="supabase"]'))
       return imgs.filter(img => !img.complete || img.naturalWidth === 0).length
     })
     expect(failedImages).toBe(0)
