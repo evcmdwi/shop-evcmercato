@@ -18,14 +18,14 @@ export const FEATURED_PRODUCT_SLUGS: string[] = []
 
 export type CompareCell = { main: string; sub?: string }
 export const COMPARISON_ROWS: { label: string; marketplace: CompareCell; evc: CompareCell }[] = [
-  { label: 'Harga', marketplace: { main: 'Sama' }, evc: { main: 'Sama' } },
+  { label: 'Harga', marketplace: { main: 'Lebih tinggi 20%' }, evc: { main: 'Sesuai ketentuan', sub: 'Ada diskon' } },
   { label: 'EVC Points', marketplace: { main: 'Tidak ada' }, evc: { main: 'Ada', sub: 'Tukar produk gratis' } },
   {
     label: 'Kecepatan kirim',
     marketplace: { main: 'Instan / Reguler SPX', sub: 'Lebih lama' },
     evc: { main: 'J&T, JNE, Grab', sub: 'Lebih cepat' },
   },
-  { label: 'Tanya produk', marketplace: { main: 'Chat toko' }, evc: { main: 'WA admin', sub: 'Langsung dijawab' } },
+  { label: 'Tanya produk / beli', marketplace: { main: 'Dibalas AI toko' }, evc: { main: 'WA Admin', sub: 'Fast response' } },
 ]
 
 export const NEED_CARDS: { title: string; desc: string; href: string }[] = [
@@ -38,11 +38,15 @@ export const NEED_CARDS: { title: string; desc: string; href: string }[] = [
 export const SIGNUP_STEPS: { title: string; desc: string }[] = [
   // Form daftar saat ini: nama, No. WA, email, password. Ubah teks ini bila alurnya dipersingkat.
   { title: 'Daftar dengan nomor WhatsApp', desc: 'Isi nama, nomor WA, email, dan password — kurang dari satu menit.' },
-  { title: 'Pilih produk & bayar', desc: 'Transfer, e-wallet, minimarket, atau COD lewat admin.' },
+  { title: 'Pilih produk & bayar', desc: 'QRIS, virtual account, OVO, kartu kredit, atau minimarket.' },
   { title: 'Lacak pesanan & kumpulkan poin', desc: 'Status kiriman dan EVC Points tercatat otomatis di akun Anda.' },
 ]
 
 export const PAYMENT_METHODS = [
-  'BCA', 'Mandiri', 'BRI', 'BNI', 'GoPay', 'OVO', 'DANA', 'ShopeePay', 'Alfamart', 'Indomaret', 'COD via admin',
+  'QRIS', 'Virtual Account', 'BCA', 'Mandiri', 'BNI', 'Permata', 'OVO', 'Visa', 'Mastercard', 'JCB', 'Alfamart', 'Indomaret',
 ]
-export const COURIERS = ['J&T Express', 'JNE', 'Grab Express (same-day)']
+// EVC tidak melayani COD — jangan tambahkan COD di mana pun.
+export const COURIERS: { label: string; items: string[] }[] = [
+  { label: 'Instan / Sameday', items: ['Grab'] },
+  { label: 'Reguler', items: ['J&T', 'JNE'] },
+]

@@ -242,7 +242,16 @@ export function PaymentShipping() {
       <h2 className="text-sm font-bold text-evc-ink">Bayar dengan</h2>
       <ul className="mt-2 flex flex-wrap gap-2">{PAYMENT_METHODS.map((m) => <Chip key={m} label={m} />)}</ul>
       <h2 className="mt-4 text-sm font-bold text-evc-ink">Dikirim dengan</h2>
-      <ul className="mt-2 flex flex-wrap gap-2">{COURIERS.map((c) => <Chip key={c} label={c} />)}</ul>
+      <dl className="mt-2 space-y-2">
+        {COURIERS.map((g) => (
+          <div key={g.label} className="flex flex-wrap items-center gap-2">
+            <dt className="w-32 shrink-0 text-xs font-semibold text-evc-muted">{g.label}</dt>
+            <dd>
+              <ul className="flex flex-wrap gap-2">{g.items.map((c) => <Chip key={c} label={c} />)}</ul>
+            </dd>
+          </div>
+        ))}
+      </dl>
     </section>
   )
 }
@@ -261,7 +270,7 @@ export function WhatsAppCard() {
       </span>
       <span className="flex-1">
         <span className="block font-bold">Bingung pilih produk? Chat admin EVC</span>
-        <span className="mt-0.5 block text-xs text-white/85">WhatsApp · Senin–Sabtu, 09.00–17.00 WITA · bisa COD</span>
+        <span className="mt-0.5 block text-xs text-white/85">WhatsApp · Senin–Sabtu, 09.00–17.00 WITA · fast response</span>
       </span>
       <ChevronRight className="h-5 w-5 shrink-0" aria-hidden />
     </a>
