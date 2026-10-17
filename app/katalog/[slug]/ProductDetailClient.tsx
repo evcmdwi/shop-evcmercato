@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ArrowLeft, Tag, Gift, Minus, Plus } from 'lucide-react'
@@ -58,18 +58,13 @@ function DescriptionBlock({ description }: { description: string }) {
 
 export default function ProductDetailClient({ product }: Props) {
   const router = useRouter()
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null)
-  const [variantImage, setVariantImage] = useState<string | null>(null)
+  const variants: ProductVariant[] = (product.product_variants ?? []).filter((v) => v.is_active)
+  // Varian pertama yang masih ada stok langsung terpilih (harga & fotonya tampil).
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(() =>
+    product.has_variants ? variants.find((v) => v.stock > 0) ?? variants[0] ?? null : null
+  )
   const [quantity, setQuantity] = useState(1)
   const [addingToCart, setAddingToCart] = useState(false)
-
-  // Auto-select first variant on load
-  useEffect(() => {
-    if (product.has_variants && variants.length > 0 && !selectedVariant) {
-      setSelectedVariant(variants[0])
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   const { user } = useAuth()
   const { addItem, refreshCart } = useCartContext()
@@ -79,8 +74,6 @@ export default function ProductDetailClient({ product }: Props) {
     : product.image_url
     ? [product.image_url]
     : []
-
-  const variants: ProductVariant[] = (product.product_variants ?? []).filter((v) => v.is_active)
 
   const displayPrice = product.has_variants && variants.length
     ? (selectedVariant ? formatRupiah(selectedVariant.price) : formatPriceRange(variants))
@@ -164,7 +157,7 @@ export default function ProductDetailClient({ product }: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8 bg-white rounded-2xl shadow-sm border border-gray-100 p-6 md:p-8">
         {/* Image carousel */}
-        <ProductImageCarousel images={images} productName={product.name} variantImage={variantImage} />
+        <ProductImageCarousel images={images} productName={product.name} variantImage={selectedVariant?.image_url ?? null} />
 
         {/* Details */}
         <div className="flex flex-col gap-4">
@@ -189,10 +182,6 @@ export default function ProductDetailClient({ product }: Props) {
             {displayPrice}
           </p>
 
-          {product.description && (
-            <DescriptionBlock description={product.description} />
-          )}
-
           {/* Variant selector */}
           {product.has_variants && variants.length > 0 && (
             <div>
@@ -204,7 +193,6 @@ export default function ProductDetailClient({ product }: Props) {
                   setSelectedVariant(v)
                   setQuantity(1)
                 }}
-                onImageChange={setVariantImage}
               />
             </div>
           )}
@@ -292,6 +280,13 @@ export default function ProductDetailClient({ product }: Props) {
             </strong>{' '}
             dari pembelian ini
           </div>
+
+          {product.description && (
+            <div className="mt-2 border-t border-gray-100 pt-4">
+              <h2 className="mb-2 text-base font-semibold text-gray-900">Deskripsi Produk</h2>
+              <DescriptionBlock description={product.description} />
+            </div>
+          )}
         </div>
       </div>
     </main>

@@ -1,6 +1,6 @@
 'use client'
 
-import { formatRupiah } from '@/lib/utils'
+import Image from 'next/image'
 
 export interface ProductVariant {
   id: string
@@ -15,10 +15,10 @@ interface VariantSelectorProps {
   variants: ProductVariant[]
   selectedVariant: ProductVariant | null
   onSelect: (variant: ProductVariant) => void
-  onImageChange?: (imageUrl: string | null) => void
 }
 
-export default function VariantSelector({ variants, selectedVariant, onSelect, onImageChange }: VariantSelectorProps) {
+/** Pilihan varian ala marketplace: tombol dengan foto kecil varian (bila ada). */
+export default function VariantSelector({ variants, selectedVariant, onSelect }: VariantSelectorProps) {
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap gap-2">
@@ -30,13 +30,13 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
               key={variant.id}
               type="button"
               onClick={() => {
-                if (!isOutOfStock) {
-                  onSelect(variant)
-                  if (onImageChange) onImageChange(variant.image_url ?? null)
-                }
+                if (!isOutOfStock) onSelect(variant)
               }}
               disabled={isOutOfStock}
-              className={`px-4 py-2 rounded-lg text-sm font-medium border-2 transition-colors ${
+              aria-pressed={isSelected}
+              className={`flex min-h-[44px] items-center gap-2 rounded-lg border-2 text-sm font-medium transition-colors ${
+                variant.image_url ? 'py-1 pl-1 pr-3' : 'px-4 py-2'
+              } ${
                 isSelected
                   ? 'border-[#7FB300] bg-[#E8F4D1] text-[#7FB300]'
                   : isOutOfStock
@@ -44,23 +44,22 @@ export default function VariantSelector({ variants, selectedVariant, onSelect, o
                   : 'border-slate-200 text-slate-700 hover:border-[#7FB300]/50 hover:bg-[#E8F4D1]/50'
               }`}
             >
-              {variant.name}
-              {isOutOfStock && <span className="ml-1 text-xs">(habis)</span>}
+              {variant.image_url && (
+                <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-md bg-slate-100">
+                  <Image src={variant.image_url} alt="" fill sizes="36px" className="object-cover" />
+                </span>
+              )}
+              <span>
+                {variant.name}
+                {isOutOfStock && <span className="ml-1 text-xs">(habis)</span>}
+              </span>
             </button>
           )
         })}
       </div>
 
-      {/* Stock shown in ProductDetailClient — removed from here to avoid duplicate */}
-
       {!selectedVariant && (
         <p className="text-sm text-slate-400 italic">Pilih varian untuk melihat harga</p>
-      )}
-
-      {selectedVariant && (
-        <p className="text-3xl font-bold" style={{ color: '#7FB300' }}>
-          {/* price shown above in ProductDetailClient */}
-        </p>
       )}
     </div>
   )

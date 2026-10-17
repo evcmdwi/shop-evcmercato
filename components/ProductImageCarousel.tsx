@@ -12,11 +12,17 @@ interface ProductImageCarouselProps {
 
 export default function ProductImageCarousel({ images, productName, variantImage }: ProductImageCarouselProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
+  // Foto varian tampil sampai pembeli mengklik thumbnail; ganti varian → tampil lagi.
+  const [showVariant, setShowVariant] = useState(true)
+  const [prevVariantImage, setPrevVariantImage] = useState(variantImage)
+  if (variantImage !== prevVariantImage) {
+    setPrevVariantImage(variantImage)
+    setShowVariant(true)
+  }
 
   const validImages = (images ?? []).filter(Boolean)
-
-  // If a variant image is provided, show it as the main image
-  const displayMainImage = variantImage || validImages[selectedIndex]
+  const variantActive = !!variantImage && showVariant
+  const displayMainImage = variantActive ? variantImage : validImages[selectedIndex]
 
   if (validImages.length === 0 && !variantImage) {
     return (
@@ -44,15 +50,18 @@ export default function ProductImageCarousel({ images, productName, variantImage
       </div>
 
       {/* Thumbnails */}
-      {validImages.length > 1 && (
+      {(validImages.length > 1 || (variantActive && validImages.length > 0)) && (
         <div className="flex gap-2 flex-wrap">
           {validImages.map((src, idx) => (
             <button
               key={idx}
               type="button"
-              onClick={() => setSelectedIndex(idx)}
+              onClick={() => {
+                setSelectedIndex(idx)
+                setShowVariant(false)
+              }}
               className={`relative w-16 h-16 rounded-lg overflow-hidden border-2 transition-colors shrink-0 ${
-                idx === selectedIndex
+                !variantActive && idx === selectedIndex
                   ? 'border-[#7FB300]'
                   : 'border-transparent hover:border-[#7FB300]/40'
               }`}
