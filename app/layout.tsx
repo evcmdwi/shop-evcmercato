@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Script from "next/script";
 import { initPixelScript } from "@/lib/marketing/pixel";
-import { Geist, Geist_Mono, Montserrat, DM_Serif_Display } from "next/font/google";
+import { Geist, Geist_Mono, Montserrat, DM_Serif_Display, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import { CartProvider } from "@/components/CartContext";
 import { ToastContainer } from "@/components/Toast";
 import ShopShell from "@/components/ShopShell";
+import BottomNav from "@/components/BottomNav";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { createClient } from "@/lib/supabase-server";
 
@@ -33,6 +34,13 @@ const montserrat = Montserrat({
   display: 'swap',
 });
 
+const plusJakarta = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-plus-jakarta',
+  weight: ['400', '500', '600', '700', '800'],
+  display: 'swap',
+});
+
 export const metadata: Metadata = {
   title: "EVC Mercato",
   description: "Toko Online EVC Mercato — Distributor Resmi KKI Group, Terpercaya Sejak 2003.",
@@ -55,13 +63,14 @@ export default async function RootLayout({
   return (
     <html
       lang="id"
-      className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${dmSerif.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${montserrat.variable} ${dmSerif.variable} ${plusJakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
         <AuthProvider initialUser={user}>
           <CartProvider>
             <ShopShell />
             {children}
+            <BottomNav />
             <ToastContainer />
           </CartProvider>
         </AuthProvider>

@@ -47,6 +47,7 @@ export default function TambahProdukPage() {
   const [variants, setVariants] = useState<VariantRow[]>([{ name: '', price: '', stock: '', image_url: '' }])
   const [dragVariantIdx, setDragVariantIdx] = useState<number | null>(null)
   const [initialSoldCount, setInitialSoldCount] = useState(0)
+  const [searchKeywords, setSearchKeywords] = useState('')
 
   useEffect(() => {
     fetch('/api/sambers/categories?limit=100')
@@ -105,6 +106,7 @@ export default function TambahProdukPage() {
           price: hasVariants ? 0 : Number(form.price),
           stock: hasVariants ? 0 : Number(form.stock),
           initial_sold_count: initialSoldCount,
+          search_keywords: searchKeywords.trim() || null,
           variants: hasVariants
             ? variants.map((v) => ({ name: v.name, price: Number(v.price), stock: Number(v.stock), image_url: v.image_url || null }))
             : [],
@@ -260,6 +262,18 @@ export default function TambahProdukPage() {
             className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#7FB300]"
           />
           <p className="text-xs text-gray-400 mt-1">Counter terjual sebelum penjualan via shop. Auto-bertambah saat ada order baru.</p>
+        </FormField>
+
+        <FormField label="Kata Kunci Pencarian">
+          <input
+            type="text"
+            value={searchKeywords}
+            onChange={(e) => setSearchKeywords(e.target.value)}
+            placeholder="mis. sgf, paket hemat"
+            maxLength={300}
+            className="w-full px-3 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:border-[#7FB300]"
+          />
+          <p className="text-xs text-gray-400 mt-1">Pisahkan dengan koma. Produk ikut muncul saat pembeli mencari kata ini di katalog (selain nama & kategori).</p>
         </FormField>
 
         <FormField label="Status">

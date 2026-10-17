@@ -2,6 +2,8 @@
 import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth/auth-context'
+import { toast } from '@/components/Toast'
+import { takePendingCartItem } from '@/lib/pending-cart'
 
 export interface CartItem {
   id: string
@@ -118,6 +120,30 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     },
     []
   )
+
+  // Setelah login: masukkan barang yang tadi diklik sebelum login (lib/pending-cart).
+  useEffect(() => {
+    if (!user) return
+    // Ditunda satu tick: effect tidak memanggil setState secara sinkron, dan
+    // StrictMode (mount ganda) membatalkan timer pertama sebelum barang diambil.
+    const t = setTimeout(() => {
+      const pending = takePendingCartItem()
+      if (!pending) return
+      addItem(pending.product_id, pending.variant_id, pending.quantity)
+        .then(() =>
+          toast.show({
+            type: 'success',
+            message: 'Produk yang Anda pilih sudah masuk keranjang ✓',
+            action: { label: 'Lihat Keranjang →', href: '/keranjang' },
+            duration: 5000,
+          })
+        )
+        .catch((err: unknown) =>
+          toast.show({ type: 'error', message: err instanceof Error ? err.message : 'Gagal menambahkan ke keranjang' })
+        )
+    }, 0)
+    return () => clearTimeout(t)
+  }, [user?.id, addItem]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const updateItem = useCallback(async (itemId: string, quantity: number) => {
     const res = await fetch(`/api/cart/items/${itemId}`, {

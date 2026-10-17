@@ -3,6 +3,7 @@
 import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 import { useCallback } from 'react'
 import type { Category } from '@/types/product'
+import { categoryLabel } from '@/lib/catalog'
 
 interface CategoryFilterProps {
   categories: Category[]
@@ -51,7 +52,7 @@ export default function CategoryFilter({ categories }: CategoryFilterProps) {
           }`}
           style={activeSlug === cat.slug ? { backgroundColor: '#7FB300' } : {}}
         >
-          {cat.name}
+          {categoryLabel(cat)}
         </button>
       ))}
     </div>

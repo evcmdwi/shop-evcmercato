@@ -8,7 +8,7 @@ interface ProductGridProps {
 
 export function ProductGridSkeleton() {
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {Array(8).fill(0).map((_, i) => (
         <div key={i} className="bg-gray-100 rounded-lg overflow-hidden animate-pulse">
           <div className="aspect-square bg-gray-200" />
@@ -37,14 +37,9 @@ export default function ProductGrid({ products }: ProductGridProps) {
   }
 
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+    <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
       {products.map((product, idx) => (
-        <ProductCard
-          key={product.id}
-          product={product}
-          variants={product.product_variants}
-          priority={idx < 4}
-        />
+        <ProductCard key={product.id} product={product} priority={idx < 4} />
       ))}
     </div>
   )

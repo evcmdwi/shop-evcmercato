@@ -4,7 +4,7 @@ import SearchBar from '@/components/SearchBar'
 import CategoryFilter from '@/components/CategoryFilter'
 import ProductGrid, { ProductGridSkeleton } from '@/components/ProductGrid'
 import type { Category, ProductWithCategory } from '@/types/product'
-import { slugify } from '@/lib/utils'
+import { CARD_PRODUCT_SELECT, categoryLabel, searchFilter } from '@/lib/catalog'
 
 interface KatalogPageProps {
   searchParams: Promise<{ q?: string; category?: string }>
@@ -28,13 +28,20 @@ export default async function KatalogPage({ searchParams }: KatalogPageProps) {
   // Build products query
   let query = supabase
     .from('products')
-    .select('*, categories(*), product_variants(price, stock, is_active)')
+    .select(CARD_PRODUCT_SELECT)
     .eq('is_active', true)
     .order('sort_order', { ascending: true, nullsFirst: false })
     .order('created_at', { ascending: false })
 
   if (q) {
-    query = query.ilike('name', `%${q}%`)
+    // Nama, kata kunci produk (search_keywords), atau nama/label kategori —
+    // mis. "paket", "sgf", dan "suplemen" sama-sama menemukan Paket Hemat SGF.
+    const term = q.trim().toLowerCase()
+    const catIds = (categories ?? [])
+      .filter((c: Category) => term.length >= 3 && (c.name.toLowerCase().includes(term) || categoryLabel(c).toLowerCase().includes(term)))
+      .map((c: Category) => c.id)
+    const filter = searchFilter(q, catIds)
+    if (filter) query = query.or(filter)
   }
 
   if (category) {

@@ -9,6 +9,7 @@ import VariantSelector, { ProductVariant } from '@/components/VariantSelector'
 import { useAuth } from '@/lib/auth/auth-context'
 import { useCartContext } from '@/components/CartContext'
 import { toast } from '@/components/Toast'
+import { redirectToLoginWithItem } from '@/lib/pending-cart'
 import { formatRupiah, formatPriceRange, getTotalStock, formatSoldCount } from '@/lib/utils'
 import type { ProductWithCategory } from '@/types/product'
 
@@ -101,7 +102,8 @@ export default function ProductDetailClient({ product }: Props) {
 
   const handleAddToCart = async () => {
     if (!user) {
-      router.push(`/login?redirect_to=${encodeURIComponent(window.location.pathname)}`)
+      // Barang disimpan dulu, otomatis masuk keranjang setelah login/daftar.
+      redirectToLoginWithItem({ product_id: product.id, variant_id: selectedVariant?.id ?? null, quantity })
       return
     }
 
@@ -127,7 +129,8 @@ export default function ProductDetailClient({ product }: Props) {
 
   const handleBuyNow = async () => {
     if (!user) {
-      router.push(`/login?redirect_to=${encodeURIComponent(window.location.pathname)}`)
+      // Barang disimpan dulu, otomatis masuk keranjang setelah login/daftar.
+      redirectToLoginWithItem({ product_id: product.id, variant_id: selectedVariant?.id ?? null, quantity }, '/keranjang')
       return
     }
 

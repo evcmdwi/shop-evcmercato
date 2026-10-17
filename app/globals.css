@@ -7,6 +7,19 @@
   --primary-hover: #6B9700;
   --primary-light: #E8F4D1;
   --primary-dark: #5B8400;
+
+  /* Design tokens beranda migrasi (brief 17 Okt 2026) */
+  --evc-green: #1E5B45;
+  --evc-green-dark: #143F30;
+  --evc-green-tint: #E8F1EC;
+  --evc-accent: #B9531A;
+  --evc-accent-dark: #9A4415;
+  --evc-accent-tint: #FBEDE4;
+  --evc-ink: #1C2621;
+  --evc-muted: #5B665F;
+  --evc-border: #E6E4DD;
+  --evc-surface: #FFFFFF;
+  --evc-ground: #F6F5F1;
 }
 
 @theme inline {
@@ -15,6 +28,18 @@
   --font-sans: var(--font-montserrat), var(--font-geist-sans), system-ui, sans-serif;
   --font-mono: var(--font-geist-mono);
   --font-display: var(--font-dm-serif), Georgia, serif;
+  --font-jakarta: var(--font-plus-jakarta), system-ui, sans-serif;
+  --color-evc-green: var(--evc-green);
+  --color-evc-green-dark: var(--evc-green-dark);
+  --color-evc-green-tint: var(--evc-green-tint);
+  --color-evc-accent: var(--evc-accent);
+  --color-evc-accent-dark: var(--evc-accent-dark);
+  --color-evc-accent-tint: var(--evc-accent-tint);
+  --color-evc-ink: var(--evc-ink);
+  --color-evc-muted: var(--evc-muted);
+  --color-evc-border: var(--evc-border);
+  --color-evc-surface: var(--evc-surface);
+  --color-evc-ground: var(--evc-ground);
 }
 
 @media (prefers-color-scheme: dark) {
