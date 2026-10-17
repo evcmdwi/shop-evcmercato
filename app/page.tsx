@@ -183,15 +183,14 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* KENAPA EVC - 4 CARDS */}
+      {/* KENAPA EVC - 3 CARDS */}
       <section className="py-16 px-4 bg-white">
         <div className="max-w-6xl mx-auto">
           <h2 className="font-display text-3xl sm:text-4xl text-gray-900 text-center mb-3">
             Kenapa Belanja di EVC?
           </h2>
           <p className="text-sm text-gray-400 text-center mb-12 tracking-widest uppercase">Terpercaya · Cepat · Bergaransi</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {/* Cards 1-3 */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {trustCards.map(card => (
               <div key={card.title} className={`bg-white border ${card.border} rounded-2xl p-6 hover:shadow-md transition-shadow`}>
                 <div className="flex flex-col items-center text-center">
@@ -202,26 +201,6 @@ export default function HomePage() {
               </div>
             ))}
 
-            {/* Card 4 — Evie Health: Full poster, clickable */}
-            <a
-              href="https://t.me/evie_evc_bot?start=6285820852908"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="block rounded-2xl overflow-hidden hover:scale-105 transition-all hover:shadow-xl cursor-pointer"
-            >
-              <div className="relative w-full" style={{ minHeight: '280px' }}>
-                <Image
-                  src="/evie-health-reference.jpg"
-                  alt="Evie Health — Konsultasi Kesehatan 24 Jam"
-                  fill
-                  className="object-cover"
-                  sizes="(max-width: 768px) 100vw, 25vw"
-                />
-              </div>
-              <div className="bg-white py-2 px-3 text-center">
-                <p className="text-sm text-gray-500 italic">Klik gambar untuk memulai konsultasi</p>
-              </div>
-            </a>
           </div>
 
           {/* CTA bawah */}

@@ -19,7 +19,6 @@ export const metadata: Metadata = {
 }
 
 const WA_ADMIN = 'https://wa.me/6285820852908?text=Halo%20EVC%20Mercato%2C%20saya%20ingin%20tanya%20tentang%20produk'
-const EVIE_LINK = 'https://t.me/evie_evc_bot?start=6285820852908'
 
 const TRUST_CARDS = [
   {
@@ -38,9 +37,9 @@ const TRUST_CARDS = [
     img: '/assets/evc-trust-box-pengiriman-cepat.png',
   },
   {
-    title: 'Admin & Evie Siap Membantu',
+    title: 'Admin EVC Siap Membantu',
     copy: 'Customer bisa tanya dulu sebelum belanja agar lebih yakin memilih produk.',
-    img: '/assets/evc-trust-box-cs-evie-support.jpg',
+    img: '/assets/evc-trust-box-cs-support.jpg',
   },
 ]
 
@@ -64,7 +63,6 @@ export default async function EVCResmiPage({
   const shopLink = appendRef(appendUTM('https://shop.evcmercato.com?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
   const katalogLink = appendRef(appendUTM('https://shop.evcmercato.com/katalog?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
   const waLink = appendRef(WA_ADMIN, ref)
-  const evieLink = appendRef(EVIE_LINK, ref)
 
   return (
     <>
@@ -168,18 +166,15 @@ export default async function EVCResmiPage({
             <p className="text-gray-600 text-base leading-relaxed mb-4">
               Belanja di EVC Mercato memberi pengalaman yang lebih praktis dan jelas dari awal. Customer bisa melihat informasi produk, memilih kebutuhan, dan melanjutkan belanja dengan alur yang mudah dipahami dari mobile.
             </p>
-            <p className="text-gray-600 text-base leading-relaxed mb-4">
-              EVC juga menghadirkan dukungan admin untuk membantu menjawab pertanyaan seputar produk, ketersediaan, proses belanja, hingga informasi pengiriman. Jadi, customer tidak perlu bingung sendiri saat ingin memilih produk yang sesuai.
-            </p>
             <p className="text-gray-600 text-base leading-relaxed mb-6">
-              Evie Health by EVC adalah konsultan kesehatan digital EVC yang siap sedia membantu pelanggan 24 jam, 7 hari seminggu. Evie dibekali pengetahuan luas seputar keluhan umum, pilihan solusi, gaya hidup, dan kebutuhan wellness masa kini, sehingga pelanggan bisa mendapatkan arahan awal yang lebih personal sebelum memilih produk.
+              EVC juga menghadirkan dukungan admin untuk membantu menjawab pertanyaan seputar produk, ketersediaan, proses belanja, hingga informasi pengiriman. Jadi, customer tidak perlu bingung sendiri saat ingin memilih produk yang sesuai.
             </p>
             <div className="flex flex-col sm:flex-row gap-3 justify-center">
               <a href={shopLink} data-track-shop className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
                 Belanja Sekarang
               </a>
-              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors">
-                Konsultasi dengan Evie Health by EVC
+              <a href={waLink} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors" data-track-wa>
+                Tanya Admin EVC
               </a>
             </div>
           </div>
@@ -232,16 +227,16 @@ export default async function EVCResmiPage({
           </div>
         </section>
 
-        {/* SECTION 5 — ADMIN + EVIE */}
+        {/* SECTION 5 — ADMIN */}
         <section className="py-14 px-4 bg-white">
           <div className="max-w-3xl mx-auto">
             <div className="text-center mb-8">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">Butuh Bantuan Memilih Produk? Admin EVC &amp; Evie Siap Membantu</h2>
+              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">Butuh Bantuan Memilih Produk? Admin EVC Siap Membantu</h2>
               <p className="text-gray-600 text-base max-w-xl mx-auto">
                 Masih bingung memilih produk yang sesuai kebutuhan? Tim admin website EVC siap membantu melalui WhatsApp — mulai dari cek ketersediaan produk, panduan belanja, sampai informasi pengiriman.
               </p>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+            <div className="max-w-sm mx-auto">
               {/* Admin Card */}
               <div className="bg-[#f8fce8] rounded-2xl border border-[#7FB300]/20 p-6 text-center">
                 <div className="w-16 h-16 rounded-full bg-[#7FB300] flex items-center justify-center mx-auto mb-4">
@@ -254,18 +249,6 @@ export default async function EVCResmiPage({
                 <a href={waLink} target="_blank" rel="noopener noreferrer"
                   className="block w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors" data-track-wa>
                   Chat Admin Sekarang
-                </a>
-              </div>
-              {/* Evie Card */}
-              <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center shadow-sm">
-                <div className="w-20 h-20 rounded-full overflow-hidden mx-auto mb-4 border-2 border-[#e8f5cc]">
-                  <Image src="/assets/evc-trust-box-cs-evie-support.jpg" alt="Evie Health Advisor" width={80} height={80} className="w-full h-full object-cover object-top" />
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Evie Health by EVC</h3>
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">Konsultan wellness yang siap membantu memahami kebutuhan dan mengarahkan pilihan produk yang sesuai — 24 jam.</p>
-                <a href={evieLink} target="_blank" rel="noopener noreferrer"
-                  className="block w-full border-2 border-[#7FB300] text-[#7FB300] py-3 rounded-xl font-semibold hover:bg-[#f8fce8] transition-colors">
-                  Tanya Evie Sekarang
                 </a>
               </div>
             </div>
@@ -285,7 +268,6 @@ export default async function EVCResmiPage({
             <div className="flex flex-col gap-2 text-sm text-gray-400">
               <a href={katalogLink} className="hover:text-white transition-colors py-3 inline-block">Katalog Produk</a>
               <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors py-3 inline-block">Chat Admin</a>
-              <a href={evieLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors py-3 inline-block">Evie Health</a>
               <a href={appendRef('https://shop.evcmercato.com/syarat-ketentuan', ref)} className="hover:text-white transition-colors py-3 inline-block">Syarat &amp; Ketentuan</a>
             </div>
           </div>

@@ -21,7 +21,7 @@ const content: LandingPageContent = {
     cta_secondary: {
       text: 'Bantuan Admin EVC',
       link: 'https://wa.me/6285820852908?text=Halo%20Admin%20EVC%2C%20saya%20ingin%20bertanya%20tentang%20Pearl%20Nourish%20Cream',
-      type: 'evie',
+      type: 'whatsapp',
     },
   },
   trust_elements: [],

@@ -19,16 +19,12 @@ export interface SupergreenCTAConfig {
   buyUrl: string
   /** WhatsApp URL — format https://wa.me/62... */
   whatsappUrl: string
-  /** Evie Agent URL. TODO: replace placeholder with the real Evie Agent link. */
-  evieUrl: string
 }
 
 // Single source of truth for every CTA on the page. Do not hardcode links in JSX.
 export const cta: SupergreenCTAConfig = {
   buyUrl: 'https://shop.evcmercato.com/katalog/supergreen',
   whatsappUrl: 'https://wa.me/6285820852908',
-  // PLACEHOLDER — konfirmasi URL Evie Agent yang benar.
-  evieUrl: 'https://wa.me/6285820852908?text=Halo%20Evie%2C%20saya%20mau%20tanya%20Supergreen%20Food',
 }
 
 export const meta = {
@@ -552,7 +548,7 @@ export const faq = {
     {
       q: 'Ingin tahu manfaat Supergreen Food lainnya untuk kesehatanmu?',
       // VERIFIKASI: klaim "banyak manfaat / berbagai keluhan kesehatan" — cocokkan dengan klaim disetujui BPOM TI044511731.
-      a: 'Tablet Supergreen Food memiliki banyak manfaat untuk mendukung kesehatan tubuh dan sering digunakan untuk berbagai keluhan kesehatan lainnya. Karena setiap orang memiliki kondisi tubuh, pola makan, dan kebutuhan yang berbeda, kamu bisa konsultasi dulu sebelum membeli. Chat CS EVC atau cek dulu ke Evie Agent untuk mendapatkan arahan yang lebih sesuai dengan kebutuhanmu.',
+      a: 'Tablet Supergreen Food memiliki banyak manfaat untuk mendukung kesehatan tubuh dan sering digunakan untuk berbagai keluhan kesehatan lainnya. Karena setiap orang memiliki kondisi tubuh, pola makan, dan kebutuhan yang berbeda, kamu bisa konsultasi dulu sebelum membeli. Chat CS EVC untuk mendapatkan arahan yang lebih sesuai dengan kebutuhanmu.',
     },
   ],
 }

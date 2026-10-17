@@ -1,4 +1,4 @@
-export type CTAType = 'shop_home' | 'shop_category' | 'shop_product' | 'evie'
+export type CTAType = 'shop_home' | 'shop_category' | 'shop_product' | 'whatsapp'
 
 export interface LandingCTA {
   text: string

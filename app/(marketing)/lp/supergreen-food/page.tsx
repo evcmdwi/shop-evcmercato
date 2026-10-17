@@ -219,12 +219,6 @@ export default async function SupergreenPage({
                   fbq('trackCustom', 'WhatsAppClick', {campaign: 'supergreen_food'});
                 });
               });
-              document.querySelectorAll('.cta-evie-agent').forEach(function(el) {
-                el.addEventListener('click', function() {
-                  if(typeof fbq === 'undefined') return;
-                  fbq('track', 'Lead', {content_name: 'Supergreen Food Evie Agent', lead_type: 'evie'});
-                  fbq('trackCustom', 'EvieClick', {campaign: 'supergreen_food'});
-                });
               });
             }
             if (document.readyState === 'loading') {

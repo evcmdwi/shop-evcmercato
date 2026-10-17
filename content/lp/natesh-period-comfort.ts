@@ -21,7 +21,7 @@ const content: LandingPageContent = {
     cta_secondary: {
       text: 'Konsultasi WhatsApp',
       link: 'https://wa.me/6285820852908?text=Halo%20Admin%20EVC%2C%20saya%20ingin%20tanya%20tentang%20Natesh%20Period%20Comfort',
-      type: 'evie',
+      type: 'whatsapp',
     },
   },
   trust_elements: [],

@@ -19,9 +19,9 @@ const content: LandingPageContent = {
       type: 'shop_home',
     },
     cta_secondary: {
-      text: 'Konsultasi Gratis dengan Evie',
-      link: 'https://t.me/evie_evc_bot?start=6285820852908',
-      type: 'evie',
+      text: 'Tanya Admin EVC',
+      link: 'https://wa.me/6285820852908?text=Halo%20Admin%20EVC%2C%20saya%20ingin%20tanya%20tentang%20produk',
+      type: 'whatsapp',
     },
   },
   trust_elements: [
@@ -43,7 +43,7 @@ const content: LandingPageContent = {
     {
       icon: '💬',
       title: 'CS Responsif',
-      description: 'Siap bantu via WhatsApp & Evie Bot 24 jam',
+      description: 'Siap bantu via WhatsApp',
     },
   ],
   testimonials: [
@@ -65,7 +65,7 @@ const content: LandingPageContent = {
       name: 'Dewi Kusuma',
       role: 'Pelanggan dari Jakarta',
       quote:
-        'Suka banget ada fitur konsultasi gratisnya. Evie Bot langsung kasih saran produk yang cocok buat kondisi saya. Recommended!',
+        'Suka banget bisa tanya admin dulu sebelum beli. Dibantu pilih produk yang cocok buat kondisi saya. Recommended!',
       rating: 5,
     },
   ],
@@ -88,12 +88,12 @@ const content: LandingPageContent = {
     {
       question: 'Ada garansi keaslian produk?',
       answer:
-        'Tentu! Sebagai mitra resmi KKI Group, kami menjamin semua produk 100% original. Kalau ada keraguan, hubungi CS kami via WhatsApp atau Evie Bot — kami siap bantu verifikasi.',
+        'Tentu! Sebagai mitra resmi KKI Group, kami menjamin semua produk 100% original. Kalau ada keraguan, hubungi CS kami via WhatsApp — kami siap bantu verifikasi.',
     },
     {
       question: 'Bisa konsultasi sebelum beli?',
       answer:
-        'Bisa banget! Evie Bot tersedia 24 jam untuk bantu kamu pilih produk yang paling sesuai dengan kebutuhan dan kondisi kesehatanmu — gratis, tanpa perlu daftar dulu.',
+        'Bisa banget! Admin EVC siap bantu via WhatsApp untuk memilih produk yang paling sesuai dengan kebutuhanmu — gratis, tanpa perlu daftar dulu.',
     },
   ],
 }

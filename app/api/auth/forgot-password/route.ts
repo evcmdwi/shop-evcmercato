@@ -36,7 +36,7 @@ export async function POST(req: NextRequest) {
       try {
         const resend = getResend()
         await resend.emails.send({
-          from: 'Evie EVC <evie@send.evcmercato.com>',
+          from: 'EVC Mercato <noreply@send.evcmercato.com>',
           to: email,
           subject: 'Reset Password - EVC Mercato',
           html: `
@@ -61,7 +61,7 @@ export async function POST(req: NextRequest) {
                 </div>
                 <p style="color: #9ca3af; font-size: 12px; text-align: center; line-height: 1.6;">
                   Link ini berlaku selama 1 jam. Jika kamu tidak meminta reset password, abaikan email ini.<br/>
-                  Butuh bantuan? Chat dengan <strong>Evie</strong> di <a href="https://t.me/evie_evc_bot" style="color: #7FB300;">t.me/evie_evc_bot</a>
+                  Butuh bantuan? Chat Admin EVC via <a href="https://wa.me/6285820852908" style="color: #7FB300;">WhatsApp</a>
                 </p>
                 <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
                 <p style="color: #9ca3af; font-size: 12px; text-align: center;">

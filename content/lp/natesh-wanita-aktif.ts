@@ -20,7 +20,7 @@ const content: LandingPageContent = {
     cta_secondary: {
       text: 'Tanya Admin',
       link: 'https://wa.me/6285820852908',
-      type: 'evie',
+      type: 'whatsapp',
     },
   },
   trust_elements: [],

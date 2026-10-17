@@ -1,6 +1,5 @@
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import Image from 'next/image'
 import { createClient } from '@/lib/supabase-server'
 import LogoutButton from './LogoutButton'
 
@@ -92,25 +91,6 @@ export default async function DashboardPage() {
             </div>
           </Link>
 
-          {/* Evie Health Poster */}
-          <a
-            href="https://t.me/evie_evc_bot?start=6285820852908"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="block rounded-2xl overflow-hidden hover:opacity-95 transition-opacity cursor-pointer"
-          >
-            <div className="relative w-full aspect-square">
-              <Image
-                src="/evie-health-reference.jpg"
-                alt="Evie Health — Konsultasi Kesehatan 24 Jam"
-                fill
-                className="object-cover"
-              />
-            </div>
-            <div className="bg-white py-2 px-3 text-center">
-              <p className="text-sm text-gray-500 italic">Klik untuk konsultasi dengan Evie</p>
-            </div>
-          </a>
 
           {/* Logout — paling bawah */}
           <div className="flex justify-center pt-4 pb-2">
