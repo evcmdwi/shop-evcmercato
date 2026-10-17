@@ -8,6 +8,7 @@ import { ChevronDown, Plus, CheckCircle2, Loader2 } from 'lucide-react'
 import Modal from '@/components/Modal'
 import AddressForm from '@/components/AddressForm'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
+import ExpressShippingModal from '@/components/checkout/ExpressShippingModal'
 import { toast } from '@/components/Toast'
 import type { Address } from '@/types/address'
 import type { Cart } from '@/hooks/useCart'
@@ -50,6 +51,9 @@ export default function CheckoutPage() {
   const deliveryNoteRef = useRef<HTMLInputElement>(null)
 
   const [shippingMethod, setShippingMethod] = useState<'reguler' | 'instan' | 'sameday'>('reguler')
+  // Instan/Sameday baru aktif setelah pembeli klik Setuju di popup jam kirim.
+  const [pendingExpress, setPendingExpress] = useState<'instan' | 'sameday' | null>(null)
+  const cancelExpress = useCallback(() => setPendingExpress(null), [])
   const [shippingRates, setShippingRates] = useState<{
     available_methods: { method: string; label: string; base_rate: number; available: boolean; reason?: string }[]
   } | null>(null)
@@ -250,8 +254,22 @@ export default function CheckoutPage() {
 
   const loading = loadingAddresses || loadingCart
 
+  const expressRecipient = selectedAddress
+    ? {
+        name: selectedAddress.recipient_name,
+        phone: selectedAddress.phone,
+        address: [selectedAddress.full_address, selectedAddress.city, selectedAddress.province].filter(Boolean).join(', '),
+      }
+    : sessionAddressReady && sessionAddress
+    ? {
+        name: sessionAddress.recipient_name,
+        phone: sessionAddress.phone,
+        address: [sessionAddress.full_address, sessionAddress.district_name, sessionAddress.regency_name].filter(Boolean).join(', '),
+      }
+    : null
+
   return (
-    <div className="min-h-screen bg-gray-50 pb-28 lg:pb-8">
+    <div className="w-full min-h-screen bg-gray-50 pb-32">
       <div className="max-w-5xl mx-auto px-4 py-6">
         <h1 className="text-xl font-bold text-gray-900 mb-6">Checkout</h1>
 
@@ -413,7 +431,11 @@ export default function CheckoutPage() {
                           <input type="radio" name="shipping_method" value={m.method}
                             checked={shippingMethod === m.method}
                             disabled={!m.available}
-                            onChange={() => m.available && setShippingMethod(m.method as 'reguler' | 'instan' | 'sameday')}
+                            onChange={() => {
+                              if (!m.available) return
+                              if (m.method === 'reguler') setShippingMethod('reguler')
+                              else setPendingExpress(m.method as 'instan' | 'sameday')
+                            }}
                             className="accent-[#7FB300]"
                           />
                           <div>
@@ -649,44 +671,51 @@ export default function CheckoutPage() {
                         )}
                       </div>
                     )}
-                    <button
-                      onClick={handlePay}
-                      disabled={paying || !canPay}
-                      className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-bold text-base disabled:opacity-40 disabled:cursor-not-allowed hover:bg-[#6B9700] transition-colors flex items-center justify-center gap-2"
-                    >
-                      {paying ? (
-                        <>
-                          <Loader2 className="w-5 h-5 animate-spin" />
-                          Memproses...
-                        </>
-                      ) : !canPay ? (
-                        '⬜ Lengkapi alamat'
-                      ) : loadingCart ? (
-                        'Memuat...'
-                      ) : (
-                        `Bayar Sekarang ${formatRupiah(totalAmount)}`
-                      )}
-                    </button>
                   </div>
                 </>
               )}
             </div>
           </div>
         </div>
-            {/* Mobile sticky CTA */}
-      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 p-4 lg:hidden">
-        <button
-          onClick={handlePay}
-          disabled={paying || !canPay}
-          className="w-full bg-[#7FB300] text-white py-4 rounded-2xl font-semibold text-base disabled:opacity-40"
-        >
-          {canPay ? `Bayar Sekarang ${formatRupiah(totalAmount)}` : '⬜ Lengkapi alamat dulu'}
-        </button>
+      {/* Satu-satunya tombol bayar — menempel di bawah layar (HP & desktop) */}
+      <div className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200 px-4 pt-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
+        <div className="max-w-5xl mx-auto flex items-center gap-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs text-gray-500">Total Bayar</p>
+            <p className="text-lg font-bold text-[#7FB300] whitespace-nowrap">{loading ? '…' : formatRupiah(totalAmount)}</p>
+          </div>
+          <button
+            onClick={handlePay}
+            disabled={paying || !canPay}
+            className="flex min-h-[52px] flex-1 items-center justify-center gap-2 rounded-2xl bg-[#7FB300] px-4 text-base font-bold text-white transition-colors hover:bg-[#6B9700] disabled:cursor-not-allowed disabled:opacity-40 sm:max-w-xs"
+          >
+            {paying ? (
+              <>
+                <Loader2 className="w-5 h-5 animate-spin" />
+                Memproses...
+              </>
+            ) : !canPay ? (
+              'Lengkapi alamat'
+            ) : (
+              'Bayar Sekarang'
+            )}
+          </button>
+        </div>
       </div>
     </div>
 
 
-{/* Modal AddressForm */}
+      <ExpressShippingModal
+        method={pendingExpress}
+        recipient={expressRecipient}
+        onAgree={() => {
+          if (pendingExpress) setShippingMethod(pendingExpress)
+          setPendingExpress(null)
+        }}
+        onCancel={cancelExpress}
+      />
+
+      {/* Modal AddressForm */}
       <Modal isOpen={showAddressModal} onClose={() => setShowAddressModal(false)} title="Tambah Alamat Baru">
         <AddressForm
           onSuccess={() => {

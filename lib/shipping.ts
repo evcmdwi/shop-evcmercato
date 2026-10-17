@@ -6,6 +6,12 @@ export const REGULER_RATE = 10000
 export const SHIPPING_METHODS = ['reguler', 'instan', 'sameday'] as const
 export type ShippingMethod = (typeof SHIPPING_METHODS)[number]
 
+/** Jam kirim kurir Instan/Sameday (Grab) — ditampilkan di popup persetujuan checkout. */
+export const EXPRESS_HOURS = {
+  instan: { weekday: '09.00–16.00', saturday: '09.00–14.00' },
+  sameday: { weekday: '09.00–15.00', saturday: '09.00–12.00' },
+} as const
+
 export function isShippingMethod(v: unknown): v is ShippingMethod {
   return typeof v === 'string' && (SHIPPING_METHODS as readonly string[]).includes(v)
 }

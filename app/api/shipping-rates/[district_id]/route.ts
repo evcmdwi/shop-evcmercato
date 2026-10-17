@@ -19,14 +19,14 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
     },
     {
       method: 'instan',
-      label: 'Instan ⚡ — Sen–Jum 09.00–16.00 · Sab 09.00–14.00',
+      label: 'Instan ⚡ — Grab (jam kerja)',
       base_rate: rate.instan,
       available: rate.instan !== null,
       reason: rate.instan === null ? 'Belum tersedia di kota Anda' : undefined,
     },
     {
       method: 'sameday',
-      label: 'Sameday 🚚 — Sen–Jum 09.00–15.00 · Sab 09.00–12.00',
+      label: 'Sameday 🚚 — Grab (jam kerja)',
       base_rate: rate.sameday,
       available: rate.sameday !== null,
       reason: !rate.hasRate
