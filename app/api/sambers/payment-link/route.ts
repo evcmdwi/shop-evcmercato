@@ -11,20 +11,24 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { nominal, deskripsi } = body as { nominal: number; deskripsi: string }
+    const { nominal, deskripsi: rawDeskripsi } = body as { nominal: unknown; deskripsi: unknown }
+    const deskripsi = typeof rawDeskripsi === 'string' ? rawDeskripsi.trim() : ''
 
-    if (!nominal || !deskripsi) {
-      return NextResponse.json({ error: 'nominal and deskripsi are required' }, { status: 400 })
+    if (typeof nominal !== 'number' || !Number.isInteger(nominal) || nominal < 1000) {
+      return NextResponse.json({ error: 'Nominal minimal Rp 1.000 (bilangan bulat)' }, { status: 400 })
+    }
+    if (!deskripsi || deskripsi.length > 200) {
+      return NextResponse.json({ error: 'Deskripsi wajib diisi (maks. 200 karakter)' }, { status: 400 })
     }
 
-    if (typeof nominal !== 'number' || nominal <= 0) {
-      return NextResponse.json({ error: 'nominal must be a positive number' }, { status: 400 })
+    const xenditKey = process.env.XENDIT_SECRET_KEY
+    if (!xenditKey) {
+      return NextResponse.json({ error: 'XENDIT_SECRET_KEY belum di-set di server' }, { status: 500 })
     }
 
     const external_id = `PAYLINK-${Date.now()}`
 
     // Call Xendit Create Invoice API
-    const xenditKey = process.env.XENDIT_SECRET_KEY ?? ''
     const xenditAuth = Buffer.from(`${xenditKey}:`).toString('base64')
 
     const xenditRes = await fetch('https://api.xendit.co/v2/invoices', {
@@ -45,7 +49,7 @@ export async function POST(req: NextRequest) {
     if (!xenditRes.ok) {
       const errBody = await xenditRes.text()
       console.error('[payment-link] Xendit error:', xenditRes.status, errBody)
-      return NextResponse.json({ error: 'Failed to create Xendit invoice', detail: errBody }, { status: 502 })
+      return NextResponse.json({ error: 'Gagal membuat invoice di Xendit', detail: errBody }, { status: 502 })
     }
 
     const invoice = await xenditRes.json() as {
@@ -65,6 +69,7 @@ export async function POST(req: NextRequest) {
         xendit_invoice_id: invoice.id,
         payment_url: invoice.invoice_url,
         status: 'pending',
+        created_by: auth.userId ?? null,
         expired_at: invoice.expiry_date ?? null,
       })
       .select('id, external_id, payment_url, nominal, deskripsi, status, created_at')
@@ -72,7 +77,11 @@ export async function POST(req: NextRequest) {
 
     if (error) {
       console.error('[payment-link] DB insert failed:', error.message)
-      return NextResponse.json({ error: 'DB insert failed', detail: error.message }, { status: 500 })
+      // Invoice Xendit sudah terbuat — kembalikan URL-nya agar tetap bisa dipakai.
+      return NextResponse.json(
+        { error: 'Invoice dibuat tapi gagal disimpan ke history', detail: error.message, payment_url: invoice.invoice_url },
+        { status: 500 }
+      )
     }
 
     return NextResponse.json(data, { status: 201 })

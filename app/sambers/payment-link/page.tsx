@@ -4,12 +4,13 @@ import React, { useEffect, useState, useCallback } from 'react'
 
 // ─── Types ────────────────────────────────────────────────────────────
 
-type PLStatus = 'pending' | 'paid' | 'expired' | 'failed'
+type PLStatus = 'pending' | 'paid' | 'settled' | 'expired' | 'failed'
 
+// Nama field mengikuti API & tabel payment_links (nominal/deskripsi).
 interface PaymentLink {
   id: string
-  description: string
-  amount: number
+  deskripsi: string
+  nominal: number
   status: PLStatus
   payment_url: string
   created_at: string
@@ -29,6 +30,7 @@ function StatusBadge({ status }: { status: PLStatus }) {
   const map: Record<PLStatus, { label: string; cls: string }> = {
     pending: { label: 'Menunggu', cls: 'bg-amber-100 text-amber-800' },
     paid:    { label: 'Lunas ✓',  cls: 'bg-green-100 text-green-800' },
+    settled: { label: 'Lunas ✓',  cls: 'bg-green-100 text-green-800' },
     expired: { label: 'Kedaluwarsa', cls: 'bg-gray-100 text-gray-600' },
     failed:  { label: 'Gagal',    cls: 'bg-red-100 text-red-700' },
   }
@@ -86,12 +88,12 @@ function HistoryCard({ item }: { item: PaymentLink }) {
     <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-2">
       <div className="flex items-start justify-between gap-2">
         <div>
-          <p className="text-sm font-medium text-gray-800">{item.description || '—'}</p>
+          <p className="text-sm font-medium text-gray-800">{item.deskripsi || '—'}</p>
           <p className="text-xs text-gray-400 mt-0.5">{formatDate(item.created_at)}</p>
         </div>
         <StatusBadge status={item.status} />
       </div>
-      <p className="text-base font-semibold text-gray-900">{formatRupiah(item.amount)}</p>
+      <p className="text-base font-semibold text-gray-900">{formatRupiah(item.nominal)}</p>
       <div className="flex items-center gap-2 pt-1">
         <a
           href={item.payment_url}
@@ -179,7 +181,7 @@ export default function PaymentLinkPage() {
       const res = await fetch('/api/sambers/payment-link', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ amount: amountNum, description: description.trim() }),
+        body: JSON.stringify({ nominal: amountNum, deskripsi: description.trim() }),
       })
       const data = await res.json()
       if (!res.ok) {
@@ -357,10 +359,10 @@ export default function PaymentLinkPage() {
                         {formatDate(item.created_at)}
                       </td>
                       <td className="px-4 py-3 text-gray-800 max-w-[200px] truncate">
-                        {item.description || '—'}
+                        {item.deskripsi || '—'}
                       </td>
                       <td className="px-4 py-3 text-right font-medium text-gray-900 whitespace-nowrap">
-                        {formatRupiah(item.amount)}
+                        {formatRupiah(item.nominal)}
                       </td>
                       <td className="px-4 py-3 text-center">
                         <StatusBadge status={item.status} />
