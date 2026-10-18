@@ -84,23 +84,22 @@ export function searchFilter(q: string, categoryIds: string[]): string | null {
   return parts.join(',')
 }
 
+/** Jumlah produk di "Paling sering dibeli ulang" (beranda). */
+export const FEATURED_LIMIT = 6
+/** Kunci site_settings: urutan manual dari Sambers › Tampilan Toko › Susun Produk Unggulan. */
+export const FEATURED_SETTING_KEY = 'featured_product_ids'
+
+export function parseFeaturedIds(value: unknown): string[] {
+  return Array.isArray(value) ? value.filter((v): v is string => typeof v === 'string').slice(0, FEATURED_LIMIT) : []
+}
+
 /**
- * Produk untuk "Paling sering dibeli ulang": urutan manual (slug) bila diisi;
- * jika tidak, jumlah pembeli yang membeli produk itu di ≥2 pesanan web, lalu
- * angka terjual. Butuh client admin (order_items/orders terkunci RLS).
+ * Semua produk aktif, diurutkan otomatis: jumlah pembeli yang membeli produk itu di
+ * ≥2 pesanan web, lalu angka terjual. Butuh client admin (order_items/orders terkunci RLS).
  */
-export async function getFeaturedProducts(
-  admin: SupabaseClient,
-  limit: number,
-  manualSlugs: string[]
-): Promise<ProductWithCategory[]> {
+export async function getAutoRankedProducts(admin: SupabaseClient): Promise<ProductWithCategory[]> {
   const { data } = await admin.from('products').select(CARD_PRODUCT_SELECT).eq('is_active', true)
   const products = (data ?? []) as ProductWithCategory[]
-
-  if (manualSlugs.length) {
-    const bySlug = new Map(products.map((p) => [productSlug(p), p]))
-    return manualSlugs.map((s) => bySlug.get(s)).filter((p): p is ProductWithCategory => !!p).slice(0, limit)
-  }
 
   const { data: items } = await admin
     .from('order_items')
@@ -118,6 +117,21 @@ export async function getFeaturedProducts(
   return products
     .map((p) => ({ p, r: repeatBuyers(p.id), s: soldCount(p) }))
     .sort((a, b) => b.r - a.r || b.s - a.s)
-    .slice(0, limit)
     .map((x) => x.p)
+}
+
+/**
+ * Produk untuk "Paling sering dibeli ulang": urutan manual (ID produk) dulu; produk
+ * nonaktif dilewati dan slot yang kosong diisi urutan otomatis.
+ */
+export async function getFeaturedProducts(
+  admin: SupabaseClient,
+  limit: number,
+  manualIds: string[]
+): Promise<ProductWithCategory[]> {
+  const ranked = await getAutoRankedProducts(admin)
+  const byId = new Map(ranked.map((p) => [p.id, p]))
+  const manual = manualIds.map((id) => byId.get(id)).filter((p): p is ProductWithCategory => !!p)
+  const picked = new Set(manual.map((p) => p.id))
+  return [...manual, ...ranked.filter((p) => !picked.has(p.id))].slice(0, limit)
 }

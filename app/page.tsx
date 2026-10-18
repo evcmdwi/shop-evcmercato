@@ -4,8 +4,7 @@ import HeroCarousel from '@/components/home/HeroCarousel'
 import { getHeroData } from '@/lib/hero-banners'
 import { unstable_cache } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { getFeaturedProducts } from '@/lib/catalog'
-import { FEATURED_PRODUCT_SLUGS } from '@/content/homepage'
+import { FEATURED_LIMIT, FEATURED_SETTING_KEY, getFeaturedProducts, parseFeaturedIds } from '@/lib/catalog'
 import {
   TrustStrip,
   WelcomeCard,
@@ -24,7 +23,8 @@ import {
 const getHomeData = unstable_cache(
   async () => {
     const admin = getSupabaseAdmin()
-    const featured = await getFeaturedProducts(admin, 6, FEATURED_PRODUCT_SLUGS)
+    const { data: setting } = await admin.from('site_settings').select('value').eq('key', FEATURED_SETTING_KEY).maybeSingle()
+    const featured = await getFeaturedProducts(admin, FEATURED_LIMIT, parseFeaturedIds(setting?.value))
 
     // Ulasan asli saja; tabel belum ada / kosong → section tidak dirender.
     let reviews: HomeReview[] = []

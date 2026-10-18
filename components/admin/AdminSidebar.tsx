@@ -113,6 +113,13 @@ const menuItems: MenuItem[] = [
           <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🖼️</span>
         ),
       },
+      {
+        href: '/sambers/tampilan/produk-unggulan',
+        label: 'Susun Produk Unggulan',
+        icon: (
+          <span className="w-5 h-5 flex items-center justify-center text-base leading-none">⭐</span>
+        ),
+      },
     ],
   },
   {

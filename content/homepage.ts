@@ -16,11 +16,7 @@ export const PROMO_BANNER = {
  */
 export const FIRST_ORDER_OFFER_TEXT = ''
 
-/**
- * Urutan manual "Paling sering dibeli ulang" (slug produk, mis. 'natesh-day-pembalut-siang-24cm').
- * Kosong = otomatis: pembeli ulang terbanyak dari pesanan web, lalu angka terjual.
- */
-export const FEATURED_PRODUCT_SLUGS: string[] = []
+// Urutan "Paling sering dibeli ulang" diatur di Sambers › Tampilan Toko › Susun Produk Unggulan.
 
 export type CompareCell = { main: string; sub?: string }
 export const COMPARISON_ROWS: { label: string; marketplace: CompareCell; evc: CompareCell }[] = [
