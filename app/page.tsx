@@ -1,4 +1,5 @@
 import Script from 'next/script'
+import ReturningCustomer from '@/components/home/ReturningCustomer'
 import { unstable_cache } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { getFeaturedProducts } from '@/lib/catalog'
@@ -88,7 +89,8 @@ export default async function HomePage() {
       <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <TrustStrip />
       <main className="mx-auto max-w-[1200px] space-y-8 px-4 py-5 md:space-y-12 md:py-8">
-        {/* Fase 2: section pelanggan login (poin, pesan lagi) disisipkan di sini, di atas WelcomeCard. */}
+        {/* Fase 2: pelanggan login — saldo poin & pesan lagi (dirender di klien). */}
+        <ReturningCustomer />
         <WelcomeCard />
         <ComparisonTable />
         <FeaturedProducts products={featured} />
