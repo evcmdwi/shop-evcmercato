@@ -3,6 +3,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { emitOrderPaid } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
 import { notifyCommissionValid } from '@/lib/affiliate/notifications'
+import { sendPaymentReminders } from '@/lib/payment-reminder'
 
 // Initialize listeners
 setupEventListeners()
@@ -39,6 +40,12 @@ export async function GET(req: NextRequest) {
   const t0 = Date.now()
   const admin = getSupabaseAdmin()
 
+  // Pengingat WA untuk pesanan yang belum dibayar ≥5 menit (sekali per pesanan).
+  const reminders = await sendPaymentReminders(admin).catch((e) => {
+    console.error('[process-paid-orders] payment reminder error:', e)
+    return 0
+  })
+
   // Fetch paid orders that still need post-payment processing
   // Wait 10s after paid_at to avoid race with webhook update
   const { data: orders, error: fetchError } = await admin
@@ -62,7 +69,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!orders?.length) {
-    return NextResponse.json({ processed: 0, ms: Date.now() - t0 })
+    return NextResponse.json({ processed: 0, reminders, ms: Date.now() - t0 })
   }
 
   let processed = 0
@@ -173,10 +180,8 @@ export async function GET(req: NextRequest) {
           .single()
 
         const basePoints = order.points_earned || Math.floor((order.subtotal || 0) / 1000)
-        const shippingFee = Math.max(
-          0,
-          (order.shipping_cost || 10_000) - (order.shipping_cost_discount || 0)
-        )
+        // shipping_cost sudah ongkir bersih (setelah potongan) — jangan dipotong lagi.
+        const shippingFee = Math.max(0, order.shipping_cost ?? 0)
 
         await emitOrderPaid({
           orderId: order.id,
@@ -312,5 +317,5 @@ export async function GET(req: NextRequest) {
 
   const ms = Date.now() - t0
   console.log('[process-paid-orders] done', { processed, errors, ms })
-  return NextResponse.json({ processed, errors, ms })
+  return NextResponse.json({ processed, errors, reminders, ms })
 }

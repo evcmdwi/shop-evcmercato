@@ -45,6 +45,7 @@ interface OrderDetail {
   xendit_invoice_url?: string
   tracking_number?: string
   delivery_note?: string | null
+  shipping_method?: 'reguler' | 'instan' | 'sameday' | null
   // flat shipping fields from API
   shipping_recipient_name: string
   shipping_phone: string
@@ -63,6 +64,12 @@ const statusConfig: Record<string, { label: string; className: string }> = {
   delivered: { label: 'Diterima', className: 'bg-green-100 text-green-800' },
   cancelled: { label: 'Dibatalkan', className: 'bg-red-100 text-red-800' },
   expired: { label: 'Pesanan Kadaluarsa', className: 'bg-gray-100 text-gray-600' },
+}
+
+const SHIPPING_LABEL: Record<string, string> = {
+  reguler: 'Reguler — J&T (1–3 hari)',
+  instan: 'Instan ⚡ — Grab',
+  sameday: 'Sameday 🚚 — Grab',
 }
 
 const timelineSteps = [
@@ -154,10 +161,22 @@ export default function OrderDetailPage() {
   const status = statusConfig[order.status] ?? { label: order.status, className: 'bg-gray-100 text-gray-700' }
   const currentStep = statusOrder[order.status] ?? 0
   const evcPoints = order.points_earned ?? Math.floor((order.subtotal ?? 0) / 1000)
+  const isPending = order.status === 'pending'
+
+  // shipping_cost di DB = ongkir bersih (sudah dipotong). Tampilkan tarif penuh + potongannya.
+  const shippingNet = order.shipping_cost ?? 0
+  const shippingDiscount = order.shipping_cost_discount ?? 0
+  const serviceFee = order.service_fee ?? 0
+  const serviceDiscount = order.service_fee_discount ?? 0
+  // Sisa selisih = diskon member khusus (tidak disimpan di kolom tersendiri).
+  const memberDiscount = Math.max(
+    0,
+    (order.subtotal ?? 0) + shippingNet + serviceFee - serviceDiscount - order.total_amount
+  )
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="w-full min-h-screen bg-gray-50">
+      <div className="w-full max-w-2xl mx-auto px-4 py-6">
         {/* Header */}
         <div className="flex items-center gap-3 mb-6">
           <button
@@ -255,6 +274,14 @@ export default function OrderDetailPage() {
             </div>
           </div>
 
+          {/* Jenis Pengiriman */}
+          <div className="bg-white rounded-2xl p-5 shadow-sm flex items-center justify-between gap-3">
+            <h2 className="font-semibold text-gray-900">Pengiriman</h2>
+            <span className="text-sm font-medium text-gray-700 text-right">
+              {SHIPPING_LABEL[order.shipping_method ?? 'reguler'] ?? order.shipping_method}
+            </span>
+          </div>
+
           {/* Item Pesanan */}
           <div className="bg-white rounded-2xl p-5 shadow-sm">
             <h2 className="font-semibold text-gray-900 mb-3">Item Pesanan</h2>
@@ -288,16 +315,22 @@ export default function OrderDetailPage() {
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Ongkos Kirim</span>
-                <span>{formatRupiah((order.shipping_cost ?? 0) - (order.shipping_cost_discount ?? 0))}</span>
+                <span>{formatRupiah(shippingNet + shippingDiscount)}</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-600">Biaya Layanan</span>
-                <span>{formatRupiah(order.service_fee ?? 0)}</span>
+                <span>{formatRupiah(serviceFee)}</span>
               </div>
-              {(order.service_fee_discount ?? 0) > 0 && (
+              {shippingDiscount + serviceDiscount > 0 && (
                 <div className="flex justify-between text-[#1D9E75]">
-                  <span>Promo</span>
-                  <span>-{formatRupiah(order.service_fee_discount)}</span>
+                  <span>Promo Ongkir &amp; Layanan</span>
+                  <span>-{formatRupiah(shippingDiscount + serviceDiscount)}</span>
+                </div>
+              )}
+              {memberDiscount > 0 && (
+                <div className="flex justify-between text-[#7FB300]">
+                  <span>Diskon Member</span>
+                  <span>-{formatRupiah(memberDiscount)}</span>
                 </div>
               )}
               <div className="border-t border-gray-100 pt-2 flex justify-between font-bold">
@@ -317,14 +350,19 @@ export default function OrderDetailPage() {
           )}
 
           {/* Aksi Conditional */}
-          {order.status === 'pending' && order.xendit_invoice_url && (
-            <a
-              href={order.xendit_invoice_url}
-              className="block w-full py-3 rounded-xl text-white font-semibold text-sm text-center"
-              style={{ backgroundColor: '#7FB300' }}
-            >
-              Bayar Sekarang
-            </a>
+          {isPending && order.xendit_invoice_url && (
+            <div>
+              <a
+                href={order.xendit_invoice_url}
+                className="flex w-full min-h-[52px] items-center justify-center rounded-xl text-white font-bold text-base"
+                style={{ backgroundColor: '#7FB300' }}
+              >
+                Bayar Sekarang {formatRupiah(order.total_amount)}
+              </a>
+              <p className="mt-2 text-center text-xs text-gray-500">
+                Link pembayaran berlaku 24 jam sejak pesanan dibuat. Kesulitan bayar? Hubungi admin di bawah.
+              </p>
+            </div>
           )}
 
           {order.status === 'shipped' && order.tracking_number && (
@@ -346,12 +384,14 @@ export default function OrderDetailPage() {
 
           {/* CTA Navigasi */}
           <div className="flex flex-col sm:flex-row gap-3 mt-6">
-            <Link
-              href="/katalog"
-              className="flex-1 flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#4338a0]"
-            >
-              🛍️ Lanjut Belanja
-            </Link>
+            {!isPending && (
+              <Link
+                href="/katalog"
+                className="flex-1 flex items-center justify-center gap-2 bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700]"
+              >
+                🛍️ Lanjut Belanja
+              </Link>
+            )}
             <a
               href={`https://wa.me/6285820852908?text=Halo%20admin%2C%20saya%20mau%20tanya%20order%20${order.id}`}
               target="_blank"
