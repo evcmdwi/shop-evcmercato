@@ -105,8 +105,9 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
     .pengirim { flex: 3; }
     .addr-heading { font-size: 0.32cm; font-weight: bold; text-transform: uppercase; margin-bottom: 0.1cm; }
     .addr-name { font-size: 0.46cm; font-weight: bold; line-height: 1.2; }
-    .addr-phone { font-size: 0.35cm; margin-bottom: 0.06cm; }
-    .addr-detail { font-size: 0.28cm; line-height: 1.4; color: #333; }
+    /* Disamakan dengan /sambers/cetak-resi — tebal agar jelas di printer thermal. */
+    .addr-phone { font-size: 0.42cm; font-weight: bold; margin-bottom: 0.06cm; word-break: break-all; overflow-wrap: break-word; white-space: normal; }
+    .addr-detail { font-size: 0.34cm; font-weight: bold; line-height: 1.4; color: #222; }
     .delivery-note {
       flex-shrink: 0;
       background: #FEF3C7; border-left: 4px solid #F59E0B;
@@ -188,6 +189,19 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
       <div class="footer-right">Tgl: ${resiDate}</div>
     </div>
   </div>
+  <script>
+    // Alamat panjang: kecilkan huruf alamat sedikit demi sedikit sampai muat (min 0.24cm).
+    (function () {
+      var box = document.querySelector('.penerima');
+      var detail = document.querySelector('.addr-detail');
+      if (!box || !detail) return;
+      var size = 0.34;
+      while (box.scrollHeight > box.clientHeight + 1 && size > 0.24) {
+        size = Math.round((size - 0.02) * 100) / 100;
+        detail.style.fontSize = size + 'cm';
+      }
+    })();
+  </script>
 </body>
 </html>`
 
