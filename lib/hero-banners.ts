@@ -42,7 +42,8 @@ export const HERO_BANNER_SIZES = {
   desktop: { width: 1920, height: 640 },
 } as const
 
-export const LINK_TYPES: BannerLinkType[] = ['product', 'category', 'internal', 'whatsapp']
+/** Jenis link yang bisa dipilih admin. 'product' tidak dipakai lagi (produk tak punya slug tetap). */
+export const LINK_TYPES: BannerLinkType[] = ['category', 'internal', 'whatsapp']
 
 /** Tautan slide. Eksternal hanya wa.me admin; internal harus path di toko ini. */
 export function bannerHref(b: Pick<HeroBanner, 'link_type' | 'link_value'>): string {

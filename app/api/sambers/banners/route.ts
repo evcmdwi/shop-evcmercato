@@ -12,7 +12,7 @@ import {
 import { validateBannerInput } from './validate'
 
 /**
- * GET  — daftar banner + pengaturan + pilihan produk/kategori untuk form.
+ * GET  — daftar banner + pengaturan + pilihan kategori untuk form.
  *        `?preview=1` → data draf untuk carousel beranda (semua banner yang belum berakhir).
  * POST — buat banner baru (urutan paling akhir).
  */
@@ -43,11 +43,10 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ slides: drafts.slice(0, HERO_MAX_SLIDES).map(toSlide), settings, start })
   }
 
-  const [{ data: products }, { data: categories }] = await Promise.all([
-    admin.from('products').select('name, slug').eq('is_active', true).order('name'),
+  const [{ data: categories }] = await Promise.all([
     admin.from('categories').select('name, slug').order('name'),
   ])
-  return NextResponse.json({ banners: list, settings, products: products ?? [], categories: categories ?? [] })
+  return NextResponse.json({ banners: list, settings, categories: categories ?? [] })
 }
 
 export async function POST(req: NextRequest) {

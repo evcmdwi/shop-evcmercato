@@ -39,9 +39,7 @@ export function validateBannerInput(body: unknown): { data: BannerInput } | { er
   if (image_desktop_url && !isStorageUrl(image_desktop_url)) return { error: 'Gambar desktop tidak valid' }
   if (!alt_text) return { error: 'Teks alternatif (alt) wajib diisi' }
   if (!LINK_TYPES.includes(link_type)) return { error: 'Jenis link tidak valid' }
-  if ((link_type === 'product' || link_type === 'category') && !link_value) {
-    return { error: link_type === 'product' ? 'Pilih produk tujuan' : 'Pilih kategori tujuan' }
-  }
+  if (link_type === 'category' && !link_value) return { error: 'Pilih kategori tujuan' }
   if (link_type === 'internal' && !isSafeInternalPath(link_value)) {
     return { error: 'URL internal harus diawali "/" (mis. /katalog?q=natesh)' }
   }

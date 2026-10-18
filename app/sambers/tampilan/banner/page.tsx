@@ -4,6 +4,7 @@ import {
   HERO_BANNER_MAX_BYTES,
   HERO_BANNER_SIZES,
   HERO_MAX_SLIDES,
+  LINK_TYPES,
   bannerHref,
   bannerStatus,
   formatWita,
@@ -25,7 +26,7 @@ const STATUS_CLS: Record<BannerStatus, string> = {
 }
 
 const LINK_LABEL: Record<BannerLinkType, string> = {
-  product: 'Produk',
+  product: 'Produk', // lama — tidak bisa dipilih lagi
   category: 'Kategori',
   internal: 'URL internal',
   whatsapp: 'WhatsApp admin',
@@ -34,7 +35,6 @@ const LINK_LABEL: Record<BannerLinkType, string> = {
 export default function BannerHeroPage() {
   const [banners, setBanners] = useState<HeroBanner[]>([])
   const [settings, setSettings] = useState<HeroSettings | null>(null)
-  const [products, setProducts] = useState<Option[]>([])
   const [categories, setCategories] = useState<Option[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -50,7 +50,6 @@ export default function BannerHeroPage() {
       setError(null)
       setBanners(d.banners ?? [])
       setSettings(d.settings)
-      setProducts(d.products ?? [])
       setCategories(d.categories ?? [])
     }
     setLoading(false)
@@ -244,7 +243,6 @@ export default function BannerHeroPage() {
       {editing && (
         <BannerForm
           banner={editing === 'new' ? null : editing}
-          products={products}
           categories={categories}
           onClose={() => setEditing(null)}
           onSaved={() => { setEditing(null); load() }}
@@ -301,13 +299,11 @@ function SettingsCard({ settings, onSaved }: { settings: HeroSettings; onSaved: 
 
 function BannerForm({
   banner,
-  products,
   categories,
   onClose,
   onSaved,
 }: {
   banner: HeroBanner | null
-  products: Option[]
   categories: Option[]
   onClose: () => void
   onSaved: () => void
@@ -317,7 +313,7 @@ function BannerForm({
   const [desktop, setDesktop] = useState(banner?.image_desktop_url ?? '')
   const [bgColor, setBgColor] = useState(banner?.bg_color ?? '')
   const [alt, setAlt] = useState(banner?.alt_text ?? '')
-  const [linkType, setLinkType] = useState<BannerLinkType>(banner?.link_type ?? 'product')
+  const [linkType, setLinkType] = useState<BannerLinkType>(banner?.link_type ?? 'category')
   const [linkValue, setLinkValue] = useState(banner?.link_value ?? '')
   const [startsAt, setStartsAt] = useState(isoToWitaInput(banner?.starts_at ?? null))
   const [endsAt, setEndsAt] = useState(isoToWitaInput(banner?.ends_at ?? null))
@@ -410,7 +406,7 @@ function BannerForm({
           <div>
             <span className={label}>Link tujuan <span className="text-red-500">*</span></span>
             <div className="mb-2 flex flex-wrap gap-2">
-              {(Object.keys(LINK_LABEL) as BannerLinkType[]).map((t) => (
+              {LINK_TYPES.map((t) => (
                 <button
                   key={t}
                   type="button"
@@ -421,12 +417,6 @@ function BannerForm({
                 </button>
               ))}
             </div>
-            {linkType === 'product' && (
-              <select required value={linkValue} onChange={(e) => setLinkValue(e.target.value)} className={input} aria-label="Produk tujuan">
-                <option value="">— Pilih produk —</option>
-                {products.map((p) => <option key={p.slug} value={p.slug}>{p.name}</option>)}
-              </select>
-            )}
             {linkType === 'category' && (
               <select required value={linkValue} onChange={(e) => setLinkValue(e.target.value)} className={input} aria-label="Kategori tujuan">
                 <option value="">— Pilih kategori —</option>
