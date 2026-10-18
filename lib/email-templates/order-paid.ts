@@ -1,5 +1,6 @@
 import type { OrderPaidPayload } from '@/lib/events/order-events'
 import { formatRupiah } from '@/lib/format'
+import { EXPRESS_HOURS } from '@/lib/shipping'
 
 export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: string; html: string } {
   const subject = `Pembayaran Diterima - Pesanan #${payload.orderShortId}`
@@ -23,9 +24,11 @@ export function generateOrderPaidEmail(payload: OrderPaidPayload): { subject: st
       ? '<span style="color: #1a7f37; font-weight: bold;">GRATIS 💚</span>'
       : formatRupiah(payload.shipping_fee)
 
-  const shippingText = payload.shipping_method === 'instan' ? '⚡ Instan (estimasi 2-3 jam)' :
-                       payload.shipping_method === 'sameday' ? '🚚 Sameday (estimasi 8-12 jam)' :
-                       '📦 Reguler JNT (1-3 hari kerja)'
+  // Instan/Sameday hanya dikirim di jam kerja — jangan janjikan estimasi jam tiba.
+  const m = payload.shipping_method
+  const shippingText = m === 'instan' || m === 'sameday'
+    ? `${m === 'instan' ? '⚡ Instan' : '🚚 Sameday'} (Grab) — dikirim pada jam kerja: Sen–Jum ${EXPRESS_HOURS[m].weekday}, Sab ${EXPRESS_HOURS[m].saturday}; Minggu &amp; tanggal merah libur. Dibayar di luar jam kirim → dikirim pada jam kerja berikutnya.`
+    : '📦 Reguler J&amp;T (1-3 hari kerja)'
 
   const html = `
 <!DOCTYPE html>
