@@ -1,5 +1,7 @@
 import Script from 'next/script'
 import ReturningCustomer from '@/components/home/ReturningCustomer'
+import HeroCarousel from '@/components/home/HeroCarousel'
+import { getHeroData } from '@/lib/hero-banners'
 import { unstable_cache } from 'next/cache'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { getFeaturedProducts } from '@/lib/catalog'
@@ -48,8 +50,15 @@ const getHomeData = unstable_cache(
   { revalidate: 600, tags: ['home-data'] }
 )
 
+// Banner hero: cache singkat agar jadwal tayang (WITA) berlaku tanpa deploy; disegarkan
+// seketika saat admin menyimpan (revalidateTag 'hero-banners').
+const getHero = unstable_cache(async () => getHeroData(getSupabaseAdmin()), ['hero-banners-v1'], {
+  revalidate: 60,
+  tags: ['hero-banners'],
+})
+
 export default async function HomePage() {
-  const { featured, reviews } = await getHomeData()
+  const [{ featured, reviews }, hero] = await Promise.all([getHomeData(), getHero()])
 
   const orgJsonLd = {
     '@context': 'https://schema.org',
@@ -89,9 +98,13 @@ export default async function HomePage() {
       <Script id="org-schema" type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       <TrustStrip />
       <main className="mx-auto max-w-[1200px] space-y-8 px-4 py-5 md:space-y-12 md:py-8">
-        {/* Fase 2: pelanggan login — saldo poin & pesan lagi (dirender di klien). */}
+        <HeroCarousel
+          slides={hero.slides}
+          settings={hero.settings}
+          fallback={<WelcomeCard />}
+        />
+        {/* Fase 2: pelanggan login — saldo poin & pesan lagi (dirender di klien, di bawah hero agar hero tidak bergeser). */}
         <ReturningCustomer />
-        <WelcomeCard />
         <ComparisonTable />
         <FeaturedProducts products={featured} />
         <NeedCards />

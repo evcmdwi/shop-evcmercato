@@ -100,6 +100,22 @@ const menuItems: MenuItem[] = [
     ],
   },
   {
+    href: '/sambers/tampilan',
+    label: 'Tampilan Toko',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🎨</span>
+    ),
+    children: [
+      {
+        href: '/sambers/tampilan/banner',
+        label: 'Banner Hero',
+        icon: (
+          <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🖼️</span>
+        ),
+      },
+    ],
+  },
+  {
     href: '/sambers/cetak-resi',
     label: 'Cetak Resi',
     icon: (
@@ -192,7 +208,7 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
             item.children ? (
               <div key={item.href}>
                 <div className="flex items-center gap-1">
-                  <Link href={item.href} prefetch={false} onClick={onClose} className={`flex-1 ${linkCls(isActive(item.href))}`}>
+                  <Link href={item.href} prefetch={false} onClick={onClose} className={`flex-1 ${linkCls(isActive(item.href) && !item.children.some((c) => isActive(c.href)))}`}>
                     {item.icon}
                     {item.label}
                   </Link>
