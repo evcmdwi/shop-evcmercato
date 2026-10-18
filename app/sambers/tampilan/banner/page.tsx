@@ -356,7 +356,12 @@ function BannerForm({
   const label = 'block text-sm font-semibold text-slate-700 mb-1'
 
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/50 p-4"
+      // File yang dilepas di luar kotak upload tidak boleh membuka gambar di tab (isi form hilang).
+      onDragOver={(e) => e.preventDefault()}
+      onDrop={(e) => e.preventDefault()}
+    >
       <form onSubmit={save} className="my-4 w-full max-w-2xl rounded-2xl bg-white p-5 shadow-xl md:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h2 className="text-lg font-bold text-slate-800">{banner ? 'Edit Banner' : 'Tambah Banner'}</h2>
@@ -487,14 +492,31 @@ function ImageInput({
   const [uploading, setUploading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [warning, setWarning] = useState<string | null>(null)
+  const [dragging, setDragging] = useState(false)
+
+  const onDragOver = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!uploading) setDragging(true)
+  }
+  const onDragLeave = (e: React.DragEvent) => {
+    e.stopPropagation()
+    setDragging(false)
+  }
+  const onDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setDragging(false)
+    if (uploading) return
+    const file = e.dataTransfer.files?.[0]
+    if (file) pick(file)
+  }
 
   const pick = async (file: File) => {
     setError(null)
     setWarning(null)
-    if (!['image/jpeg', 'image/webp'].includes(file.type)) return setError('Format harus JPG atau WebP.')
-    if (file.size > HERO_BANNER_MAX_BYTES) {
-      return setError(`File ${Math.round(file.size / 1024)} KB — maksimal 500 KB. Kecilkan dulu (mis. ekspor ulang dari Canva/Squoosh).`)
-    }
+    if (!INPUT_TYPES.includes(file.type)) return setError('Format harus PNG, JPG, atau WebP.')
+    if (file.size > INPUT_MAX_BYTES) return setError(`File ${(file.size / 1024 / 1024).toFixed(1)} MB — maksimal 20 MB.`)
     const dims = await imageSize(file).catch(() => null)
     if (dims) {
       const want = size.width / size.height
@@ -506,8 +528,24 @@ function ImageInput({
       }
     }
     setUploading(true)
+    // JPG/WebP ≤500 KB & tidak lebih besar dari ukuran banner → diupload apa adanya.
+    // Selain itu (PNG dari AI, file besar) → dikecilkan & diubah ke WebP di browser.
+    let upload: File = file
+    const fitsAsIs = file.type !== 'image/png' && file.size <= HERO_BANNER_MAX_BYTES && (!dims || dims.width <= size.width)
+    if (!fitsAsIs) {
+      const converted = await toBannerWebp(file, size.width).catch(() => null)
+      if (!converted) {
+        setUploading(false)
+        return setError('Gambar gagal diproses. Coba simpan ulang sebagai JPG.')
+      }
+      if (converted.size > HERO_BANNER_MAX_BYTES) {
+        setUploading(false)
+        return setError(`Setelah dikompres masih ${Math.round(converted.size / 1024)} KB — maksimal 500 KB. Coba gambar yang lebih sederhana.`)
+      }
+      upload = converted
+    }
     const fd = new FormData()
-    fd.append('file', file)
+    fd.append('file', upload)
     const res = await fetch('/api/sambers/banners/upload', { method: 'POST', body: fd })
     const d = await res.json().catch(() => ({}))
     setUploading(false)
@@ -523,19 +561,36 @@ function ImageInput({
       <button
         type="button"
         onClick={() => ref.current?.click()}
+        onDragOver={onDragOver}
+        onDragEnter={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
         disabled={uploading}
-        className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-xs text-slate-400 hover:border-[#7FB300] ${kind === 'mobile' ? 'aspect-[3/2]' : 'aspect-[3/1]'}`}
+        title={value ? 'Klik atau tarik gambar baru ke sini untuk mengganti' : 'Klik atau tarik gambar ke sini'}
+        className={`relative flex w-full items-center justify-center overflow-hidden rounded-xl border-2 border-dashed text-center text-xs transition-colors ${
+          dragging ? 'border-[#7FB300] bg-[#E8F4D1] text-[#5B8400]' : 'border-gray-200 bg-gray-50 text-slate-400 hover:border-[#7FB300]'
+        } ${uploading ? 'cursor-wait' : 'cursor-pointer'} ${kind === 'mobile' ? 'aspect-[3/2]' : 'aspect-[3/1]'}`}
       >
-        {value ? (
+        {value && (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="" className="absolute inset-0 h-full w-full object-cover" />
-        ) : (
-          <span>{uploading ? 'Mengupload…' : 'Klik untuk pilih gambar'}</span>
+          <img src={value} alt="" className={`absolute inset-0 h-full w-full object-cover ${dragging ? 'opacity-40' : ''}`} />
         )}
-        {value && uploading && <span className="relative rounded bg-white/80 px-2 py-1">Mengupload…</span>}
+        {uploading ? (
+          <span className="relative rounded bg-white/80 px-2 py-1 text-slate-600">Mengupload…</span>
+        ) : dragging ? (
+          <span className="relative rounded bg-white/80 px-2 py-1 font-semibold">Lepas untuk upload</span>
+        ) : (
+          !value && (
+            <span className="px-3">
+              <span className="block text-lg">⬆️</span>
+              Tarik &amp; lepas gambar ke sini
+              <span className="block text-slate-400">atau klik untuk pilih</span>
+            </span>
+          )
+        )}
       </button>
       <p className="mt-1 text-xs text-slate-500">
-        Disarankan <strong>{size.width} × {size.height} px</strong> · JPG/WebP · maks 500 KB ·{' '}
+        Disarankan <strong>{size.width} × {size.height} px</strong> · PNG/JPG/WebP (otomatis dikompres ≤500 KB) ·{' '}
         <a href={`/templates/banner-${kind}-${size.width}x${size.height}.png`} download className="text-[#5B8400] underline">template</a>
       </p>
       {value && !required && (
@@ -546,7 +601,7 @@ function ImageInput({
       <input
         ref={ref}
         type="file"
-        accept="image/jpeg,image/webp"
+        accept={INPUT_TYPES.join(',')}
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0]
@@ -556,6 +611,43 @@ function ImageInput({
       />
     </div>
   )
+}
+
+const INPUT_TYPES = ['image/png', 'image/jpeg', 'image/webp']
+const INPUT_MAX_BYTES = 20 * 1024 * 1024
+
+/**
+ * Kecilkan ke lebar banner (tanpa memperbesar) & ubah ke WebP; kualitas diturunkan
+ * bertahap sampai ≤500 KB. Browser tanpa encoder WebP (Safari lama) → JPEG.
+ */
+async function toBannerWebp(file: File, maxWidth: number): Promise<File> {
+  const bitmap = await createImageBitmap(file)
+  const scale = Math.min(1, maxWidth / bitmap.width)
+  const canvas = document.createElement('canvas')
+  canvas.width = Math.round(bitmap.width * scale)
+  canvas.height = Math.round(bitmap.height * scale)
+  const ctx = canvas.getContext('2d')
+  if (!ctx) throw new Error('canvas')
+  ctx.fillStyle = '#FFFFFF' // PNG transparan → latar putih (JPEG tak punya alpha)
+  ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height)
+  bitmap.close()
+
+  const encode = (type: string, q: number) =>
+    new Promise<Blob | null>((resolve) => canvas.toBlob(resolve, type, q))
+  let type = 'image/webp'
+  let blob: Blob | null = null
+  for (const q of [0.86, 0.78, 0.7, 0.6, 0.5]) {
+    blob = await encode(type, q)
+    if (blob && blob.type !== type) {
+      type = 'image/jpeg'
+      blob = await encode(type, q)
+    }
+    if (blob && blob.size <= HERO_BANNER_MAX_BYTES) break
+  }
+  if (!blob) throw new Error('encode')
+  const ext = type === 'image/webp' ? 'webp' : 'jpg'
+  return new File([blob], `banner.${ext}`, { type })
 }
 
 function imageSize(file: File): Promise<{ width: number; height: number }> {
