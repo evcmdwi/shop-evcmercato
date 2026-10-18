@@ -4,7 +4,14 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
 
-const menuItems = [
+interface MenuItem {
+  href: string
+  label: string
+  icon: React.ReactNode
+  children?: MenuItem[]
+}
+
+const menuItems: MenuItem[] = [
   {
     href: '/sambers',
     label: 'Dashboard',
@@ -68,33 +75,35 @@ const menuItems = [
     icon: (
       <span className="w-5 h-5 flex items-center justify-center text-base leading-none">👥</span>
     ),
+    children: [
+      {
+        href: '/sambers/leads',
+        label: 'Database Leads',
+        icon: (
+          <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🎯</span>
+        ),
+      },
+      {
+        href: '/sambers/broadcast',
+        label: 'Broadcast Campaign',
+        icon: (
+          <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📢</span>
+        ),
+      },
+      {
+        href: '/sambers/chat',
+        label: 'Chat Member',
+        icon: (
+          <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📨</span>
+        ),
+      },
+    ],
   },
   {
     href: '/sambers/cetak-resi',
     label: 'Cetak Resi',
     icon: (
       <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🖨️</span>
-    ),
-  },
-  {
-    href: '/sambers/leads',
-    label: 'Database Leads',
-    icon: (
-      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🎯</span>
-    ),
-  },
-  {
-    href: '/sambers/broadcast',
-    label: 'Broadcast Campaign',
-    icon: (
-      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📢</span>
-    ),
-  },
-  {
-    href: '/sambers/chat',
-    label: 'Chat Member',
-    icon: (
-      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📨</span>
     ),
   },
   {
@@ -132,6 +141,15 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
     if (href === '/sambers') return pathname === '/sambers'
     return pathname.startsWith(href)
   }
+  const groupActive = (item: MenuItem) => isActive(item.href) || !!item.children?.some((c) => isActive(c.href))
+  // Grup sub-menu terbuka otomatis bila halaman aktif ada di dalamnya.
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
+  const isExpanded = (item: MenuItem) => expanded[item.href] ?? groupActive(item)
+
+  const linkCls = (active: boolean) =>
+    `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+      active ? 'bg-[#7FB300] text-white' : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+    }`
 
   return (
     <>
@@ -170,21 +188,44 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
 
         {/* Nav */}
         <nav className="flex-1 px-3 py-4 space-y-1">
-          {menuItems.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                isActive(item.href)
-                  ? 'bg-[#7FB300] text-white'
-                  : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-              }`}
-            >
-              {item.icon}
-              {item.label}
-            </Link>
-          ))}
+          {menuItems.map((item) =>
+            item.children ? (
+              <div key={item.href}>
+                <div className="flex items-center gap-1">
+                  <Link href={item.href} prefetch={false} onClick={onClose} className={`flex-1 ${linkCls(isActive(item.href))}`}>
+                    {item.icon}
+                    {item.label}
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => setExpanded((e) => ({ ...e, [item.href]: !isExpanded(item) }))}
+                    aria-expanded={isExpanded(item)}
+                    aria-label={`${isExpanded(item) ? 'Tutup' : 'Buka'} sub-menu ${item.label}`}
+                    className="flex h-10 w-9 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-white"
+                  >
+                    <svg className={`w-4 h-4 transition-transform ${isExpanded(item) ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                </div>
+                {isExpanded(item) && (
+                  <div className="mt-1 ml-4 space-y-1 border-l border-slate-700 pl-2">
+                    {item.children.map((child) => (
+                      <Link key={child.href} href={child.href} prefetch={false} onClick={onClose} className={linkCls(isActive(child.href))}>
+                        {child.icon}
+                        {child.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <Link key={item.href} href={item.href} prefetch={false} onClick={onClose} className={linkCls(isActive(item.href))}>
+                {item.icon}
+                {item.label}
+              </Link>
+            )
+          )}
         </nav>
 
         {/* Footer */}
