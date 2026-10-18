@@ -174,7 +174,7 @@ export default function SusunProdukUnggulanPage() {
                 </button>
               )}
             </div>
-            <ol className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+            <ol className="grid grid-cols-2 gap-3 md:grid-cols-5">
               {Array.from({ length: FEATURED_LIMIT }, (_, slot) => {
                 const isManual = slot < manual.length
                 const p = isManual ? manual[slot] : auto[slot - manual.length]

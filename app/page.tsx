@@ -46,7 +46,7 @@ const getHomeData = unstable_cache(
     }
     return { featured, reviews }
   },
-  ['home-data-v1'],
+  ['home-data-v2'],
   { revalidate: 600, tags: ['home-data'] }
 )
 

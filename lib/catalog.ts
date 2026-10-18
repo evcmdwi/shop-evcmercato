@@ -85,7 +85,7 @@ export function searchFilter(q: string, categoryIds: string[]): string | null {
 }
 
 /** Jumlah produk di "Paling sering dibeli ulang" (beranda). */
-export const FEATURED_LIMIT = 6
+export const FEATURED_LIMIT = 10
 /** Kunci site_settings: urutan manual dari Sambers › Tampilan Toko › Susun Produk Unggulan. */
 export const FEATURED_SETTING_KEY = 'featured_product_ids'
 

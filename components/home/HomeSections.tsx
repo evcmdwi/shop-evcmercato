@@ -156,7 +156,7 @@ export function FeaturedProducts({ products }: { products: ProductWithCategory[]
           Lihat semua
         </Link>
       </div>
-      <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
+      <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-5">
         {products.map((p, i) => (
           <ProductCard key={p.id} product={p} priority={i < 2} chip={i < 2 ? 'Terlaris' : undefined} />
         ))}
