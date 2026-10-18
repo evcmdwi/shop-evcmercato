@@ -172,6 +172,7 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     revalidatePath('/katalog')
     revalidatePath('/sambers/produk')
     revalidateTag('home-data', { expire: 0 }) // daftar produk beranda (app/page.tsx)
+    revalidateTag('lp-supergreen', { expire: 0 }) // harga paket di /lp/supergreen-food
 
     return NextResponse.json({ ...product, message: 'Produk berhasil diperbarui' })
   } catch (err) {

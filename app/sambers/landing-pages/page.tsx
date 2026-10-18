@@ -230,6 +230,95 @@ function ArchiveModal({ lp, loading, onClose, onConfirm }: {
   )
 }
 
+// ─── FAQ Modal (LP dengan FAQ dari admin) ─────────────────────────────
+
+// LP yang jawaban FAQ-nya disimpan di database (lihat /api/sambers/lp-faq).
+const FAQ_EDITABLE = new Set(['supergreen-food'])
+
+function FaqModal({ lp, onClose, onSaved }: {
+  lp: LandingPage
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [items, setItems] = useState<{ id: string; q: string; a: string }[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/sambers/lp-faq?slug=${encodeURIComponent(lp.slug)}`)
+      .then(async (res) => {
+        const d = await res.json().catch(() => ({}))
+        if (cancelled) return
+        if (!res.ok) setError(d.error ?? 'Gagal memuat FAQ')
+        else setItems(d.items ?? [])
+      })
+    return () => { cancelled = true }
+  }, [lp.slug])
+
+  async function save() {
+    if (!items) return
+    setSaving(true)
+    setError(null)
+    const res = await fetch('/api/sambers/lp-faq', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ slug: lp.slug, answers: Object.fromEntries(items.map((i) => [i.id, i.a])) }),
+    })
+    const d = await res.json().catch(() => ({}))
+    setSaving(false)
+    if (!res.ok) { setError(d.error ?? 'Gagal menyimpan'); return }
+    onSaved()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-full flex flex-col">
+        <div className="p-6 pb-3">
+          <h3 className="text-lg font-semibold">FAQ — {lp.title}</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Pertanyaan dengan jawaban kosong <strong>tidak ditampilkan</strong> di LP. Perubahan tampil di LP dalam hitungan detik.
+          </p>
+        </div>
+        <div className="overflow-y-auto px-6 space-y-4">
+          {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>}
+          {!items && !error && <p className="text-sm text-gray-400 py-6 text-center">Memuat…</p>}
+          {items?.map((it, i) => (
+            <label key={it.id} className="block">
+              <span className="flex items-center justify-between text-sm font-medium text-gray-800">
+                {i + 1}. {it.q}
+                <span className={`text-[11px] font-semibold ${it.a.trim() ? 'text-green-600' : 'text-gray-400'}`}>
+                  {it.a.trim() ? 'Tampil' : 'Tidak tampil'}
+                </span>
+              </span>
+              <textarea
+                value={it.a}
+                onChange={(e) => setItems((list) => list?.map((x) => (x.id === it.id ? { ...x, a: e.target.value } : x)) ?? null)}
+                rows={3}
+                maxLength={2000}
+                placeholder="Belum ada jawaban — pertanyaan ini disembunyikan"
+                className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#7FB300] focus:outline-none"
+              />
+            </label>
+          ))}
+        </div>
+        <div className="flex gap-3 justify-end p-6 pt-4 border-t border-gray-100 mt-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Batal
+          </button>
+          <button
+            onClick={save}
+            disabled={saving || !items}
+            className="px-4 py-2 text-sm text-white bg-[#7FB300] hover:bg-[#6a9700] rounded-lg disabled:opacity-50"
+          >
+            {saving ? 'Menyimpan…' : 'Simpan FAQ'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Tambah LP Modal ──────────────────────────────────────────────────
 
 function TambahLPModal({ loading, onClose, onConfirm }: {
@@ -329,6 +418,7 @@ function TambahLPModal({ loading, onClose, onConfirm }: {
 type ModalState =
   | { type: 'approve'; lp: LandingPage }
   | { type: 'archive'; lp: LandingPage }
+  | { type: 'faq'; lp: LandingPage }
   | { type: 'tambah' }
   | null
 
@@ -547,7 +637,15 @@ export default function AdminLandingPagesPage() {
                           Archive
                         </button>
                       )}
-                      {(lp.status === 'draft' || lp.status === 'archived') && (
+                      {FAQ_EDITABLE.has(lp.slug) && (
+                        <button
+                          onClick={() => setModal({ type: 'faq', lp })}
+                          className="px-3 py-1 border border-[#7FB300] text-[#5E8500] hover:bg-[#E8F4D1] text-xs rounded-lg font-medium"
+                        >
+                          Edit FAQ
+                        </button>
+                      )}
+                      {(lp.status === 'draft' || lp.status === 'archived') && !FAQ_EDITABLE.has(lp.slug) && (
                         <span className="text-xs text-gray-400">—</span>
                       )}
                     </div>
@@ -566,6 +664,17 @@ export default function AdminLandingPagesPage() {
           loading={actionLoading}
           onClose={() => setModal(null)}
           onConfirm={handleApprove}
+        />
+      )}
+
+      {modal?.type === 'faq' && (
+        <FaqModal
+          lp={modal.lp}
+          onClose={() => setModal(null)}
+          onSaved={() => {
+            setModal(null)
+            setMessage({ text: '✅ FAQ tersimpan', ok: true })
+          }}
         />
       )}
 
