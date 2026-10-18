@@ -38,12 +38,19 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: 'Pesanan tidak ditemukan' }, { status: 404 })
     }
 
-    // Fetch user info separately
-    const { data: user } = await admin
-      .from('users')
-      .select('id, name, email, phone')
-      .eq('id', (order as any).user_id)
-      .single()
+    // Fetch user info separately (+ status VIP & jumlah pesanan lunas untuk admin)
+    const [{ data: user }, { count: paidOrderCount }] = await Promise.all([
+      admin
+        .from('users')
+        .select('id, name, email, phone, special_discount_pct, special_discount_note')
+        .eq('id', (order as any).user_id)
+        .single(),
+      admin
+        .from('orders')
+        .select('id', { count: 'exact', head: true })
+        .eq('user_id', (order as any).user_id)
+        .in('status', ['paid', 'shipped', 'delivered']),
+    ])
 
     const enriched = {
       ...order,
@@ -51,6 +58,7 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
       user: user ?? null,
       customer_name: (user as any)?.name || (order as any).shipping_recipient_name || '—',
       customer_email: (user as any)?.email || '—',
+      customer_paid_orders: paidOrderCount ?? 0,
     }
 
     return NextResponse.json({ data: { order: enriched } })

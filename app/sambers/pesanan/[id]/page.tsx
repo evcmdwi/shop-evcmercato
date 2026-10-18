@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
+import Link from 'next/link'
 
 // ─── Status config ──────────────────────────────────────────────────────────
 
@@ -63,7 +64,9 @@ interface Order {
   total_amount: number
   subtotal: number | null
   shipping_cost: number | null
+  shipping_cost_discount?: number | null
   service_fee: number | null
+  service_fee_discount?: number | null
   created_at: string
   paid_at: string | null
   processed_at: string | null
@@ -92,7 +95,15 @@ interface Order {
   shipping_method?: string | null
   customer_name?: string
   customer_email?: string
-  user?: { name: string | null; email: string | null; phone: string | null } | null
+  user?: {
+    id?: string
+    name: string | null
+    email: string | null
+    phone: string | null
+    special_discount_pct?: number | null
+    special_discount_note?: string | null
+  } | null
+  customer_paid_orders?: number
   profiles?: { full_name: string | null; email: string | null; phone: string | null } | null
   shipping_addresses?: ShippingAddress | null
   order_items?: OrderItem[]
@@ -839,6 +850,17 @@ export default function AdminOrderDetailPage() {
   const shortId = order.id.slice(0, 8).toUpperCase()
   const cfg = statusConfig[order.status] ?? { label: order.status, color: 'bg-slate-100 text-slate-700' }
 
+  // shipping_cost di DB = ongkir bersih (setelah potongan). Tampilkan tarif penuh + potongannya.
+  const shippingNet = order.shipping_cost ?? 0
+  const shippingDiscount = order.shipping_cost_discount ?? 0
+  const serviceFee = order.service_fee ?? 0
+  const serviceDiscount = order.service_fee_discount ?? 0
+  // Sisa selisih = diskon member VIP (tidak disimpan di kolom tersendiri).
+  const otherDiscount = Math.max(0, (order.subtotal ?? 0) + shippingNet + serviceFee - serviceDiscount - order.total_amount)
+  const shippingLabel = order.shipping_method === 'instan' ? 'Instan — Grab'
+    : order.shipping_method === 'sameday' ? 'Sameday — Grab'
+    : order.shipping_method === 'reguler' ? 'Reguler — J&T' : ''
+
   return (
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       {/* Header */}
@@ -912,6 +934,33 @@ export default function AdminOrderDetailPage() {
               <div className="flex gap-2">
                 <dt className="text-slate-500 w-20 shrink-0">Telepon</dt>
                 <dd className="text-slate-900">{order.user?.phone || order.profiles?.phone || '—'}</dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="text-slate-500 w-20 shrink-0">Peringkat</dt>
+                <dd className="text-slate-900">
+                  {(order.user?.special_discount_pct ?? 0) > 0 ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-yellow-300 bg-yellow-100 px-2 py-0.5 text-xs font-semibold text-yellow-800">
+                      💛 VIP — diskon {order.user?.special_discount_pct}%
+                    </span>
+                  ) : (
+                    <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-600">Member biasa</span>
+                  )}
+                  {order.user?.special_discount_note && (
+                    <span className="ml-2 text-xs text-slate-500">{order.user.special_discount_note}</span>
+                  )}
+                  {order.user?.id && (
+                    <Link href={`/sambers/member/${order.user.id}`} className="ml-2 text-xs text-[#7FB300] hover:underline">
+                      Atur di Member →
+                    </Link>
+                  )}
+                </dd>
+              </div>
+              <div className="flex gap-2">
+                <dt className="text-slate-500 w-20 shrink-0">Riwayat</dt>
+                <dd className="text-slate-900">
+                  {order.customer_paid_orders ?? 0} pesanan lunas
+                  {(order.customer_paid_orders ?? 0) <= 1 && <span className="ml-1 text-xs text-slate-500">(pembeli baru)</span>}
+                </dd>
               </div>
             </dl>
           </div>
@@ -993,13 +1042,31 @@ export default function AdminOrderDetailPage() {
               <dd className="text-slate-900">{formatRp(order.subtotal ?? 0)}</dd>
             </div>
             <div className="flex justify-between">
-              <dt className="text-slate-500">Ongkir</dt>
-              <dd className="text-slate-900">{formatRp(order.shipping_cost ?? 0)}</dd>
+              <dt className="text-slate-500">Ongkir{shippingLabel ? ` (${shippingLabel})` : ''}</dt>
+              <dd className="text-slate-900">{formatRp(shippingNet + shippingDiscount)}</dd>
             </div>
             <div className="flex justify-between">
               <dt className="text-slate-500">Biaya Layanan</dt>
-              <dd className="text-slate-900">{formatRp(order.service_fee ?? 0)}</dd>
+              <dd className="text-slate-900">{formatRp(serviceFee)}</dd>
             </div>
+            {shippingDiscount > 0 && (
+              <div className="flex justify-between text-[#1D9E75]">
+                <dt>Promo Ongkir</dt>
+                <dd>-{formatRp(shippingDiscount)}</dd>
+              </div>
+            )}
+            {serviceDiscount > 0 && (
+              <div className="flex justify-between text-[#1D9E75]">
+                <dt>Promo Biaya Layanan</dt>
+                <dd>-{formatRp(serviceDiscount)}</dd>
+              </div>
+            )}
+            {otherDiscount > 0 && (
+              <div className="flex justify-between text-yellow-700">
+                <dt>{(order.points_used ?? 0) > 0 ? 'Diskon Member / Poin' : 'Diskon Member VIP'}</dt>
+                <dd>-{formatRp(otherDiscount)}</dd>
+              </div>
+            )}
             <div className="flex justify-between pt-2 border-t border-slate-200">
               <dt className="font-semibold text-slate-900">Total</dt>
               <dd className="font-semibold text-[#7FB300] text-base">{formatRp(order.total_amount)}</dd>
