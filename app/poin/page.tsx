@@ -148,8 +148,10 @@ export default function PointsPage() {
   }
 
   const tier = data?.tier ?? 'silver'
-  const earningTxs = data?.transactions.filter(t => t.type === 'earned') ?? []
-  const redeemTxs = data?.transactions.filter(t => t.type === 'redeemed') ?? []
+  // Diperoleh: pembelian, Extra Point, bonus member baru (dicatat sebagai 'earned').
+  const earningTxs = data?.transactions.filter(t => t.type === 'earned' || t.type === 'bonus') ?? []
+  // Penukaran + poin yang dikembalikan bila penukaran tidak dibayar.
+  const redeemTxs = data?.transactions.filter(t => t.type === 'redeemed' || t.type === 'refunded') ?? []
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-8 pb-24">
@@ -349,7 +351,9 @@ export default function PointsPage() {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-bold text-red-500">{tx.amount} pts</p>
+                  <p className={`text-sm font-bold ${tx.amount < 0 ? 'text-red-500' : 'text-[#7FB300]'}`}>
+                    {tx.amount > 0 ? '+' : ''}{tx.amount} pts
+                  </p>
                   <p className="text-xs text-gray-400">{tx.balance_after} pts sisa</p>
                 </div>
               </div>

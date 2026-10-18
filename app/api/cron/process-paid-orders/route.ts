@@ -8,9 +8,12 @@ import { sendPaymentReminders } from '@/lib/payment-reminder'
 // Initialize listeners
 setupEventListeners()
 
+const PAID_STATUSES = ['paid', 'processed', 'shipped', 'delivered']
+
 interface PaidOrder {
   id: string
   user_id: string
+  status: string
   total_amount: number
   subtotal: number
   shipping_cost: number | null
@@ -46,18 +49,25 @@ export async function GET(req: NextRequest) {
     return 0
   })
 
-  // Fetch paid orders that still need post-payment processing
+  // Tukar poin yang tidak jadi dibayar → poin dikembalikan (sekali per pesanan).
+  const refunds = await refundUnpaidRedemptions(admin).catch((e) => {
+    console.error('[process-paid-orders] redemption refund error:', e)
+    return 0
+  })
+
+  // Pesanan lunas yang masih perlu diproses. Termasuk yang sudah diproses/dikirim admin:
+  // admin bisa memproses dalam hitungan detik setelah bayar, sebelum cron sempat jalan.
   // Wait 10s after paid_at to avoid race with webhook update
   const { data: orders, error: fetchError } = await admin
     .from('orders')
     .select(
-      'id, user_id, total_amount, subtotal, shipping_cost, shipping_cost_discount, ' +
+      'id, user_id, status, total_amount, subtotal, shipping_cost, shipping_cost_discount, ' +
       'shipping_method, shipping_recipient_name, shipping_phone, shipping_full_address, ' +
       'shipping_city, shipping_province, shipping_postal_code, ' +
       'points_earned, attributed_affiliate_code, commission_id, ' +
       'notifications_sent, points_credited, commission_created'
     )
-    .eq('status', 'paid')
+    .in('status', PAID_STATUSES)
     .or('notifications_sent.eq.false,points_credited.eq.false,commission_created.eq.false')
     .lt('paid_at', new Date(Date.now() - 10_000).toISOString())
     .order('paid_at', { ascending: true })
@@ -69,7 +79,7 @@ export async function GET(req: NextRequest) {
   }
 
   if (!orders?.length) {
-    return NextResponse.json({ processed: 0, reminders, ms: Date.now() - t0 })
+    return NextResponse.json({ processed: 0, reminders, refunds, ms: Date.now() - t0 })
   }
 
   let processed = 0
@@ -79,99 +89,71 @@ export async function GET(req: NextRequest) {
     try {
       const orderId = order.id
 
-      // Fetch order_items + user in parallel (reused across all processing steps)
-      const [
-        { data: items },
-        { data: user },
-      ] = await Promise.all([
-        admin
-          .from('order_items')
-          .select('product_id, variant_id, product_name, variant_name, quantity, price')
-          .eq('order_id', orderId),
-        admin
-          .from('users')
-          .select('name, email, phone, total_points')
-          .eq('id', order.user_id)
-          .single(),
-      ])
+      // order_items dipakai ulang di semua langkah (promo poin, notifikasi, komisi)
+      const { data: items } = await admin
+        .from('order_items')
+        .select('product_id, variant_id, product_name, variant_name, quantity, price')
+        .eq('order_id', orderId)
 
       // ─── CREDIT POINTS ───────────────────────────────────────────────────────
       if (!order.points_credited) {
         const basePoints = order.points_earned || Math.floor((order.subtotal || 0) / 1000)
+        const now = Date.now()
+        const nowIso = new Date(now).toISOString()
 
         // Fetch point multipliers in parallel (bonusPromo needs product_ids from items)
-        const [{ data: bonusPromo }, { data: extraPromo }] = await Promise.all([
+        const [{ data: bonusPromos, error: bonusErr }, { data: extraPromo, error: extraErr }] = await Promise.all([
           admin
             .from('point_promos')
-            .select('points_multiplier')
+            .select('points_multiplier, active_from, active_until')
             .eq('promo_type', 'purchase_bonus')
             .eq('is_active', true)
-            .or(`active_until.is.null,active_until.gt.${new Date().toISOString()}`)
-            .in('product_id', (items || []).map(i => i.product_id))
-            .order('points_multiplier', { ascending: false })
-            .limit(1)
-            .maybeSingle(),
+            .in('product_id', (items || []).map(i => i.product_id)),
           admin
             .from('user_extra_point_promos')
             .select('multiplier')
             .eq('user_id', order.user_id)
             .eq('is_active', true)
-            .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+            .lte('starts_at', nowIso)
+            .gt('ends_at', nowIso)
             .order('multiplier', { ascending: false })
             .limit(1)
             .maybeSingle(),
         ])
+        // Gagal membaca promo → jangan kredit dengan angka salah; coba lagi menit berikutnya.
+        if (bonusErr || extraErr) throw new Error(`promo lookup: ${(bonusErr ?? extraErr)?.message}`)
 
-        const multiplier = bonusPromo?.points_multiplier || 1.0
-        const extraMultiplier = extraPromo?.multiplier || 1.0
+        // Promo produk yang sedang berlaku (periode dicek di sini); ambil pengali terbesar.
+        const multiplier = Math.max(
+          1,
+          ...(bonusPromos ?? [])
+            .filter((p) => (!p.active_from || Date.parse(p.active_from) <= now) && (!p.active_until || Date.parse(p.active_until) > now))
+            .map((p) => Number(p.points_multiplier) || 1)
+        )
+        const extraMultiplier = Number(extraPromo?.multiplier) || 1.0
         const pointsWithBonus = Math.floor(basePoints * multiplier)
-        const extraPoints = Math.floor(basePoints * (Number(extraMultiplier) - 1))
-        const totalEarned = pointsWithBonus + extraPoints
-        const currentPoints = user?.total_points || 0
-        const newTierPoints = currentPoints + pointsWithBonus
-        const newTotal = currentPoints + totalEarned
+        const extraPoints = Math.floor(basePoints * (extraMultiplier - 1))
 
-        // Tier based on base+bonus only (not extra)
-        const newTier =
-          newTierPoints >= 3001 ? 'platinum' : newTierPoints >= 1001 ? 'gold' : 'silver'
-
-        // Update user + insert point_transactions in parallel
-        await Promise.all([
-          admin
-            .from('users')
-            .update({ total_points: newTotal, tier: newTier })
-            .eq('id', order.user_id),
-          pointsWithBonus > 0
-            ? admin.from('point_transactions').insert({
-                user_id: order.user_id,
-                type: 'earned',
-                amount: pointsWithBonus,
-                balance_after: currentPoints + pointsWithBonus,
-                related_order_id: orderId,
-                notes: `Pembelian Order #${orderId.slice(0, 8).toUpperCase()}`,
-              })
-            : Promise.resolve(),
-          extraPoints > 0
-            ? admin.from('point_transactions').insert({
-                user_id: order.user_id,
-                type: 'bonus',
-                amount: extraPoints,
-                balance_after: currentPoints + pointsWithBonus + extraPoints,
-                related_order_id: orderId,
-                notes: `Extra Point Khusus (${extraMultiplier}x)`,
-              })
-            : Promise.resolve(),
-        ])
-
-        await admin.from('orders').update({ points_credited: true }).eq('id', orderId)
+        // Atomik di database: saldo + riwayat + tier + points_credited (sekali per pesanan).
+        const { data: newTotal, error: creditErr } = await admin.rpc('credit_order_points', {
+          p_order_id: orderId,
+          p_points: pointsWithBonus,
+          p_extra: extraPoints,
+          p_extra_note: `Extra Point Khusus (${extraMultiplier}x)`,
+        })
+        if (creditErr) throw new Error(`credit points: ${creditErr.message}`)
 
         console.log(
-          `[process-paid-orders] points credited: +${totalEarned} → user ${order.user_id} total: ${newTotal}`
+          `[process-paid-orders] points credited: +${pointsWithBonus + extraPoints} → user ${order.user_id} total: ${newTotal}`
         )
       }
 
       // ─── SEND NOTIFICATIONS ───────────────────────────────────────────────────
-      if (!order.notifications_sent) {
+      // WA/email "pembayaran diterima" hanya untuk pesanan yang belum dikirim — pesanan yang
+      // sudah dikirim/diterima sudah mendapat WA lain, cukup tandai selesai.
+      if (!order.notifications_sent && !['paid', 'processed'].includes(order.status)) {
+        await admin.from('orders').update({ notifications_sent: true }).eq('id', orderId)
+      } else if (!order.notifications_sent) {
         // Re-fetch user to get updated total_points after credit
         const { data: freshUser } = await admin
           .from('users')
@@ -317,5 +299,25 @@ export async function GET(req: NextRequest) {
 
   const ms = Date.now() - t0
   console.log('[process-paid-orders] done', { processed, errors, ms })
-  return NextResponse.json({ processed, errors, reminders, ms })
+  return NextResponse.json({ processed, errors, reminders, refunds, ms })
+}
+
+/** Pesanan tukar poin yang kedaluwarsa/gagal/batal → poin dikembalikan via RPC (idempoten). */
+async function refundUnpaidRedemptions(admin: ReturnType<typeof getSupabaseAdmin>): Promise<number> {
+  const { data, error } = await admin
+    .from('orders')
+    .select('id')
+    .eq('order_type', 'redeem')
+    .in('status', ['expired', 'failed', 'cancelled'])
+    .eq('points_redeemed', true)
+    .eq('points_refunded', false)
+    .limit(20)
+  if (error) throw error
+  let n = 0
+  for (const o of data ?? []) {
+    const { data: refunded, error: rErr } = await admin.rpc('refund_redemption_points', { p_order_id: o.id })
+    if (rErr) console.error('[process-paid-orders] refund failed:', o.id, rErr.message)
+    else if (refunded) n++
+  }
+  return n
 }
