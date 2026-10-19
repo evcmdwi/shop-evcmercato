@@ -1,7 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { createInvoice } from '@/lib/xendit'
 import { sendWhatsApp } from '@/lib/whatsapp'
-import { paymentLinkCreatedMessage } from '@/lib/whatsapp-templates/payment-link-created'
+import { adminOrderCreatedMessage } from '@/lib/whatsapp-templates/admin-order-created'
 
 // Pesanan yang dibuat admin dari Sambers (Buat Pesanan). Rumus biaya sama dengan /api/checkout.
 
@@ -33,7 +33,7 @@ export async function createOrderPaymentLink(
 ): Promise<{ payment_url: string; wa_sent: boolean | null }> {
   const { data: order } = await admin
     .from('orders')
-    .select('id, user_id, status, total_amount, shipping_recipient_name, shipping_phone, order_items(product_name, variant_name, price, quantity)')
+    .select('id, user_id, status, total_amount, subtotal, shipping_cost, admin_discount, shipping_method, shipping_recipient_name, shipping_phone, shipping_full_address, shipping_district_name, shipping_regency_name, shipping_province_name, delivery_note, order_items(product_name, variant_name, price, quantity)')
     .eq('id', orderId)
     .single()
   if (!order) throw new Error('Pesanan tidak ditemukan')
@@ -69,10 +69,24 @@ export async function createOrderPaymentLink(
   let wa_sent: boolean | null = null
   const to = order.shipping_phone || user?.phone
   if (to) {
-    const summary = items.map((i) => `${i.product_name}${i.variant_name ? ` (${i.variant_name})` : ''} x${i.quantity}`).join(', ')
     const res = await sendWhatsApp({
       to,
-      message: paymentLinkCreatedMessage(order.total_amount, `Order #${shortId} — ${summary}`, invoice.invoice_url),
+      message: adminOrderCreatedMessage({
+        id: order.id,
+        customerName: order.shipping_recipient_name || user?.name || 'Kak',
+        items,
+        subtotal: order.subtotal,
+        shippingCost: order.shipping_cost,
+        adminDiscount: order.admin_discount ?? 0,
+        totalAmount: order.total_amount,
+        shippingMethod: order.shipping_method,
+        recipientName: order.shipping_recipient_name || user?.name || '',
+        recipientPhone: order.shipping_phone || user?.phone || '',
+        address: order.shipping_full_address || '',
+        area: [order.shipping_district_name && `Kec. ${order.shipping_district_name}`, order.shipping_regency_name, order.shipping_province_name].filter(Boolean).join(', '),
+        deliveryNote: order.delivery_note,
+        invoiceUrl: invoice.invoice_url,
+      }),
     })
     wa_sent = res.success
     if (!res.success) console.error('[admin-order] WA link failed:', order.id, res.error)
