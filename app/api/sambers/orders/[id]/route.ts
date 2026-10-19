@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest, { params }: RouteContext) {
         id, status, order_type, total_amount, subtotal, shipping_cost, shipping_cost_discount,
         service_fee, service_fee_discount, created_at, paid_at, processed_at,
         shipped_at, delivered_at, delivered_note, tracking_number, shipping_courier,
-        xendit_invoice_url, xendit_invoice_id, xendit_payment_method, notes, admin_code, admin_discount,
+        xendit_invoice_url, xendit_invoice_id, xendit_payment_method, notes, admin_code, admin_discount, admin_source, admin_claimed_at,
         user_id, points_earned, points_used,
         shipping_recipient_name, shipping_phone, shipping_full_address,
         shipping_city, shipping_province, shipping_postal_code,

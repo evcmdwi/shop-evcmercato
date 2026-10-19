@@ -49,6 +49,13 @@ const menuItems: MenuItem[] = [
     ),
   },
   {
+    href: '/sambers/follow-up',
+    label: 'Follow Up',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">📞</span>
+    ),
+  },
+  {
     href: '/sambers/payment-link',
     label: 'Payment Link',
     icon: (

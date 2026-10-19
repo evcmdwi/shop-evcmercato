@@ -49,12 +49,20 @@ export default function AdminDashboardPage() {
             </Link>
           ))}
         </div>
-        <Link
-          href="/sambers/pesanan/baru"
-          className="mt-4 flex w-full sm:w-auto sm:inline-flex items-center justify-center gap-2 rounded-xl bg-[#7FB300] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#6c9900] transition-colors"
-        >
-          ➕ BUAT PESANAN
-        </Link>
+        <div className="mt-4 flex flex-col sm:flex-row gap-3">
+          <Link
+            href="/sambers/pesanan/baru"
+            className="flex items-center justify-center gap-2 rounded-xl bg-[#7FB300] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#6c9900] transition-colors"
+          >
+            ➕ BUAT PESANAN
+          </Link>
+          <Link
+            href="/sambers/follow-up"
+            className="flex items-center justify-center gap-2 rounded-xl border border-[#7FB300] bg-white px-6 py-3 font-semibold text-[#5c8200] shadow-sm hover:bg-[#7FB300]/10 transition-colors"
+          >
+            📞 FOLLOW UP CUSTOMER
+          </Link>
+        </div>
       </section>
 
       {/* Inventori */}

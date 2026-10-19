@@ -82,6 +82,8 @@ interface Order {
   notes?: string | null
   admin_code?: string | null
   admin_discount?: number | null
+  admin_source?: 'dibuat' | 'followup' | 'klaim' | null
+  admin_claimed_at?: string | null
   shipping_recipient_name: string | null
   shipping_phone: string | null
   shipping_full_address: string | null
@@ -544,6 +546,93 @@ function MarkDeliveredModal({ orderId, onClose, onSuccess }: MarkDeliveredModalP
   )
 }
 
+// ─── AdminClosing ─────────────────────────────────────────────────────────────
+
+const ADMIN_SOURCE_LABEL: Record<string, string> = {
+  dibuat: 'Dibuat admin (Buat Pesanan)',
+  followup: 'Closing dari follow-up WA (otomatis)',
+  klaim: 'Diklaim manual',
+}
+const CLAIM_WINDOW_MS = 3 * 86400000
+
+function AdminClosing({ order, onOrderUpdate }: OrderActionsProps) {
+  const [codes, setCodes] = useState<{ code: string; name: string }[]>([])
+  const [code, setCode] = useState(() => {
+    try { return localStorage.getItem('evc_admin_code') ?? '' } catch { return '' }
+  })
+  const [busy, setBusy] = useState(false)
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [now] = useState(() => Date.now())
+  const canClaim = !order.admin_code && !!order.paid_at && now - new Date(order.paid_at).getTime() <= CLAIM_WINDOW_MS
+
+  useEffect(() => {
+    if (!canClaim) return
+    fetch('/api/sambers/admin-codes')
+      .then(r => r.json())
+      .then(json => setCodes((json.codes ?? []).filter((c: { is_active: boolean }) => c.is_active)))
+      .catch(() => {})
+  }, [canClaim])
+
+  if (!order.admin_code && !canClaim) return null
+
+  async function submit(adminCode: string | null) {
+    if (adminCode && !confirm(`Klaim pesanan ini sebagai closing ${adminCode}?`)) return
+    if (!adminCode && !confirm('Batalkan klaim closing pesanan ini?')) return
+    setBusy(true)
+    setMsg(null)
+    try {
+      const res = await fetch(`/api/sambers/orders/${order.id}/claim`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ admin_code: adminCode }),
+      })
+      const json = await res.json()
+      if (!res.ok) { setMsg({ text: `❌ ${json.error ?? 'Gagal'}`, ok: false }); return }
+      onOrderUpdate(json.order)
+      if (adminCode) try { localStorage.setItem('evc_admin_code', adminCode) } catch {}
+      setMsg({ text: adminCode ? `✅ Tercatat closing ${adminCode}` : 'Klaim dibatalkan', ok: true })
+    } catch {
+      setMsg({ text: '❌ Terjadi kesalahan jaringan', ok: false })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+      <h2 className="font-semibold text-slate-900">🧑‍💼 Closing Admin</h2>
+      {order.admin_code ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <span className="font-mono font-bold text-lg text-slate-900">{order.admin_code}</span>
+          <span className="text-sm text-slate-500">
+            {ADMIN_SOURCE_LABEL[order.admin_source ?? 'dibuat']}
+            {order.admin_claimed_at ? ` · ${formatDate(order.admin_claimed_at)}` : ''}
+          </span>
+          {order.admin_source === 'klaim' && (
+            <button onClick={() => submit(null)} disabled={busy} className="ml-auto text-xs px-3 py-1 rounded-full border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50">
+              Batalkan klaim
+            </button>
+          )}
+        </div>
+      ) : (
+        <>
+          <p className="text-sm text-slate-500">Pesanan ini dibuat customer sendiri. Jika closing hasil chat admin, klaim di sini (maks 3 hari setelah bayar).</p>
+          <div className="flex gap-2">
+            <select value={code} onChange={e => setCode(e.target.value)} className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+              <option value="">Pilih kode admin…</option>
+              {codes.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
+            </select>
+            <button onClick={() => submit(code)} disabled={busy || !codes.some(c => c.code === code)} className="px-4 py-2 rounded-lg bg-slate-800 text-white text-sm font-semibold disabled:opacity-40">
+              {busy ? '⏳…' : 'Klaim'}
+            </button>
+          </div>
+        </>
+      )}
+      {msg && <p className={`text-sm ${msg.ok ? 'text-green-700' : 'text-red-600'}`}>{msg.text}</p>}
+    </div>
+  )
+}
+
 // ─── PendingActions ───────────────────────────────────────────────────────────
 
 function PendingActions({ order, onOrderUpdate }: OrderActionsProps) {
@@ -959,7 +1048,7 @@ export default function AdminOrderDetailPage() {
                 </span>
               )}
               {order.admin_code && (
-                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-white whitespace-nowrap" title="Dibuat oleh admin">
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-white whitespace-nowrap" title={ADMIN_SOURCE_LABEL[order.admin_source ?? 'dibuat']}>
                   🧑‍💼 {order.admin_code}
                 </span>
               )}
@@ -991,6 +1080,11 @@ export default function AdminOrderDetailPage() {
         {/* Menunggu pembayaran → kirim link / tandai lunas BCA / batalkan */}
         {order.status === 'pending' && order.order_type !== 'redeem' && (
           <PendingActions order={order} onOrderUpdate={handleOrderUpdate} />
+        )}
+
+        {/* Closing admin: info sumber / klaim manual */}
+        {order.order_type !== 'redeem' && ['paid', 'processed', 'shipped', 'delivered'].includes(order.status) && (
+          <AdminClosing order={order} onOrderUpdate={handleOrderUpdate} />
         )}
 
         {/* Actions */}

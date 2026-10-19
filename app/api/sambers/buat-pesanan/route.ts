@@ -177,6 +177,7 @@ export async function POST(req: NextRequest) {
       total_price: total,
       points_earned: Math.floor((subtotal - discount) / 1000),
       admin_code: adminCode,
+      admin_source: 'dibuat',
       shipping_address_id: addressId,
       shipping_recipient_name: recipient,
       shipping_phone: recipientPhone,
