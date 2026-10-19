@@ -98,3 +98,15 @@ export async function createInvoice(params: CreateInvoiceParams): Promise<Xendit
     clearTimeout(timeout)
   }
 }
+
+/** Matikan invoice yang belum dibayar (mis. pesanan ditandai lunas via transfer BCA). */
+export async function expireInvoice(invoiceId: string): Promise<boolean> {
+  const secretKey = process.env.XENDIT_SECRET_KEY
+  if (!secretKey || invoiceId.startsWith('mock_')) return true
+  const res = await fetch(`https://api.xendit.co/invoices/${invoiceId}/expire!`, {
+    method: 'POST',
+    headers: { Authorization: 'Basic ' + Buffer.from(secretKey + ':').toString('base64') },
+  })
+  if (!res.ok) console.error('[Xendit] expireInvoice failed:', invoiceId, res.status, await res.text().catch(() => ''))
+  return res.ok
+}

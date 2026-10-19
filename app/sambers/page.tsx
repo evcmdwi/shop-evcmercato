@@ -49,6 +49,12 @@ export default function AdminDashboardPage() {
             </Link>
           ))}
         </div>
+        <Link
+          href="/sambers/pesanan/baru"
+          className="mt-4 flex w-full sm:w-auto sm:inline-flex items-center justify-center gap-2 rounded-xl bg-[#7FB300] px-6 py-3 font-semibold text-white shadow-sm hover:bg-[#6c9900] transition-colors"
+        >
+          ➕ BUAT PESANAN
+        </Link>
       </section>
 
       {/* Inventori */}

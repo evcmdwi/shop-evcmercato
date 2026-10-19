@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
     return new Response('Bad Request', { status: 400 })
   }
 
-  const { external_id, status, payment_method, paid_at } = payload as {
+  const { id: invoice_id, external_id, status, payment_method, paid_at } = payload as {
+    id: string
     external_id: string
     status: string
     payment_method: string
@@ -74,7 +75,7 @@ export async function POST(req: NextRequest) {
 
   // 5. Process as EVC order (unchanged)
   try {
-    await processWebhook(external_id, status, payment_method, paid_at)
+    await processWebhook(external_id, status, payment_method, paid_at, invoice_id)
   } catch (err) {
     // Log error but still return 200 — Xendit does NOT retry on 200
     console.error('[webhook] processWebhook error:', err)
@@ -128,6 +129,7 @@ async function processWebhook(
   status: string,
   paymentMethod: string,
   paidAt: string,
+  invoiceId?: string,
 ) {
   const admin = getSupabaseAdmin()
 
@@ -136,7 +138,7 @@ async function processWebhook(
   // Get current order (for idempotency check)
   const { data: order, error } = await admin
     .from('orders')
-    .select('id, status, paid_at')
+    .select('id, status, paid_at, xendit_invoice_id')
     .eq('id', orderId)
     .single()
 
@@ -146,8 +148,9 @@ async function processWebhook(
   }
 
   if (status === 'PAID') {
-    // IDEMPOTENCY: skip if already paid
-    if (order.status === 'paid' && order.paid_at) {
+    // IDEMPOTENCY: skip if already paid (termasuk yang sudah diproses/dikirim, atau
+    // ditandai lunas manual oleh admin via transfer BCA)
+    if (['paid', 'processed', 'shipped', 'delivered'].includes(order.status) && order.paid_at) {
       console.log('[webhook] Already paid, skipping:', orderId)
       return
     }
@@ -170,7 +173,11 @@ async function processWebhook(
     console.log('[webhook] Status → paid:', orderId, '| worker will handle points/notif/commission')
 
   } else if (status === 'EXPIRED') {
-    if (order.status === 'expired' || order.status === 'cancelled') return
+    // Hanya pesanan yang masih menunggu bayar. Link yang dimatikan setelah admin menandai
+    // lunas (transfer BCA) juga mengirim EXPIRED — pesanan itu tidak boleh ikut kedaluwarsa.
+    if (order.status !== 'pending') return
+    // Link lama yang diganti admin ("kirim ulang link") — pesanan tetap menunggu link baru.
+    if (invoiceId && order.xendit_invoice_id && invoiceId !== order.xendit_invoice_id) return
 
     await admin
       .from('orders')
@@ -184,7 +191,8 @@ async function processWebhook(
     emitOrderExpired(orderId).catch(e => console.error('[webhook] emitOrderExpired failed:', e))
 
   } else if (status === 'FAILED') {
-    if (order.status === 'cancelled') return
+    if (order.status !== 'pending') return
+    if (invoiceId && order.xendit_invoice_id && invoiceId !== order.xendit_invoice_id) return
 
     // Enum order_status tidak punya 'failed' — pembayaran gagal dicatat sebagai dibatalkan.
     await admin

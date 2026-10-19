@@ -77,6 +77,11 @@ interface Order {
   shipping_courier: string | null
   delivered_note: string | null
   xendit_invoice_url: string | null
+  xendit_invoice_id?: string | null
+  xendit_payment_method?: string | null
+  notes?: string | null
+  admin_code?: string | null
+  admin_discount?: number | null
   shipping_recipient_name: string | null
   shipping_phone: string | null
   shipping_full_address: string | null
@@ -539,6 +544,70 @@ function MarkDeliveredModal({ orderId, onClose, onSuccess }: MarkDeliveredModalP
   )
 }
 
+// ─── PendingActions ───────────────────────────────────────────────────────────
+
+function PendingActions({ order, onOrderUpdate }: OrderActionsProps) {
+  const [busy, setBusy] = useState<string | null>(null)
+  const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
+  const [link, setLink] = useState<string | null>(order.xendit_invoice_url)
+
+  async function run(action: 'send_link' | 'mark_paid' | 'cancel') {
+    if (action === 'mark_paid' && !confirm(`Tandai LUNAS via transfer BCA?\n\nPastikan dana ${formatRp(order.total_amount)} sudah masuk ke rekening BCA. Link Xendit (jika ada) akan dimatikan.`)) return
+    if (action === 'cancel' && !confirm('Batalkan pesanan ini? Stok dikembalikan dan link pembayaran dimatikan.')) return
+    setBusy(action)
+    setMsg(null)
+    try {
+      const res = await fetch(`/api/sambers/orders/${order.id}/manual`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action }),
+      })
+      const json = await res.json()
+      if (!res.ok) {
+        setMsg({ text: `❌ ${json.error ?? 'Gagal'}`, ok: false })
+      } else if (action === 'send_link') {
+        setLink(json.payment_url)
+        onOrderUpdate({ xendit_invoice_url: json.payment_url })
+        setMsg({
+          text: json.wa_sent ? '✅ Link baru dibuat & terkirim ke WA pembeli' : '⚠️ Link dibuat, tapi WA gagal terkirim — salin & kirim manual',
+          ok: !!json.wa_sent,
+        })
+      } else {
+        onOrderUpdate(json.order)
+        setMsg({ text: action === 'mark_paid' ? '✅ Pesanan ditandai lunas. Poin & WA konfirmasi diproses otomatis ±1 menit.' : '✅ Pesanan dibatalkan', ok: true })
+      }
+    } catch {
+      setMsg({ text: '❌ Terjadi kesalahan jaringan', ok: false })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-3">
+      <h2 className="font-semibold text-slate-900">Menunggu Pembayaran</h2>
+      {link && (
+        <div className="flex items-center gap-2 rounded-lg bg-slate-50 border border-slate-200 px-3 py-2">
+          <a href={link} target="_blank" rel="noopener noreferrer" className="flex-1 truncate text-sm text-[#7FB300] hover:underline">{link}</a>
+          <button onClick={() => navigator.clipboard.writeText(link).then(() => setMsg({ text: '📋 Link disalin', ok: true }))} className="text-xs px-2 py-1 rounded border border-slate-300 hover:bg-white">Salin</button>
+        </div>
+      )}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+        <button onClick={() => run('mark_paid')} disabled={!!busy} className="py-3 rounded-xl font-semibold bg-[#7FB300] text-white hover:bg-[#6c9900] disabled:opacity-50">
+          {busy === 'mark_paid' ? '⏳…' : '✅ Tandai Lunas (Transfer BCA)'}
+        </button>
+        <button onClick={() => run('send_link')} disabled={!!busy} className="py-3 rounded-xl font-semibold border border-slate-300 text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+          {busy === 'send_link' ? '⏳…' : link ? '🔁 Kirim Ulang Link Bayar' : '🔗 Kirim Link Pembayaran'}
+        </button>
+        <button onClick={() => run('cancel')} disabled={!!busy} className="py-3 rounded-xl font-semibold border border-red-200 text-red-600 hover:bg-red-50 disabled:opacity-50">
+          {busy === 'cancel' ? '⏳…' : '✕ Batalkan Pesanan'}
+        </button>
+      </div>
+      {msg && <p className={`text-sm ${msg.ok ? 'text-green-700' : 'text-red-600'}`}>{msg.text}</p>}
+    </div>
+  )
+}
+
 // ─── OrderActions ─────────────────────────────────────────────────────────────
 
 interface OrderActionsProps {
@@ -856,7 +925,8 @@ export default function AdminOrderDetailPage() {
   const serviceFee = order.service_fee ?? 0
   const serviceDiscount = order.service_fee_discount ?? 0
   // Sisa selisih = diskon member VIP (tidak disimpan di kolom tersendiri).
-  const otherDiscount = Math.max(0, (order.subtotal ?? 0) + shippingNet + serviceFee - serviceDiscount - order.total_amount)
+  const adminDiscount = order.admin_discount ?? 0
+  const otherDiscount = Math.max(0, (order.subtotal ?? 0) + shippingNet + serviceFee - serviceDiscount - adminDiscount - order.total_amount)
   const shippingLabel = order.shipping_method === 'instan' ? 'Instan — Grab'
     : order.shipping_method === 'sameday' ? 'Sameday — Grab'
     : order.shipping_method === 'reguler' ? 'Reguler — J&T' : ''
@@ -888,6 +958,11 @@ export default function AdminOrderDetailPage() {
                   {order.shipping_method === 'instan' ? '⚡ Instan' : '🚚 Sameday'}
                 </span>
               )}
+              {order.admin_code && (
+                <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-slate-800 text-white whitespace-nowrap" title="Dibuat oleh admin">
+                  🧑‍💼 {order.admin_code}
+                </span>
+              )}
               <span className="text-sm text-slate-400">{formatDate(order.created_at)}</span>
             </div>
           </div>
@@ -912,6 +987,11 @@ export default function AdminOrderDetailPage() {
 
         {/* Timeline */}
         <OrderTimeline order={order} />
+
+        {/* Menunggu pembayaran → kirim link / tandai lunas BCA / batalkan */}
+        {order.status === 'pending' && order.order_type !== 'redeem' && (
+          <PendingActions order={order} onOrderUpdate={handleOrderUpdate} />
+        )}
 
         {/* Actions */}
         {!['pending'].includes(order.status) && (
@@ -1061,6 +1141,12 @@ export default function AdminOrderDetailPage() {
                 <dd>-{formatRp(serviceDiscount)}</dd>
               </div>
             )}
+            {adminDiscount > 0 && (
+              <div className="flex justify-between text-yellow-700">
+                <dt>Diskon Admin{order.admin_code ? ` (${order.admin_code})` : ''}</dt>
+                <dd>-{formatRp(adminDiscount)}</dd>
+              </div>
+            )}
             {otherDiscount > 0 && (
               <div className="flex justify-between text-yellow-700">
                 <dt>{(order.points_used ?? 0) > 0 ? 'Diskon Member / Poin' : 'Diskon Member VIP'}</dt>
@@ -1072,7 +1158,10 @@ export default function AdminOrderDetailPage() {
               <dd className="font-semibold text-[#7FB300] text-base">{formatRp(order.total_amount)}</dd>
             </div>
           </dl>
-          {order.xendit_invoice_url && (
+          {order.xendit_payment_method === 'TRANSFER_BCA' && (
+            <p className="mt-3 text-sm text-slate-600">💳 Dibayar via transfer BCA (ditandai lunas oleh admin)</p>
+          )}
+          {order.xendit_invoice_url && order.xendit_payment_method !== 'TRANSFER_BCA' && (
             <a
               href={order.xendit_invoice_url}
               target="_blank"
