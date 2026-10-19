@@ -184,12 +184,13 @@ async function processWebhook(
     emitOrderExpired(orderId).catch(e => console.error('[webhook] emitOrderExpired failed:', e))
 
   } else if (status === 'FAILED') {
-    if (order.status === 'failed' || order.status === 'cancelled') return
+    if (order.status === 'cancelled') return
 
+    // Enum order_status tidak punya 'failed' — pembayaran gagal dicatat sebagai dibatalkan.
     await admin
       .from('orders')
       .update({
-        status: 'failed',
+        status: 'cancelled',
         cancelled_at: new Date().toISOString(),
       })
       .eq('id', orderId)

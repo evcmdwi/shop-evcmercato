@@ -308,7 +308,7 @@ async function refundUnpaidRedemptions(admin: ReturnType<typeof getSupabaseAdmin
     .from('orders')
     .select('id')
     .eq('order_type', 'redeem')
-    .in('status', ['expired', 'failed', 'cancelled'])
+    .in('status', ['expired', 'cancelled'])
     .eq('points_redeemed', true)
     .eq('points_refunded', false)
     .limit(20)
