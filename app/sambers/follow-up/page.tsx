@@ -26,6 +26,8 @@ interface Candidate {
   lock_expires_at: string | null
   last_followup_at: string | null
   last_followup_admin: string | null
+  tier: 'silver' | 'gold' | 'platinum'
+  vip_pct: number
 }
 
 interface ScoreRow {
@@ -52,6 +54,11 @@ const SEGMENTS: { key: Segment; label: string; hint: string }[] = [
   { key: 'new', label: '🆕 Member Baru', hint: 'Sudah daftar, belum pernah belanja' },
 ]
 
+const TIER_BADGE: Record<string, string> = {
+  gold: 'bg-amber-100 text-amber-800',
+  platinum: 'bg-slate-800 text-white',
+}
+
 const rp = (n: number) => 'Rp' + new Intl.NumberFormat('id-ID').format(n)
 const daysAgo = (d: string) => Math.floor((Date.now() - new Date(d).getTime()) / 86400000)
 const fmtDate = (d: string) => new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric', timeZone: 'Asia/Jakarta' })
@@ -63,17 +70,18 @@ const toWa = (phone: string) => {
 
 function messageFor(c: Candidate, adminName: string): string {
   const hi = `Halo Kak ${firstName(c.name)} 👋 Saya ${adminName} dari EVC Mercato.`
+  const vip = c.vip_pct > 0 ? `\n\nSebagai Member VIP, Kakak otomatis dapat diskon ${c.vip_pct}% setiap belanja di web 💛` : ''
   const pts = c.total_points > 0 ? `\n\nOh iya, Kakak punya ${c.total_points} EVC Points yang bisa ditukar hadiah lho 🎁` : ''
   const close = `\n\nBisa langsung order di ${SHOP_URL} atau balas chat ini saja, nanti saya bantu buatkan pesanannya 😊`
   switch (c.segment) {
     case 'unpaid':
-      return `${hi}\n\nKemarin pesanan Kakak belum sempat dibayar ya. Apakah ada kendala? Kalau masih berminat, saya bisa bantu buatkan link pembayaran baru 🙏${pts}`
+      return `${hi}\n\nKemarin pesanan Kakak belum sempat dibayar ya. Apakah ada kendala? Kalau masih berminat, saya bisa bantu buatkan link pembayaran baru 🙏${vip}${pts}`
     case 'repeat':
-      return `${hi}\n\nGimana ${c.last_products ?? 'produknya'}, cocok Kak? Biasanya sekarang sudah mau habis nih 😊${pts}${close}`
+      return `${hi}\n\nGimana ${c.last_products ?? 'produknya'}, cocok Kak? Biasanya sekarang sudah mau habis nih 😊${vip}${pts}${close}`
     case 'dormant':
-      return `${hi}\n\nSudah lama nggak belanja nih Kak, kami kangen 😊 Terakhir Kakak ambil ${c.last_products ?? 'produk kami'}. Mau stok lagi?${pts}${close}`
+      return `${hi}\n\nSudah lama nggak belanja nih Kak, kami kangen 😊 Terakhir Kakak ambil ${c.last_products ?? 'produk kami'}. Mau stok lagi?${vip}${pts}${close}`
     case 'new':
-      return `${hi}\n\nTerima kasih sudah daftar member EVC Mercato 🙏 Ada yang bisa saya bantu pilihkan produknya? Saya siap bantu jelaskan sesuai kebutuhan Kakak.${pts}${close}`
+      return `${hi}\n\nTerima kasih sudah daftar member EVC Mercato 🙏 Ada yang bisa saya bantu pilihkan produknya? Saya siap bantu jelaskan sesuai kebutuhan Kakak.${vip}${pts}${close}`
   }
 }
 
@@ -149,6 +157,7 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
   const [error, setError] = useState('')
   const [segment, setSegment] = useState<Segment>('repeat')
   const [q, setQ] = useState('')
+  const [vipOnly, setVipOnly] = useState(false)
   const [active, setActive] = useState<Candidate | null>(null)
 
   useEffect(() => {
@@ -169,6 +178,7 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
     const digits = term.replace(/\D/g, '')
     const filtered = (rows ?? []).filter(r =>
       r.segment === segment &&
+      (!vipOnly || r.vip_pct > 0) &&
       (!term ||
         (r.name ?? '').toLowerCase().includes(term) ||
         r.email.toLowerCase().includes(term) ||
@@ -180,7 +190,7 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
       : segment === 'repeat' ? t(b.last_paid_at) - t(a.last_paid_at)
       : segment === 'dormant' ? b.total_spent - a.total_spent
       : t(b.member_since) - t(a.member_since))
-  }, [rows, segment, q])
+  }, [rows, segment, q, vipOnly])
 
   function onFollowed(userId: string, code: string, expiresAt: string) {
     setRows(rs => (rs ?? []).map(r => r.user_id === userId
@@ -206,7 +216,15 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
         ))}
       </div>
       <p className="text-xs text-slate-500">{SEGMENTS.find(s => s.key === segment)?.hint}</p>
-      <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama, email, atau no. WA…" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+      <div className="flex gap-2">
+        <input value={q} onChange={e => setQ(e.target.value)} placeholder="Cari nama, email, atau no. WA…" className="flex-1 min-w-0 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+        <button
+          onClick={() => setVipOnly(v => !v)}
+          className={`shrink-0 px-3 py-2 rounded-lg text-sm border whitespace-nowrap ${vipOnly ? 'bg-yellow-100 border-yellow-300 text-yellow-800 font-semibold' : 'bg-white border-slate-300 text-slate-700'}`}
+        >
+          💛 VIP saja
+        </button>
+      </div>
 
       <ul className="space-y-2">
         {list.map(c => {
@@ -216,7 +234,11 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
             <li key={c.user_id} className={`bg-white rounded-xl border p-4 ${lockedByMe ? 'border-[#7FB300]' : 'border-slate-200'}`}>
               <div className="flex flex-wrap items-start gap-x-3 gap-y-2">
                 <div className="flex-1 min-w-[180px]">
-                  <p className="font-semibold text-slate-900">{c.name || c.email}</p>
+                  <p className="font-semibold text-slate-900">
+                    {c.name || c.email}
+                    {c.vip_pct > 0 && <span className="ml-2 align-middle text-xs font-semibold px-2 py-0.5 rounded-full bg-yellow-100 text-yellow-800 whitespace-nowrap">💛 VIP {c.vip_pct}%</span>}
+                    {c.tier !== 'silver' && <span className={`ml-1.5 align-middle text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap ${TIER_BADGE[c.tier]}`}>{c.tier === 'gold' ? '🥇 Gold' : '💎 Platinum'}</span>}
+                  </p>
                   <p className="text-xs text-slate-500">{c.phone || 'Tanpa no. WA'} · {c.email}</p>
                   <p className="text-sm text-slate-700 mt-1">{segmentInfo(c)}</p>
                   {c.last_products && c.segment !== 'new' && <p className="text-xs text-slate-500 mt-0.5">🛍️ {c.last_products}</p>}
