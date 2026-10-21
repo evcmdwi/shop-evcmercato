@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useParams } from 'next/navigation'
 import Link from 'next/link'
+import { useLockedAdminCode } from '@/lib/admin-account-context'
 
 // ─── Status config ──────────────────────────────────────────────────────────
 
@@ -557,9 +558,11 @@ const CLAIM_WINDOW_MS = 3 * 86400000
 
 function AdminClosing({ order, onOrderUpdate }: OrderActionsProps) {
   const [codes, setCodes] = useState<{ code: string; name: string }[]>([])
-  const [code, setCode] = useState(() => {
+  const [pickedCode, setCode] = useState(() => {
     try { return localStorage.getItem('evc_admin_code') ?? '' } catch { return '' }
   })
+  const lockedCode = useLockedAdminCode()
+  const code = lockedCode ?? pickedCode
   const [busy, setBusy] = useState(false)
   const [msg, setMsg] = useState<{ text: string; ok: boolean } | null>(null)
   const [now] = useState(() => Date.now())
@@ -618,7 +621,7 @@ function AdminClosing({ order, onOrderUpdate }: OrderActionsProps) {
         <>
           <p className="text-sm text-slate-500">Pesanan ini dibuat customer sendiri. Jika closing hasil chat admin, klaim di sini (maks 3 hari setelah bayar).</p>
           <div className="flex gap-2">
-            <select value={code} onChange={e => setCode(e.target.value)} className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm">
+            <select value={code} onChange={e => setCode(e.target.value)} disabled={!!lockedCode} className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm disabled:bg-slate-100">
               <option value="">Pilih kode admin…</option>
               {codes.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>

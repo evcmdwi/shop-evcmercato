@@ -26,7 +26,8 @@ interface DailyRow {
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 const rp = (n: number) => 'Rp' + new Intl.NumberFormat('id-ID').format(n)
-const hhmm = (d: string) => new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Jakarta' })
+// Jam tampil WITA (admin di Balikpapan); pergantian hari tetap 00.00 WIB seperti papan skor.
+const hhmm = (d: string) => new Date(d).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar' })
 const today = () => new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' })
 const dayLabel = (d: string) => new Date(d + 'T12:00:00+07:00').toLocaleDateString('id-ID', { weekday: 'short', day: 'numeric', month: 'short', timeZone: 'Asia/Jakarta' })
 
@@ -69,7 +70,7 @@ const RESULT_LABEL: [string, string][] = [
 
 // ─── Performa harian ──────────────────────────────────────────────────────────
 
-export default function DailyPerformance({ myCode }: { myCode: string }) {
+export default function DailyPerformance({ myCode, reloadKey, onLoaded }: { myCode: string; reloadKey: number; onLoaded: (ok: boolean) => void }) {
   const [date, setDate] = useState(today)
   const [data, setData] = useState<{ date: string; target: number; rows: DailyRow[] } | null>(null)
   const [error, setError] = useState('')
@@ -81,11 +82,13 @@ export default function DailyPerformance({ myCode }: { myCode: string }) {
       .then(json => {
         if (cancelled) return
         if (json.error) setError(json.error)
-        else { setError(''); setData(json) }
+        else setError('')
+        if (!json.error) setData(json)
+        onLoaded(!json.error)
       })
-      .catch(() => { if (!cancelled) setError('Gagal memuat performa harian') })
+      .catch(() => { if (!cancelled) { setError('Gagal memuat performa harian'); onLoaded(false) } })
     return () => { cancelled = true }
-  }, [date])
+  }, [date, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const rows = data?.date === date ? data.rows : null
 
@@ -119,7 +122,7 @@ function AdminDay({ row: r, target, mine }: { row: DailyRow; target: number; min
         <div>
           <p className="font-semibold text-slate-900"><span className="font-mono">{r.code}</span> — {r.name}</p>
           <p className="text-xs text-slate-500">
-            {r.first_at ? `Aktif ${hhmm(r.first_at)}–${hhmm(r.last_at!)} WIB` : 'Belum ada kegiatan'}
+            {r.first_at ? `Aktif ${hhmm(r.first_at)}–${hhmm(r.last_at!)} WITA` : 'Belum ada kegiatan'}
           </p>
         </div>
         <p className="text-sm whitespace-nowrap">

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import LeadList from './LeadList'
 import DailyPerformance from './DailyPerformance'
+import { useLockedAdminCode } from '@/lib/admin-account-context'
 import { FU_DAILY_TARGET, LEAD_LOCK_DAYS } from '@/lib/followup-target'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -113,7 +114,10 @@ export default function FollowUpPage() {
   const [tab, setTab] = useState<'list' | 'leads' | 'score'>('list')
   const [statsKey, setStatsKey] = useState(0)
   const [codes, setCodes] = useState<AdminCode[]>([])
-  const [adminCode, setAdminCode] = useState('')
+  const [pickedCode, setAdminCode] = useState('')
+  // Login per admin → kode terkunci ke akunnya; pemilik tetap bebas memilih.
+  const lockedCode = useLockedAdminCode()
+  const adminCode = lockedCode ?? pickedCode
 
   useEffect(() => {
     fetch('/api/sambers/admin-codes').then(r => r.json()).then(({ codes }) => {
@@ -144,7 +148,7 @@ export default function FollowUpPage() {
       <div className="flex flex-wrap items-end gap-3">
         <div className="w-56">
           <label className="block text-xs font-semibold text-slate-600 mb-1">Saya admin</label>
-          <select value={adminCode} onChange={e => chooseCode(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white">
+          <select value={adminCode} onChange={e => chooseCode(e.target.value)} disabled={!!lockedCode} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm bg-white disabled:bg-slate-100 disabled:text-slate-700">
             <option value="">Pilih kode admin…</option>
             {codes.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
           </select>
@@ -161,7 +165,7 @@ export default function FollowUpPage() {
 
       {tab === 'list' && <CandidateList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
       {tab === 'leads' && <LeadList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
-      {tab === 'score' && <ScoreTab myCode={adminCode} />}
+      {tab === 'score' && <ScoreTab myCode={adminCode} onRefresh={() => setStatsKey(k => k + 1)} />}
     </div>
   )
 }
@@ -369,15 +373,37 @@ function currentMonth() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }).slice(0, 7)
 }
 
-function ScoreTab({ myCode }: { myCode: string }) {
+const witaTime = (d: Date) => d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar' })
+
+// Data ditarik saat dibuka & saat tombol Refresh ditekan (tanpa pembaruan otomatis — keputusan Dwi).
+function ScoreTab({ myCode, onRefresh }: { myCode: string; onRefresh: () => void }) {
   const [view, setView] = useState<'daily' | 'monthly'>('daily')
+  const [reloadKey, setReloadKey] = useState(0)
+  const [loadedAt, setLoadedAt] = useState<Date | null>(null)
+  const [loading, setLoading] = useState(false)
+  const onLoaded = (ok: boolean) => { if (ok) setLoadedAt(new Date()); setLoading(false) }
+
+  function refresh() {
+    setLoading(true)
+    setReloadKey(k => k + 1)
+    onRefresh()
+  }
+
   return (
     <div className="space-y-3">
+      <div className="flex flex-wrap items-center gap-3">
       <div className="flex rounded-lg border border-slate-300 overflow-hidden text-sm w-fit">
         <button onClick={() => setView('daily')} className={`px-4 py-1.5 ${view === 'daily' ? 'bg-[#7FB300] text-white font-semibold' : 'bg-white text-slate-700'}`}>📅 Harian</button>
         <button onClick={() => setView('monthly')} className={`px-4 py-1.5 border-l border-slate-300 ${view === 'monthly' ? 'bg-[#7FB300] text-white font-semibold' : 'bg-white text-slate-700'}`}>📊 Bulanan</button>
       </div>
-      {view === 'daily' ? <DailyPerformance myCode={myCode} /> : <Scoreboard myCode={myCode} />}
+        <button onClick={refresh} disabled={loading} className="px-3 py-1.5 rounded-lg border border-slate-300 bg-white text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-50">
+          {loading ? 'Memuat…' : '🔄 Refresh'}
+        </button>
+        {loadedAt && <span className="text-xs text-slate-500">Diperbarui {witaTime(loadedAt)} WITA</span>}
+      </div>
+      {view === 'daily'
+        ? <DailyPerformance myCode={myCode} reloadKey={reloadKey} onLoaded={onLoaded} />
+        : <Scoreboard myCode={myCode} reloadKey={reloadKey} onLoaded={onLoaded} />}
     </div>
   )
 }
@@ -419,7 +445,7 @@ function TargetCard({ code, refreshKey }: { code: string; refreshKey: number }) 
   )
 }
 
-function Scoreboard({ myCode }: { myCode: string }) {
+function Scoreboard({ myCode, reloadKey, onLoaded }: { myCode: string; reloadKey: number; onLoaded: (ok: boolean) => void }) {
   const [month, setMonth] = useState(currentMonth)
   const [data, setData] = useState<{ month: string; rows: ScoreRow[] } | null>(null)
   const [error, setError] = useState('')
@@ -431,11 +457,13 @@ function Scoreboard({ myCode }: { myCode: string }) {
       .then(json => {
         if (cancelled) return
         if (json.error) setError(json.error)
-        else { setError(''); setData(json) }
+        else setError('')
+        if (!json.error) setData(json)
+        onLoaded(!json.error)
       })
-      .catch(() => { if (!cancelled) setError('Gagal memuat papan skor') })
+      .catch(() => { if (!cancelled) { setError('Gagal memuat papan skor'); onLoaded(false) } })
     return () => { cancelled = true }
-  }, [month])
+  }, [month, reloadKey]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const rows = data?.month === month ? data.rows : null
   const medal = ['🥇', '🥈', '🥉']

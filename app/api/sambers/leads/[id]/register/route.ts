@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { createMemberAccount, DEFAULT_MEMBER_PASSWORD } from '@/lib/admin-members'
 import { activeLeadLock, lockMessage } from '@/lib/lead-followups'
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params
   const body = (await req.json().catch(() => ({}))) as { admin_code?: string; name?: string; phone?: string; email?: string }
-  const adminCode = String(body.admin_code ?? '').trim().toUpperCase()
+  const adminCode = effectiveAdminCode(auth.account, String(body.admin_code ?? '').trim().toUpperCase())
 
   const admin = getSupabaseAdmin()
   const { data: code } = await admin.from('admin_codes').select('code, is_active').eq('code', adminCode).maybeSingle()

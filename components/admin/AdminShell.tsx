@@ -2,11 +2,14 @@
 
 import { useState } from 'react'
 import AdminSidebar from '@/components/admin/AdminSidebar'
+import { AdminAccountProvider } from '@/lib/admin-account-context'
+import type { AdminAccount } from '@/lib/admin-auth'
 
-export default function AdminShell({ children }: { children: React.ReactNode }) {
+export default function AdminShell({ children, account }: { children: React.ReactNode; account: AdminAccount | null }) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
+    <AdminAccountProvider value={account}>
     <div className="flex min-h-screen bg-gray-50">
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
@@ -28,5 +31,6 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
         </main>
       </div>
     </div>
+    </AdminAccountProvider>
   )
 }

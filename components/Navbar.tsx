@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth/auth-context'
 import { useCartContext } from '@/components/CartContext'
 
 // Halaman yang tidak menampilkan kolom cari header (punya pencarian/alur sendiri).
-const NO_SEARCH_PREFIXES = ['/katalog', '/keranjang', '/checkout', '/sambers']
+const NO_SEARCH_PREFIXES = ['/katalog', '/keranjang', '/checkout', '/sambers', '/sambers-login']
 
 export default function Navbar() {
   const pathname = usePathname() ?? '/'

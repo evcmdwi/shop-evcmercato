@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 const PAID = ['paid', 'processed', 'shipped', 'delivered']
@@ -13,7 +13,7 @@ export async function POST(req: NextRequest, { params }: { params: Promise<{ id:
 
   const { id } = await params
   const body = await req.json().catch(() => ({}))
-  const adminCode = body.admin_code ? String(body.admin_code).trim().toUpperCase() : null
+  const adminCode = body.admin_code ? effectiveAdminCode(auth.account, String(body.admin_code).trim().toUpperCase()) : null
 
   const admin = getSupabaseAdmin()
   const { data: order } = await admin

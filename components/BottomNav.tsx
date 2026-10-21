@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth/auth-context'
 
 // Halaman tanpa navigasi bawah: punya tombol tetap di bawah sendiri, atau bukan halaman toko.
 const HIDDEN_PREFIXES = [
-  '/keranjang', '/checkout', '/sambers', '/lp', '/login', '/register', '/lupa-password', '/reset-password',
+  '/keranjang', '/checkout', '/sambers', '/sambers-login', '/lp', '/login', '/register', '/lupa-password', '/reset-password',
 ]
 
 /** Navigasi bawah — HP saja (disembunyikan mulai md). */

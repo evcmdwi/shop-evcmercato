@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import Link from 'next/link'
 import AddressAutocomplete from '@/components/AddressAutocomplete'
 import { useDebounce } from '@/hooks/useDebounce'
+import { useLockedAdminCode } from '@/lib/admin-account-context'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -78,7 +79,9 @@ function Section({ n, title, children }: { n: number; title: string; children: R
 
 export default function BuatPesananPage() {
   const [codes, setCodes] = useState<AdminCode[]>([])
-  const [adminCode, setAdminCode] = useState('')
+  const [pickedCode, setAdminCode] = useState('')
+  const lockedCode = useLockedAdminCode()
+  const adminCode = lockedCode ?? pickedCode
 
   // Pembeli
   const [member, setMember] = useState<Customer | null>(null)
@@ -326,7 +329,7 @@ export default function BuatPesananPage() {
         <div className="flex items-end gap-3">
           <div className="flex-1">
             <label className={label}>Kode admin pembuat pesanan *</label>
-            <select value={adminCode} onChange={e => setAdminCode(e.target.value)} className={input}>
+            <select value={adminCode} onChange={e => setAdminCode(e.target.value)} disabled={!!lockedCode} className={`${input} disabled:bg-slate-100`}>
               <option value="">— Pilih —</option>
               {codes.map(c => <option key={c.code} value={c.code}>{c.code} — {c.name}</option>)}
             </select>

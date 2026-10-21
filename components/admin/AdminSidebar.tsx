@@ -3,6 +3,8 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useState } from 'react'
+import { createClient } from '@/lib/supabase'
+import { useAdminAccount } from '@/lib/admin-account-context'
 
 interface MenuItem {
   href: string
@@ -166,6 +168,12 @@ interface AdminSidebarProps {
 
 export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps) {
   const pathname = usePathname()
+  const account = useAdminAccount()
+
+  async function logout() {
+    await createClient().auth.signOut()
+    window.location.href = '/sambers-login'
+  }
 
   const isActive = (href: string) => {
     if (href === '/sambers') return pathname === '/sambers'
@@ -259,7 +267,14 @@ export default function AdminSidebar({ open = true, onClose }: AdminSidebarProps
         </nav>
 
         {/* Footer */}
-        <div className="px-6 py-4 border-t border-slate-800">
+        <div className="px-6 py-4 border-t border-slate-800 space-y-3">
+          <div className="text-xs text-slate-400 space-y-1.5">
+            {account && <p>Masuk sebagai <b className="text-white">{account.username}</b>{account.admin_code && ` (${account.admin_code})`}</p>}
+            <div className="flex gap-4">
+              {account && <Link href="/sambers/akun" prefetch={false} onClick={onClose} className="hover:text-white">🔑 Ubah password</Link>}
+              <button type="button" onClick={logout} className="hover:text-white">Keluar</button>
+            </div>
+          </div>
           <Link
             href="/"
             className="text-xs text-slate-400 hover:text-white flex items-center gap-2"

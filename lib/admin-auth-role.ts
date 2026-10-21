@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { resolveAdmin } from '@/lib/admin-auth'
 
 export type AdminRole = 'admin_evc' | 'super_admin' | null
 
@@ -12,7 +13,7 @@ export interface AdminAuthResult {
 
 /**
  * Check admin auth AND return user role from users table.
- * Also checks ADMIN_EMAIL env var (backward compat).
+ * Admin = admin_accounts atau env ADMIN_EMAIL (lihat resolveAdmin).
  */
 export async function checkAdminAuthWithRole(): Promise<AdminAuthResult> {
   try {
@@ -23,13 +24,7 @@ export async function checkAdminAuthWithRole(): Promise<AdminAuthResult> {
       return { ok: false, status: 401 }
     }
 
-    // Check ADMIN_EMAIL env var
-    const adminEmails = (process.env.ADMIN_EMAIL ?? '')
-      .split(',')
-      .map(e => e.trim().toLowerCase())
-      .filter(Boolean)
-
-    const isAdmin = adminEmails.includes(user.email?.toLowerCase() ?? '')
+    const { isAdmin } = await resolveAdmin(user)
     if (!isAdmin) {
       return { ok: false, status: 403 }
     }

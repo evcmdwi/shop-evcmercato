@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 const SEGMENTS = ['repeat', 'dormant', 'unpaid', 'new']
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const userId = String(body.user_id ?? '')
-  const adminCode = String(body.admin_code ?? '').trim().toUpperCase()
+  const adminCode = effectiveAdminCode(auth.account, String(body.admin_code ?? '').trim().toUpperCase())
   const segment = String(body.segment ?? '')
   if (!userId || !SEGMENTS.includes(segment)) return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 })
 

@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase-server'
 import { redirect } from 'next/navigation'
 import AdminShell from '@/components/admin/AdminShell'
+import { resolveAdmin } from '@/lib/admin-auth'
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient()
@@ -8,19 +9,14 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const { data: { user }, error } = await supabase.auth.getUser()
 
   if (error || !user) {
-    redirect('/login')
+    redirect('/sambers-login')
   }
 
-  const adminEmails = (process.env.ADMIN_EMAIL ?? '')
-    .split(',')
-    .map(e => e.trim().toLowerCase())
-    .filter(Boolean)
+  const { isAdmin, account } = await resolveAdmin(user)
 
-  const userEmail = user.email?.toLowerCase() ?? ''
-
-  if (!adminEmails.includes(userEmail)) {
+  if (!isAdmin) {
     redirect('/')
   }
 
-  return <AdminShell>{children}</AdminShell>
+  return <AdminShell account={account}>{children}</AdminShell>
 }

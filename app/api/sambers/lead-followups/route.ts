@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { LEAD_LOCK_DAYS } from '@/lib/followup-target'
 import { activeLeadLock, lockMessage } from '@/lib/lead-followups'
@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json().catch(() => ({}))
   const leadId = String(body.lead_id ?? '')
-  const adminCode = String(body.admin_code ?? '').trim().toUpperCase()
+  const adminCode = effectiveAdminCode(auth.account, String(body.admin_code ?? '').trim().toUpperCase())
   if (!leadId) return NextResponse.json({ error: 'Data tidak lengkap' }, { status: 400 })
 
   const admin = getSupabaseAdmin()

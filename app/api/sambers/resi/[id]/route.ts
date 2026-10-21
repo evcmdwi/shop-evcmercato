@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { SENDER_INFO } from '@/lib/constants/sender-info'
+import { resolveAdmin } from '@/lib/admin-auth'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -11,9 +12,7 @@ export async function GET(req: NextRequest, { params }: RouteContext) {
   // Admin auth check
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
-  const adminEmails = (process.env.ADMIN_EMAIL ?? '')
-    .split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-  const isAdmin = user && adminEmails.includes(user.email?.toLowerCase() ?? '')
+  const isAdmin = user && (await resolveAdmin(user)).isAdmin
   if (!isAdmin) {
     return new NextResponse('Unauthorized', { status: 401 })
   }

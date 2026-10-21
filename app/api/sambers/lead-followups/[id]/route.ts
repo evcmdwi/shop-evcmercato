@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 
 const RESULT_STATUS: Record<string, string> = {
@@ -18,7 +18,7 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const { id } = await params
   const body = await req.json().catch(() => ({}))
   const result = String(body.result ?? '')
-  const adminCode = String(body.admin_code ?? '').trim().toUpperCase()
+  const adminCode = effectiveAdminCode(auth.account, String(body.admin_code ?? '').trim().toUpperCase())
   if (!RESULT_STATUS[result]) return NextResponse.json({ error: 'Hasil tidak valid' }, { status: 400 })
 
   const admin = getSupabaseAdmin()

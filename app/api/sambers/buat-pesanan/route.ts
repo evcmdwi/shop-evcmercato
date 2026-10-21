@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { checkAdminAuth } from '@/lib/admin-auth'
+import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
 import { computeAdminOrderTotals, createOrderPaymentLink, normalizePhone } from '@/lib/admin-orders'
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
   const admin = getSupabaseAdmin()
 
   // ── Validasi dasar ────────────────────────────────────────────────────
-  const adminCode = String(body.admin_code ?? '').trim().toUpperCase()
+  const adminCode = effectiveAdminCode(auth.account, String(body.admin_code ?? '').trim().toUpperCase())
   const { data: codeRow } = await admin.from('admin_codes').select('code').eq('code', adminCode).eq('is_active', true).maybeSingle()
   if (!codeRow) return bad('Pilih kode admin pembuat pesanan')
 
