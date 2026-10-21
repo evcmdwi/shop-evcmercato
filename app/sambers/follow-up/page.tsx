@@ -2,6 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
+import LeadList from './LeadList'
+import { FU_DAILY_TARGET, LEAD_LOCK_DAYS } from '@/lib/followup-target'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -33,10 +35,17 @@ interface Candidate {
 interface ScoreRow {
   code: string
   name: string
+  today_fu: number
+  target_days: number
+  streak: number
   followups: number
   customers_followed: number
+  lead_followups: number
+  leads_followed: number
+  joins: number
   closing: number
   closing_followup: number
+  closing_leads: number
   closing_dibuat: number
   closing_klaim: number
   omzet: number
@@ -100,7 +109,8 @@ function segmentInfo(c: Candidate): string {
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
 export default function FollowUpPage() {
-  const [tab, setTab] = useState<'list' | 'score'>('list')
+  const [tab, setTab] = useState<'list' | 'leads' | 'score'>('list')
+  const [statsKey, setStatsKey] = useState(0)
   const [codes, setCodes] = useState<AdminCode[]>([])
   const [adminCode, setAdminCode] = useState('')
 
@@ -114,6 +124,8 @@ export default function FollowUpPage() {
     }).catch(() => {})
   }, [])
 
+  const adminName = codes.find(c => c.code === adminCode)?.name ?? ''
+
   function chooseCode(code: string) {
     setAdminCode(code)
     try { localStorage.setItem(LAST_CODE_KEY, code) } catch {}
@@ -122,9 +134,9 @@ export default function FollowUpPage() {
   return (
     <div className="max-w-3xl mx-auto space-y-5">
       <div>
-        <h1 className="text-xl font-bold text-slate-900">📞 Follow Up Customer</h1>
+        <h1 className="text-xl font-bold text-slate-900">📞 Follow Up</h1>
         <p className="text-sm text-slate-500">
-          Customer yang kamu follow up via WA dipegang 7 hari. Jika dia bayar pesanan dalam 7 hari itu, otomatis tercatat sebagai closing kamu.
+          Member yang kamu follow up dipegang 7 hari, lead {LEAD_LOCK_DAYS} hari. Pesanan yang dibayar selama dipegang otomatis jadi closing kamu.
         </p>
       </div>
 
@@ -138,21 +150,24 @@ export default function FollowUpPage() {
         </div>
         <Link href="/sambers/pesanan/kode-admin" className="text-xs text-[#7FB300] hover:underline pb-2.5">Kelola kode →</Link>
         <div className="ml-auto flex rounded-lg border border-slate-300 overflow-hidden text-sm">
-          <button onClick={() => setTab('list')} className={`px-4 py-2 ${tab === 'list' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}`}>Daftar</button>
-          <button onClick={() => setTab('score')} className={`px-4 py-2 ${tab === 'score' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}`}>🏆 Papan Skor</button>
+          <button onClick={() => setTab('list')} className={`px-3 sm:px-4 py-2 ${tab === 'list' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}`}>Member</button>
+          <button onClick={() => setTab('leads')} className={`px-3 sm:px-4 py-2 border-l border-slate-300 ${tab === 'leads' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}`}>Leads</button>
+          <button onClick={() => setTab('score')} className={`px-3 sm:px-4 py-2 border-l border-slate-300 ${tab === 'score' ? 'bg-slate-800 text-white' : 'bg-white text-slate-700'}`}>🏆 Skor</button>
         </div>
       </div>
 
-      {tab === 'list'
-        ? <CandidateList adminCode={adminCode} adminName={codes.find(c => c.code === adminCode)?.name ?? ''} />
-        : <Scoreboard myCode={adminCode} />}
+      {adminCode && <TargetCard code={adminCode} refreshKey={statsKey} />}
+
+      {tab === 'list' && <CandidateList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
+      {tab === 'leads' && <LeadList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
+      {tab === 'score' && <Scoreboard myCode={adminCode} />}
     </div>
   )
 }
 
 // ─── Daftar customer ──────────────────────────────────────────────────────────
 
-function CandidateList({ adminCode, adminName }: { adminCode: string; adminName: string }) {
+function CandidateList({ adminCode, adminName, onActivity }: { adminCode: string; adminName: string; onActivity: () => void }) {
   const [rows, setRows] = useState<Candidate[] | null>(null)
   const [error, setError] = useState('')
   const [segment, setSegment] = useState<Segment>('repeat')
@@ -276,7 +291,7 @@ function CandidateList({ adminCode, adminName }: { adminCode: string; adminName:
           adminCode={adminCode}
           adminName={adminName}
           onClose={() => setActive(null)}
-          onDone={(expiresAt) => { onFollowed(active.user_id, adminCode, expiresAt); setActive(null) }}
+          onDone={(expiresAt) => { onFollowed(active.user_id, adminCode, expiresAt); setActive(null); onActivity() }}
         />
       )}
     </div>
@@ -353,6 +368,43 @@ function currentMonth() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }).slice(0, 7)
 }
 
+// Target harian admin yang dipilih (member + leads, 1 orang dihitung sekali per hari).
+function TargetCard({ code, refreshKey }: { code: string; refreshKey: number }) {
+  const [row, setRow] = useState<ScoreRow | null>(null)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/sambers/followups/scoreboard?month=${currentMonth()}`)
+      .then(r => r.json())
+      .then(json => { if (!cancelled) setRow((json.rows ?? []).find((r: ScoreRow) => r.code === code) ?? null) })
+      .catch(() => {})
+    return () => { cancelled = true }
+  }, [code, refreshKey])
+
+  if (!row) return null
+  const pct = Math.min(100, Math.round((row.today_fu / FU_DAILY_TARGET) * 100))
+  const reached = row.today_fu >= FU_DAILY_TARGET
+  return (
+    <div className={`rounded-xl border p-4 ${reached ? 'bg-[#7FB300]/10 border-[#7FB300]' : 'bg-white border-slate-200'}`}>
+      <div className="flex items-baseline justify-between gap-3">
+        <p className="text-sm font-semibold text-slate-800">
+          {reached ? '🎯 Target hari ini tercapai!' : 'Target hari ini'}
+        </p>
+        <p className="text-sm"><b className="text-lg text-slate-900">{row.today_fu}</b><span className="text-slate-500">/{FU_DAILY_TARGET} FU</span></p>
+      </div>
+      <div className="mt-2 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+        <div className="h-full rounded-full bg-[#7FB300] transition-all" style={{ width: `${pct}%` }} />
+      </div>
+      <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-xs text-slate-600">
+        {row.streak > 0 && <span>🔥 {row.streak} hari berturut-turut</span>}
+        <span>🎯 {row.target_days} hari capai target bulan ini</span>
+        <span>👤 {row.joins} join</span>
+        <span>🛒 {row.closing} closing</span>
+      </div>
+    </div>
+  )
+}
+
 function Scoreboard({ myCode }: { myCode: string }) {
   const [month, setMonth] = useState(currentMonth)
   const [data, setData] = useState<{ month: string; rows: ScoreRow[] } | null>(null)
@@ -386,6 +438,7 @@ function Scoreboard({ myCode }: { myCode: string }) {
         <ul className="space-y-2">
           {rows.map((r, i) => {
             const conv = r.customers_followed ? Math.round((r.closing_followup / r.customers_followed) * 100) : null
+            const leadConv = r.leads_followed ? Math.round((r.joins / r.leads_followed) * 100) : null
             return (
               <li key={r.code} className={`bg-white rounded-xl border p-4 ${r.code === myCode ? 'border-[#7FB300]' : 'border-slate-200'}`}>
                 <div className="flex items-center gap-3">
@@ -393,7 +446,7 @@ function Scoreboard({ myCode }: { myCode: string }) {
                   <div className="flex-1">
                     <p className="font-semibold text-slate-900"><span className="font-mono">{r.code}</span> — {r.name}</p>
                     <p className="text-xs text-slate-500">
-                      {r.closing_followup} dari follow-up · {r.closing_dibuat} buat pesanan · {r.closing_klaim} klaim
+                      {r.closing_followup} follow up member · {r.closing_leads} dari leads · {r.closing_dibuat} buat pesanan · {r.closing_klaim} klaim
                     </p>
                   </div>
                   <div className="text-right">
@@ -401,14 +454,22 @@ function Scoreboard({ myCode }: { myCode: string }) {
                     <p className="text-xs text-slate-500">{r.closing} closing</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-2 gap-2 mt-3 text-center">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 text-center">
                   <div className="rounded-lg bg-slate-50 py-2">
-                    <p className="font-bold text-slate-900">{r.followups}</p>
-                    <p className="text-xs text-slate-500">follow up ({r.customers_followed} customer)</p>
+                    <p className="font-bold text-slate-900">{r.customers_followed}</p>
+                    <p className="text-xs text-slate-500">member di-FU · {conv === null ? '–' : `${conv}%`} closing</p>
                   </div>
                   <div className="rounded-lg bg-slate-50 py-2">
-                    <p className="font-bold text-slate-900">{conv === null ? '–' : `${conv}%`}</p>
-                    <p className="text-xs text-slate-500">konversi follow up</p>
+                    <p className="font-bold text-slate-900">{r.leads_followed}</p>
+                    <p className="text-xs text-slate-500">lead di-FU</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 py-2">
+                    <p className="font-bold text-slate-900">{r.joins}</p>
+                    <p className="text-xs text-slate-500">join member · {leadConv === null ? '–' : `${leadConv}%`}</p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 py-2">
+                    <p className="font-bold text-slate-900">{r.target_days}{r.streak > 0 && <span className="ml-1 text-sm">🔥{r.streak}</span>}</p>
+                    <p className="text-xs text-slate-500">hari capai target {FU_DAILY_TARGET}</p>
                   </div>
                 </div>
               </li>

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { normalizePhone } from '@/lib/admin-orders'
+import { createMemberAccount, DEFAULT_MEMBER_PASSWORD } from '@/lib/admin-members'
 
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
@@ -60,45 +60,13 @@ export async function GET(req: NextRequest) {
 
 const bad = (error: string, status = 400) => NextResponse.json({ error }, { status })
 
-// Password awal member yang ditambah admin (keputusan Dwi); member bisa menggantinya
-// sendiri atau tetap memakainya.
-const DEFAULT_MEMBER_PASSWORD = '123456'
-
 // POST — admin menambah member baru: login = email ini + DEFAULT_MEMBER_PASSWORD.
 export async function POST(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) return bad('Unauthorized', auth.status)
 
   const body = (await req.json().catch(() => ({}))) as { name?: string; phone?: string; email?: string }
-  const name = (body.name ?? '').trim()
-  const phone = normalizePhone(body.phone ?? '')
-  const email = (body.email ?? '').trim().toLowerCase()
-  if (!name) return bad('Nama wajib diisi')
-  if (!/^08\d{7,12}$/.test(phone)) return bad('No. WA tidak valid (contoh: 081234567890)')
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return bad('Email tidak valid')
-
-  const admin = getSupabaseAdmin()
-  const { data: sameEmail } = await admin
-    .from('users').select('id').ilike('email', email.replace(/[\\%_]/g, '\\$&')).limit(1).maybeSingle()
-  if (sameEmail) return bad('Email ini sudah terdaftar sebagai member', 409)
-  const { data: samePhone } = await admin
-    .from('users').select('id, name').in('phone', [phone, '62' + phone.slice(1), '+62' + phone.slice(1)]).limit(1).maybeSingle()
-  if (samePhone) return bad(`No. WA ini sudah dipakai member ${samePhone.name || 'lain'}`, 409)
-
-  const { data: created, error: createErr } = await admin.auth.admin.createUser({
-    email,
-    password: DEFAULT_MEMBER_PASSWORD,
-    email_confirm: true,
-    user_metadata: { name, phone },
-  })
-  if (createErr || !created.user) {
-    console.error('[POST /api/sambers/members] create user:', createErr?.message)
-    return bad('Gagal membuat member: ' + (createErr?.message ?? 'unknown'), 500)
-  }
-  // Trigger handle_new_user membuat baris users; pastikan nama & WA terisi.
-  const { error: upErr } = await admin
-    .from('users').upsert({ id: created.user.id, email, name, phone }, { onConflict: 'id' })
-  if (upErr) console.error('[POST /api/sambers/members] upsert users:', upErr.message)
-
-  return NextResponse.json({ id: created.user.id, password: DEFAULT_MEMBER_PASSWORD })
+  const res = await createMemberAccount(getSupabaseAdmin(), body)
+  if (!res.ok) return bad(res.error, res.status)
+  return NextResponse.json({ id: res.id, password: DEFAULT_MEMBER_PASSWORD })
 }
