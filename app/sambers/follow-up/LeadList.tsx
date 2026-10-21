@@ -305,26 +305,19 @@ function LeadFollowUpModal({ lead, adminCode, adminName, onClose, onDone }: {
   async function send() {
     setBusy(true)
     setError('')
-    // Buka tab dulu (sinkron dengan klik) supaya tidak diblokir popup blocker.
-    const win = window.open('', '_blank')
     try {
       const res = await fetch('/api/sambers/lead-followups', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lead_id: lead.id, admin_code: adminCode }),
+        body: JSON.stringify({ lead_id: lead.id, admin_code: adminCode, message: text }),
       })
       const json = await res.json()
       if (!res.ok) {
-        win?.close()
-        setError(json.error ?? 'Gagal mencatat follow up')
+        setError(json.error ?? 'Gagal mengirim follow up')
         return
       }
-      const url = waUrl(lead.phone_norm, text)
-      if (win) win.location.href = url
-      else window.location.href = url
       onDone(json.followup)
     } catch {
-      win?.close()
       setError('Terjadi kesalahan jaringan')
     } finally {
       setBusy(false)
@@ -336,7 +329,7 @@ function LeadFollowUpModal({ lead, adminCode, adminName, onClose, onDone }: {
       <div className="bg-white w-full sm:max-w-lg rounded-t-2xl sm:rounded-2xl p-5 space-y-3" onClick={e => e.stopPropagation()}>
         <div>
           <h3 className="font-semibold text-slate-900">Follow up {lead.nama}</h3>
-          <p className="text-xs text-slate-500">{lead.phone_norm} · pesan bisa diedit sebelum dikirim</p>
+          <p className="text-xs text-slate-500">{lead.phone_norm} · pesan bisa diedit, terkirim otomatis via WA sistem</p>
         </div>
         <textarea value={text} onChange={e => setText(e.target.value)} rows={10} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" />
         <p className="text-xs text-slate-500">
@@ -346,7 +339,7 @@ function LeadFollowUpModal({ lead, adminCode, adminName, onClose, onDone }: {
         <div className="flex gap-2">
           <button onClick={onClose} className="flex-1 py-3 rounded-xl border border-slate-300 text-slate-700 font-semibold">Batal</button>
           <button onClick={send} disabled={busy || !text.trim()} className="flex-[2] py-3 rounded-xl bg-[#25D366] text-white font-semibold disabled:opacity-50">
-            {busy ? '⏳…' : '💬 Buka WhatsApp'}
+            {busy ? '⏳ Mengirim…' : '💬 Kirim WhatsApp'}
           </button>
         </div>
       </div>
