@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import LeadList from './LeadList'
+import DailyPerformance from './DailyPerformance'
 import { FU_DAILY_TARGET, LEAD_LOCK_DAYS } from '@/lib/followup-target'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -160,7 +161,7 @@ export default function FollowUpPage() {
 
       {tab === 'list' && <CandidateList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
       {tab === 'leads' && <LeadList adminCode={adminCode} adminName={adminName} onActivity={() => setStatsKey(k => k + 1)} />}
-      {tab === 'score' && <Scoreboard myCode={adminCode} />}
+      {tab === 'score' && <ScoreTab myCode={adminCode} />}
     </div>
   )
 }
@@ -366,6 +367,19 @@ function FollowUpModal({ candidate, adminCode, adminName, onClose, onDone }: {
 
 function currentMonth() {
   return new Date().toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' }).slice(0, 7)
+}
+
+function ScoreTab({ myCode }: { myCode: string }) {
+  const [view, setView] = useState<'daily' | 'monthly'>('daily')
+  return (
+    <div className="space-y-3">
+      <div className="flex rounded-lg border border-slate-300 overflow-hidden text-sm w-fit">
+        <button onClick={() => setView('daily')} className={`px-4 py-1.5 ${view === 'daily' ? 'bg-[#7FB300] text-white font-semibold' : 'bg-white text-slate-700'}`}>📅 Harian</button>
+        <button onClick={() => setView('monthly')} className={`px-4 py-1.5 border-l border-slate-300 ${view === 'monthly' ? 'bg-[#7FB300] text-white font-semibold' : 'bg-white text-slate-700'}`}>📊 Bulanan</button>
+      </div>
+      {view === 'daily' ? <DailyPerformance myCode={myCode} /> : <Scoreboard myCode={myCode} />}
+    </div>
+  )
 }
 
 // Target harian admin yang dipilih (member + leads, 1 orang dihitung sekali per hari).

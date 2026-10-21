@@ -9,10 +9,10 @@ const DAY = 86400000
 const wibDate = (iso: string | number) => new Date(iso).toLocaleDateString('sv-SE', { timeZone: 'Asia/Jakarta' })
 
 type Admin = ReturnType<typeof getSupabaseAdmin>
-type FuRow = { admin_code: string; created_at: string; user_id?: string; lead_id?: string }
+type FuRow = { admin_code: string; created_at: string; user_id?: string; lead_id?: string | null }
 
 // Ambil per 1000 baris (batas max-rows PostgREST).
-async function fetchFollowups(admin: Admin, table: 'admin_followups' | 'lead_followups', key: 'user_id' | 'lead_id', from: string, to: string) {
+async function fetchFollowups(admin: Admin, table: 'admin_followups' | 'lead_followups', key: 'user_id, lead_id' | 'lead_id', from: string, to: string) {
   const rows: FuRow[] = []
   for (let off = 0; ; off += 1000) {
     const { data, error } = await admin
@@ -47,7 +47,8 @@ export async function GET(req: NextRequest) {
   let memberFus: FuRow[], leadFus: FuRow[]
   try {
     ;[memberFus, leadFus] = await Promise.all([
-      fetchFollowups(admin, 'admin_followups', 'user_id', dailyFrom, dailyTo),
+      // Kunci member hasil daftar dari leads bukan follow up baru (lead-nya sudah dihitung).
+      fetchFollowups(admin, 'admin_followups', 'user_id, lead_id', dailyFrom, dailyTo).then((rs) => rs.filter((r) => !r.lead_id)),
       fetchFollowups(admin, 'lead_followups', 'lead_id', dailyFrom, dailyTo),
     ])
   } catch (e) {
