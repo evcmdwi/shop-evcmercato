@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { orderPaymentReminderMessage } from '@/lib/whatsapp-templates/order-payment-reminder'
+import { isKkiUser } from '@/lib/kki'
 
 const REMIND_AFTER_MS = 5 * 60_000
 // Hanya pesanan yang baru dibuat — pesanan lama yang menggantung tidak ikut dikirimi.
@@ -38,6 +39,8 @@ export async function sendPaymentReminders(admin: SupabaseClient): Promise<numbe
       .is('payment_reminder_sent_at', null)
       .select('id')
     if (!claimed?.length) continue
+    // Distributor KKI tidak dikirimi pengingat (klaim dibiarkan, jadi tidak dicoba lagi).
+    if (await isKkiUser(admin, order.user_id)) continue
 
     let phone = order.shipping_phone as string | null
     if (!phone) {

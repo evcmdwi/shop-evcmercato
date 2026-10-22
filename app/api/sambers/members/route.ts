@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
 import { createMemberAccount, DEFAULT_MEMBER_PASSWORD } from '@/lib/admin-members'
 
 export async function GET(req: NextRequest) {
@@ -14,26 +15,28 @@ export async function GET(req: NextRequest) {
   const page = parseInt(searchParams.get('page') ?? '1', 10)
   const limit = parseInt(searchParams.get('limit') ?? '50', 10)
   const offset = (page - 1) * limit
+  const kkiOnly = searchParams.get('kki') === '1'
 
   const admin = getSupabaseAdmin()
 
   let query = admin
     .from('users')
     .select(
-      `id, name, email, phone, created_at, total_points, tier,
+      `id, name, email, phone, created_at, total_points, tier, special_discount_pct, kki_distributor,
        orders!left ( id, status )`,
       { count: 'exact' }
     )
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
 
+  if (kkiOnly) query = query.eq('kki_distributor', true)
   if (search) {
     query = query.or(
       `name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
     )
   }
 
-  const { data, count, error } = await query
+  const [{ data, count, error }, kkiPhones] = await Promise.all([query, loadKkiPhones(admin)])
 
   if (error) {
     console.error('[GET /api/sambers/members]', error)
@@ -50,6 +53,9 @@ export async function GET(req: NextRequest) {
     created_at: u.created_at,
     total_points: u.total_points ?? 0,
     tier: u.tier ?? 'silver',
+    special_discount_pct: u.special_discount_pct ?? null,
+    // Ditandai langsung, atau nomornya ditandai KKI di Leads.
+    kki_distributor: u.kki_distributor || isKkiPhone(kkiPhones, u.phone),
     has_order: Array.isArray(u.orders)
       ? u.orders.some((o: any) => ACTIVE_STATUSES.includes(o.status))
       : false,

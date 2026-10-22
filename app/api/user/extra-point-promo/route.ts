@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiUser } from '@/lib/kki'
 
 // GET /api/user/extra-point-promo
 // Returns active extra point promo for the current authenticated user (if any)
@@ -11,6 +12,8 @@ export async function GET() {
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
     const admin = getSupabaseAdmin()
+    // Distributor KKI tidak mendapat promo poin (lihat juga process-paid-orders).
+    if (await isKkiUser(admin, user.id)) return NextResponse.json({ promo: null })
     const now = new Date().toISOString()
 
     const { data: promo, error } = await admin

@@ -18,6 +18,7 @@ interface Customer {
   tier: string
   total_points: number
   special_discount_pct: number | null
+  kki_distributor: boolean
   address: {
     recipient_name: string
     phone: string
@@ -215,11 +216,14 @@ export default function BuatPesananPage() {
   // Rincian (rumus sama dengan server)
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0)
   const baseRate = methods.find(m => m.method === method)?.base_rate ?? (method === 'reguler' ? 10000 : 0)
-  const shipDiscount = subtotal >= 80000 ? 10000 : 0
+  // Distributor KKI: tanpa promo ongkir, biaya layanan dibayar, tanpa diskon admin/VIP.
+  const kki = member?.kki_distributor ?? false
+  const shipDiscount = !kki && subtotal >= 80000 ? 10000 : 0
   const shipCost = Math.max(0, baseRate - shipDiscount)
-  const safeDiscount = Math.min(Math.max(0, discount), subtotal)
-  const total = Math.max(0, subtotal + shipCost - safeDiscount)
-  const vipPct = member?.special_discount_pct ?? 0
+  const serviceFee = kki ? 3000 : 0
+  const safeDiscount = kki ? 0 : Math.min(Math.max(0, discount), subtotal)
+  const total = Math.max(0, subtotal + shipCost + serviceFee - safeDiscount)
+  const vipPct = kki ? 0 : member?.special_discount_pct ?? 0
   const vipAmount = vipPct > 0 ? Math.round(subtotal * vipPct / 100) : 0
 
   async function submit(sendLink: boolean) {
@@ -304,7 +308,7 @@ export default function BuatPesananPage() {
         {visibleSuggestions.map(c => (
           <li key={c.id}>
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pickMember(c)} className="w-full text-left px-3 py-2 hover:bg-[#7FB300]/10">
-              <p className="text-sm font-medium text-slate-900">{c.name || '(tanpa nama)'} {(c.special_discount_pct ?? 0) > 0 && <span className="text-xs text-yellow-700">💛 VIP {c.special_discount_pct}%</span>}</p>
+              <p className="text-sm font-medium text-slate-900">{c.name || '(tanpa nama)'} {(c.special_discount_pct ?? 0) > 0 && <span className="text-xs text-yellow-700">💛 VIP {c.special_discount_pct}%</span>} {c.kki_distributor && <span className="text-xs text-rose-700">🚫 KKI</span>}</p>
               <p className="text-xs text-slate-500">{c.phone || '—'} · {c.email}</p>
             </button>
           </li>
@@ -456,7 +460,10 @@ export default function BuatPesananPage() {
           <div className="flex justify-between"><dt className="text-slate-500">Subtotal produk</dt><dd>{rp(subtotal)}</dd></div>
           <div className="flex justify-between"><dt className="text-slate-500">Ongkir ({method})</dt><dd>{rp(baseRate)}</dd></div>
           {shipDiscount > 0 && <div className="flex justify-between text-[#1D9E75]"><dt>Promo ongkir (belanja ≥ Rp80.000)</dt><dd>-{rp(Math.min(shipDiscount, baseRate))}</dd></div>}
-          <div className="flex justify-between"><dt className="text-slate-500">Biaya layanan</dt><dd className="text-[#1D9E75]">Gratis</dd></div>
+          <div className="flex justify-between"><dt className="text-slate-500">Biaya layanan</dt>{kki ? <dd>{rp(serviceFee)}</dd> : <dd className="text-[#1D9E75]">Gratis</dd>}</div>
+          {kki ? (
+            <p className="text-xs text-rose-700 bg-rose-50 rounded-lg px-3 py-2">🚫 Pembeli ini Distributor KKI — tanpa diskon & promo.</p>
+          ) : (
           <div className="flex items-center justify-between gap-3">
             <dt className="text-slate-500">Diskon dari admin</dt>
             <dd className="flex items-center gap-2">
@@ -467,7 +474,8 @@ export default function BuatPesananPage() {
               <input value={discount || ''} onChange={e => setDiscount(parseInt(e.target.value.replace(/\D/g, '')) || 0)} inputMode="numeric" placeholder="0" className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right" />
             </dd>
           </div>
-          {discount > subtotal && <p className="text-xs text-red-600 text-right">Diskon maksimal {rp(subtotal)}</p>}
+          )}
+          {!kki && discount > subtotal && <p className="text-xs text-red-600 text-right">Diskon maksimal {rp(subtotal)}</p>}
           <div className="flex justify-between pt-3 border-t border-slate-200">
             <dt className="font-semibold text-slate-900">Total pembayaran</dt>
             <dd className="font-bold text-lg text-[#7FB300]">{rp(total)}</dd>

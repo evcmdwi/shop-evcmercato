@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { isKkiPhone, loadKkiPhones, KKI_EXCLUDED_MESSAGE } from '@/lib/kki'
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -50,7 +51,7 @@ export async function POST(
   // Ambil 1 pending log berikutnya + data lead untuk personalisasi
   const { data: nextLog, error: logError } = await admin
     .from('broadcast_logs')
-    .select('id, lead_id, phone, leads(nama, kota, interest)')
+    .select('id, lead_id, phone, leads(nama, kota, interest, kki_distributor)')
     .eq('campaign_id', campaignId)
     .eq('status', 'pending')
     .order('created_at', { ascending: true })
@@ -67,14 +68,17 @@ export async function POST(
   }
 
   // Render variabel personalisasi dari data lead
-  const lead = nextLog.leads as { nama?: string; kota?: string; interest?: string } | null
+  const lead = nextLog.leads as { nama?: string; kota?: string; interest?: string; kki_distributor?: boolean } | null
   const renderedMessage = campaign.message
     .replace(/\{Nama\}/g, lead?.nama?.trim() || '')
     .replace(/\{Kota\}/g, lead?.kota?.trim() || '')
     .replace(/\{Interest\}/g, lead?.interest?.trim() || '')
 
-  // Kirim WA dengan pesan yang sudah dirender
-  const result = await sendWhatsApp({ to: nextLog.phone, message: renderedMessage })
+  // Kirim WA dengan pesan yang sudah dirender — kecuali lead ditandai distributor KKI setelah campaign dibuat.
+  const kki = lead?.kki_distributor || isKkiPhone(await loadKkiPhones(admin), nextLog.phone)
+  const result = kki
+    ? { success: false, error: KKI_EXCLUDED_MESSAGE }
+    : await sendWhatsApp({ to: nextLog.phone, message: renderedMessage })
   const success = result.success
   const now = new Date().toISOString()
 

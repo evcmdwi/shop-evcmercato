@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
 
 // GET /api/sambers/broadcast/leads-uncontacted?limit=50&campaign_id=<id>
 //
@@ -77,15 +78,20 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Gagal mengambil data broadcast logs' }, { status: 500 })
   }
 
+  // Distributor KKI tidak pernah ditawarkan untuk broadcast.
+  const kkiPhones = await loadKkiPhones(admin)
+  const eligible = (l: { id: string; phone: string; kki_distributor: boolean }) =>
+    !excludedIds.has(l.id) && !l.kki_distributor && !isKkiPhone(kkiPhones, l.phone)
+
   // Step 3: Fetch leads in pages, filter excluded in JS (avoids URL length limit)
-  let allLeads: { id: string; nama: string; phone: string; kota: string | null }[] = []
+  let allLeads: { id: string; nama: string; phone: string; kota: string | null; kki_distributor: boolean }[] = []
   let leadsPage = 0
   const PAGE_SIZE = 500
 
-  while (allLeads.filter(l => !excludedIds.has(l.id)).length < limit) {
+  while (allLeads.filter(eligible).length < limit) {
     const { data, error } = await admin
       .from('leads')
-      .select('id, nama, phone, kota')
+      .select('id, nama, phone, kota, kki_distributor')
       .neq('status', 'converted')
       .order('created_at', { ascending: true })
       .range(leadsPage * PAGE_SIZE, (leadsPage + 1) * PAGE_SIZE - 1)
@@ -99,9 +105,9 @@ export async function GET(req: NextRequest) {
 
   // Step 4: Filter & slice
   const result = allLeads
-    .filter(l => !excludedIds.has(l.id))
+    .filter(eligible)
     .slice(0, limit)
-    .map(l => ({ ...l, broadcast_count: 0 }))
+    .map(({ kki_distributor: _kki, ...l }) => ({ ...l, broadcast_count: 0 }))
 
   return NextResponse.json({
     leads: result,

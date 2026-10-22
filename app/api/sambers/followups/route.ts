@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiUser, KKI_EXCLUDED_MESSAGE } from '@/lib/kki'
 
 const SEGMENTS = ['repeat', 'dormant', 'unpaid', 'new']
 
@@ -18,6 +19,7 @@ export async function POST(req: NextRequest) {
   const admin = getSupabaseAdmin()
   const { data: code } = await admin.from('admin_codes').select('code, is_active').eq('code', adminCode).maybeSingle()
   if (!code?.is_active) return NextResponse.json({ error: 'Pilih kode admin yang aktif' }, { status: 400 })
+  if (await isKkiUser(admin, userId)) return NextResponse.json({ error: KKI_EXCLUDED_MESSAGE }, { status: 409 })
 
   const { data: lock } = await admin
     .from('admin_followups')

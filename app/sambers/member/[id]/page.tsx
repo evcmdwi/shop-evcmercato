@@ -14,6 +14,10 @@ interface MemberDetail {
   special_discount_pct: number | null
   special_discount_note: string | null
   special_discount_set_at: string | null
+  kki_distributor?: boolean
+  kki_via_lead?: boolean
+  kki_note?: string | null
+  kki_marked_at?: string | null
 }
 
 interface MemberStats {
@@ -144,6 +148,73 @@ function DiscountForm({ initialPct, initialNote, onSave, onCancel, saving }: Dis
         </button>
       </div>
     </form>
+  )
+}
+
+// ─── Tanda Distributor KKI ───────────────────────────────────────────────────
+
+function KkiSection({ member, onChange }: {
+  member: MemberDetail
+  onChange: (patch: Partial<MemberDetail>, toast: string) => void
+}) {
+  const [note, setNote] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+
+  async function save(marked: boolean) {
+    if (!marked && !confirm('Hapus tanda Distributor KKI? Member ini akan ikut broadcast, follow up, dan promo lagi.')) return
+    setBusy(true)
+    setError('')
+    try {
+      const res = await fetch(`/api/sambers/member/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ kki_distributor: marked, kki_note: note }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(json.error ?? 'Gagal menyimpan')
+      onChange(
+        { kki_distributor: json.data.kki_distributor, kki_note: json.data.kki_note, kki_marked_at: json.data.kki_marked_at },
+        marked ? '✅ Ditandai Distributor KKI' : '✅ Tanda Distributor KKI dihapus'
+      )
+      setNote('')
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Gagal menyimpan')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className={`rounded-2xl shadow-sm p-5 space-y-3 ${member.kki_distributor || member.kki_via_lead ? 'bg-rose-50 border border-rose-200' : 'bg-white'}`}>
+      <h2 className="text-base font-semibold text-slate-800">🚫 Distributor KKI</h2>
+      <p className="text-xs text-slate-500">
+        Untuk distributor KKI lain yang hanya ingin melihat sistem EVC. Member bertanda ini tidak ikut broadcast,
+        follow up, dan pengingat bayar, serta belanja tanpa diskon apa pun (ongkir, biaya layanan, VIP, bonus poin).
+      </p>
+      {member.kki_distributor ? (
+        <div className="space-y-2">
+          <p className="text-sm text-rose-800 font-medium">
+            Ditandai sejak {formatDate(member.kki_marked_at ?? null)}{member.kki_note ? ` — ${member.kki_note}` : ''}
+          </p>
+          <button onClick={() => save(false)} disabled={busy} className="px-4 py-2 text-sm text-slate-600 border border-slate-300 rounded-lg hover:bg-white transition-colors disabled:opacity-50">
+            {busy ? 'Menyimpan…' : 'Hapus tanda'}
+          </button>
+        </div>
+      ) : member.kki_via_lead ? (
+        <p className="text-sm text-rose-800">
+          Nomor WA member ini ditandai Distributor KKI di halaman <b>Leads</b>. Hapus tandanya di sana bila keliru.
+        </p>
+      ) : (
+        <div className="flex flex-col sm:flex-row gap-2">
+          <input value={note} onChange={e => setNote(e.target.value)} placeholder="Catatan (opsional), mis. distributor KKI Surabaya" className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+          <button onClick={() => save(true)} disabled={busy} className="px-4 py-2 text-sm bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium disabled:opacity-50 whitespace-nowrap">
+            {busy ? 'Menyimpan…' : 'Tandai Distributor KKI'}
+          </button>
+        </div>
+      )}
+      {error && <p className="text-sm text-red-600">❌ {error}</p>}
+    </div>
   )
 }
 
@@ -284,11 +355,18 @@ export default function MemberDetailPage() {
       <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
           <h2 className="text-base font-semibold text-slate-800">Info Member</h2>
-          {hasDiscount && (
-            <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold bg-yellow-100 text-yellow-800 border border-yellow-300 whitespace-nowrap">
-              💛 VIP Member
-            </span>
-          )}
+          <div className="flex gap-2 flex-wrap justify-end">
+            {(member.kki_distributor || member.kki_via_lead) && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">
+                🚫 Distributor KKI
+              </span>
+            )}
+            {hasDiscount && (
+              <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold bg-yellow-100 text-yellow-800 border border-yellow-300 whitespace-nowrap">
+                💛 VIP Member
+              </span>
+            )}
+          </div>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div>
@@ -309,6 +387,8 @@ export default function MemberDetailPage() {
           </div>
         </div>
       </div>
+
+      <KkiSection member={member} onChange={(patch, msg) => { setMember(prev => prev ? { ...prev, ...patch } : prev); setToast(msg) }} />
 
       {/* Section 2: Statistik */}
       <div className="grid grid-cols-3 gap-3">

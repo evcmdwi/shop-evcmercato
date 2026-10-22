@@ -13,6 +13,7 @@ interface Member {
   tier: string
   has_order: boolean
   special_discount_pct: number | null
+  kki_distributor: boolean
 }
 
 function formatDate(iso: string) {
@@ -43,6 +44,14 @@ function VipBadge({ pct }: { pct: number }) {
   )
 }
 
+function KkiBadge() {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-rose-100 text-rose-800 border border-rose-300" title="Dikecualikan dari broadcast, follow up, dan semua diskon">
+      🚫 Distributor KKI
+    </span>
+  )
+}
+
 function TrashIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -58,6 +67,7 @@ export default function AdminMembersPage() {
   const [total, setTotal] = useState(0)
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [kkiOnly, setKkiOnly] = useState(false)
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -75,12 +85,13 @@ export default function AdminMembersPage() {
     setLoading(true)
     const params = new URLSearchParams({ limit: '100' })
     if (debouncedSearch) params.set('search', debouncedSearch)
+    if (kkiOnly) params.set('kki', '1')
     const res = await fetch(`/api/sambers/members?${params}`)
     const data = await res.json()
     setMembers(data.members ?? [])
     setTotal(data.total ?? 0)
     setLoading(false)
-  }, [debouncedSearch])
+  }, [debouncedSearch, kkiOnly])
 
   useEffect(() => {
     fetchMembers()
@@ -155,6 +166,10 @@ export default function AdminMembersPage() {
           onChange={e => setSearch(e.target.value)}
           className="w-full max-w-md px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] focus:border-transparent"
         />
+        <label className="mt-3 flex items-center gap-2 text-sm text-slate-600 cursor-pointer w-fit">
+          <input type="checkbox" checked={kkiOnly} onChange={e => setKkiOnly(e.target.checked)} className="accent-rose-600" />
+          Distributor KKI saja
+        </label>
       </div>
 
       {/* Table */}
@@ -195,6 +210,7 @@ export default function AdminMembersPage() {
                         {member.special_discount_pct && member.special_discount_pct > 0 && (
                           <VipBadge pct={member.special_discount_pct} />
                         )}
+                        {member.kki_distributor && <KkiBadge />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">

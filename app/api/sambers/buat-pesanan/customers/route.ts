@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
 
 // GET ?q= — cari member (nama / email / no WA) untuk autocomplete form Buat Pesanan,
 // lengkap dengan alamat terakhirnya.
@@ -21,7 +22,7 @@ export async function GET(req: NextRequest) {
   const admin = getSupabaseAdmin()
   const { data: users, error } = await admin
     .from('users')
-    .select('id, name, email, phone, tier, total_points, special_discount_pct')
+    .select('id, name, email, phone, tier, total_points, special_discount_pct, kki_distributor')
     .or(filters.join(','))
     .order('created_at', { ascending: false })
     .limit(8)
@@ -36,10 +37,11 @@ export async function GET(req: NextRequest) {
         .order('created_at', { ascending: false })
     : { data: [] }
 
+  const kkiPhones = await loadKkiPhones(admin)
   const customers = (users ?? []).map((u) => {
     const own = (addresses ?? []).filter((a) => a.user_id === u.id)
     const addr = own.find((a) => a.is_default) ?? own[0] ?? null
-    return { ...u, address: addr }
+    return { ...u, kki_distributor: u.kki_distributor || isKkiPhone(kkiPhones, u.phone), address: addr }
   })
   return NextResponse.json({ customers })
 }

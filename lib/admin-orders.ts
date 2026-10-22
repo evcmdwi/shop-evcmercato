@@ -9,12 +9,14 @@ export const SERVICE_FEE = 3000
 export const FREE_SHIPPING_MIN_SUBTOTAL = 80000
 export const SHIPPING_DISCOUNT = 10000
 
-export function computeAdminOrderTotals(subtotal: number, shippingBaseRate: number, discount: number) {
-  const shippingDiscount = subtotal >= FREE_SHIPPING_MIN_SUBTOTAL ? SHIPPING_DISCOUNT : 0
+/** noDiscount = distributor KKI: tanpa promo ongkir dan biaya layanan tidak digratiskan. */
+export function computeAdminOrderTotals(subtotal: number, shippingBaseRate: number, discount: number, noDiscount = false) {
+  const shippingDiscount = !noDiscount && subtotal >= FREE_SHIPPING_MIN_SUBTOTAL ? SHIPPING_DISCOUNT : 0
   const shippingCost = Math.max(0, shippingBaseRate - shippingDiscount)
-  // Biaya layanan selalu digratiskan (sama seperti checkout).
-  const total = Math.max(0, subtotal + shippingCost - discount)
-  return { shippingDiscount, shippingCost, total }
+  // Biaya layanan selalu digratiskan (sama seperti checkout), kecuali distributor KKI.
+  const serviceFeeDiscount = noDiscount ? 0 : SERVICE_FEE
+  const total = Math.max(0, subtotal + shippingCost + SERVICE_FEE - serviceFeeDiscount - discount)
+  return { shippingDiscount, shippingCost, serviceFeeDiscount, total }
 }
 
 /** 0812… / +62812… / 62812… → 0812… */

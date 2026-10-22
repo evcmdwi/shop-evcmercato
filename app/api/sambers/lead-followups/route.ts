@@ -4,6 +4,7 @@ import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { LEAD_LOCK_DAYS } from '@/lib/followup-target'
 import { activeLeadLock, lockMessage } from '@/lib/lead-followups'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { isKkiPhone, loadKkiPhones, KKI_EXCLUDED_MESSAGE } from '@/lib/kki'
 
 // Kirim pesan FU via Fonnte lalu catat follow-up: lead dipegang admin ini LEAD_LOCK_DAYS hari.
 export async function POST(req: NextRequest) {
@@ -20,9 +21,12 @@ export async function POST(req: NextRequest) {
   const { data: code } = await admin.from('admin_codes').select('code, is_active').eq('code', adminCode).maybeSingle()
   if (!code?.is_active) return NextResponse.json({ error: 'Pilih kode admin yang aktif' }, { status: 400 })
 
-  const { data: lead } = await admin.from('leads').select('id, status, phone, phone_norm').eq('id', leadId).maybeSingle()
+  const { data: lead } = await admin.from('leads').select('id, status, phone, phone_norm, kki_distributor').eq('id', leadId).maybeSingle()
   if (!lead) return NextResponse.json({ error: 'Lead tidak ditemukan' }, { status: 404 })
   if (lead.status === 'converted') return NextResponse.json({ error: 'Lead ini sudah jadi member' }, { status: 409 })
+  if (lead.kki_distributor || isKkiPhone(await loadKkiPhones(admin), lead.phone_norm)) {
+    return NextResponse.json({ error: KKI_EXCLUDED_MESSAGE }, { status: 409 })
+  }
 
   const lock = await activeLeadLock(admin, leadId)
   if (lock && lock.admin_code !== adminCode) return NextResponse.json({ error: lockMessage(lock) }, { status: 409 })

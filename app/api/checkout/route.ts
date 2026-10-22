@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiUser } from '@/lib/kki'
 import { createInvoice } from '@/lib/xendit'
 import { TERMS_VERSION } from '@/lib/constants/terms'
 import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
@@ -191,12 +192,14 @@ export async function POST(req: NextRequest) {
       return sum + (price * item.quantity)
     }, 0)
 
-    const shippingDiscount = subtotal >= 80000 ? 10000 : 0
+    // Distributor KKI: tanpa diskon apa pun (ongkir, biaya layanan, VIP).
+    const kki = await isKkiUser(admin, user.id)
+    const shippingDiscount = !kki && subtotal >= 80000 ? 10000 : 0
     const shippingCostFinal = Math.max(0, shipping_base_rate - shippingDiscount)
     const shipping_cost = shippingCostFinal
     const service_fee = 3000
     const shipping_cost_discount = shippingDiscount
-    const service_fee_discount = 3000 // always-on Phase 1
+    const service_fee_discount = kki ? 0 : 3000 // always-on Phase 1
 
     // Special member discount (VIP): fetched after userData query below — placeholder here
     // (actual values resolved after userData fetch in step 7; see special_discount_* below)
@@ -211,7 +214,7 @@ export async function POST(req: NextRequest) {
 
     // 7a. Apply special member discount if user has one set
     const specialDiscountPct: number | null =
-      (userData as any)?.special_discount_pct ?? null
+      kki ? null : (userData as any)?.special_discount_pct ?? null
     const special_discount_amount: number =
       specialDiscountPct != null
         ? Math.round(subtotal * specialDiscountPct / 100)

@@ -13,6 +13,8 @@ interface Lead {
   notes: string | null
   status: string
   created_at: string
+  kki_distributor: boolean
+  kki_match: boolean
 }
 
 const STATUS_LABEL: Record<string, string> = {
@@ -29,6 +31,16 @@ const STATUS_COLOR: Record<string, string> = {
   interested: 'bg-green-100 text-green-800',
   converted: 'bg-emerald-100 text-emerald-800',
   not_interested: 'bg-gray-100 text-gray-600',
+}
+
+// Distributor KKI: tidak ikut broadcast & follow up.
+function KkiBadge({ viaMember }: { viaMember: boolean }) {
+  return (
+    <span title={viaMember ? 'Nomor ini ditandai Distributor KKI di halaman Member' : 'Dikecualikan dari broadcast & follow up'}
+      className="inline-flex items-center gap-1 px-2 py-0.5 bg-rose-100 text-rose-700 text-xs font-semibold rounded-full border border-rose-200">
+      🚫 KKI
+    </span>
+  )
 }
 
 // Badge for converted (member) leads
@@ -131,7 +143,7 @@ function BroadcastModal({ leads, selectedIds, onClose }: {
   onClose: () => void
 }) {
   // Exclude converted leads from broadcast
-  const selectedLeads = leads.filter(l => selectedIds.has(l.id) && l.status !== 'converted')
+  const selectedLeads = leads.filter(l => selectedIds.has(l.id) && l.status !== 'converted' && !l.kki_match)
   const convertedCount = leads.filter(l => selectedIds.has(l.id) && l.status === 'converted').length
   const [template, setTemplate] = useState(
     'Hai Kak {Nama}! 👋\n\nTerima kasih sudah tertarik dengan {Interest} di EVC Mercato.\nKami ingin menginfokan promo spesial untuk kamu...'
@@ -354,6 +366,22 @@ export default function LeadsPage() {
     setLeads(prev => prev.map(l => l.id === id ? { ...l, status } : l))
   }
 
+  const handleToggleKki = async (lead: Lead) => {
+    const marked = !lead.kki_distributor
+    if (!confirm(marked
+      ? `Tandai ${lead.nama} sebagai Distributor KKI? Lead ini tidak akan ikut broadcast & follow up, dan bila jadi member belanja tanpa diskon.`
+      : `Hapus tanda Distributor KKI dari ${lead.nama}?`)) return
+    const res = await fetch(`/api/sambers/leads/${lead.id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ kki_distributor: marked, kki_marked_at: marked ? new Date().toISOString() : null }),
+    })
+    if (!res.ok) return alert('Gagal menyimpan tanda KKI')
+    // Muat ulang: tanda ini juga memengaruhi lead lain dengan nomor yang sama.
+    fetchLeads(page, search)
+    if (marked) setSelectedIds(prev => { const next = new Set(prev); next.delete(lead.id); return next })
+  }
+
   const toggleSelect = (id: string) => {
     setSelectedIds(prev => {
       const next = new Set(prev)
@@ -362,7 +390,7 @@ export default function LeadsPage() {
     })
   }
 
-  const selectableLeads = leads.filter(l => l.status !== 'converted')
+  const selectableLeads = leads.filter(l => l.status !== 'converted' && !l.kki_match)
 
   const toggleSelectAll = () => {
     if (selectedIds.size === selectableLeads.length && selectableLeads.length > 0) {
@@ -499,8 +527,8 @@ export default function LeadsPage() {
               ) : leads.map(lead => (
                 <tr key={lead.id} className={`border-b border-slate-50 hover:bg-slate-50 ${selectedIds.has(lead.id) ? 'bg-green-50' : ''}`}>
                   <td className="px-4 py-3">
-                    {lead.status === 'converted' ? (
-                      <span title="Sudah jadi member — masuk broadcast member" className="block w-4 h-4 rounded border border-slate-200 bg-slate-100 cursor-not-allowed" />
+                    {lead.status === 'converted' || lead.kki_match ? (
+                      <span title={lead.kki_match ? 'Distributor KKI — tidak ikut broadcast' : 'Sudah jadi member — masuk broadcast member'} className="block w-4 h-4 rounded border border-slate-200 bg-slate-100 cursor-not-allowed" />
                     ) : (
                       <input type="checkbox" checked={selectedIds.has(lead.id)} onChange={() => toggleSelect(lead.id)}
                         className="rounded cursor-pointer accent-[#7FB300]" />
@@ -510,6 +538,7 @@ export default function LeadsPage() {
                     <div className="flex items-center gap-2">
                       <span className="font-medium text-slate-900">{lead.nama}</span>
                       {lead.status === 'converted' && <MemberBadge />}
+                      {lead.kki_match && <KkiBadge viaMember={!lead.kki_distributor} />}
                     </div>
                     {lead.alamat && <div className="text-xs text-slate-400 truncate max-w-[160px]">{lead.alamat}</div>}
                   </td>
@@ -531,6 +560,13 @@ export default function LeadsPage() {
                         className="inline-flex items-center gap-1 px-2.5 py-1 bg-green-500 text-white text-xs font-medium rounded-lg hover:bg-green-600 transition-colors">
                         💬 WA
                       </button>
+                      {(lead.kki_distributor || !lead.kki_match) && (
+                        <button onClick={() => handleToggleKki(lead)}
+                          title={lead.kki_distributor ? 'Hapus tanda Distributor KKI' : 'Tandai Distributor KKI'}
+                          className={`px-2.5 py-1 text-xs font-medium rounded-lg transition-colors ${lead.kki_distributor ? 'bg-slate-100 text-slate-600 hover:bg-slate-200' : 'bg-rose-50 text-rose-700 hover:bg-rose-100'}`}>
+                          {lead.kki_distributor ? 'Batal KKI' : '🚫 KKI'}
+                        </button>
+                      )}
                       <button onClick={() => handleDelete(lead.id, lead.nama)}
                         className="px-2.5 py-1 bg-red-50 text-red-600 text-xs font-medium rounded-lg hover:bg-red-100 transition-colors">
                         Hapus

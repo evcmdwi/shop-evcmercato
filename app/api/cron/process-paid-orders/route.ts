@@ -4,6 +4,7 @@ import { emitOrderPaid } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
 import { notifyCommissionValid } from '@/lib/affiliate/notifications'
 import { sendPaymentReminders } from '@/lib/payment-reminder'
+import { isKkiUser } from '@/lib/kki'
 
 // Initialize listeners
 setupEventListeners()
@@ -102,7 +103,7 @@ export async function GET(req: NextRequest) {
         const nowIso = new Date(now).toISOString()
 
         // Fetch point multipliers in parallel (bonusPromo needs product_ids from items)
-        const [{ data: bonusPromos, error: bonusErr }, { data: extraPromo, error: extraErr }] = await Promise.all([
+        const [{ data: bonusPromos, error: bonusErr }, { data: extraPromo, error: extraErr }, kki] = await Promise.all([
           admin
             .from('point_promos')
             .select('points_multiplier, active_from, active_until')
@@ -119,18 +120,20 @@ export async function GET(req: NextRequest) {
             .order('multiplier', { ascending: false })
             .limit(1)
             .maybeSingle(),
+          isKkiUser(admin, order.user_id),
         ])
         // Gagal membaca promo → jangan kredit dengan angka salah; coba lagi menit berikutnya.
         if (bonusErr || extraErr) throw new Error(`promo lookup: ${(bonusErr ?? extraErr)?.message}`)
 
         // Promo produk yang sedang berlaku (periode dicek di sini); ambil pengali terbesar.
-        const multiplier = Math.max(
+        // Distributor KKI: poin dasar saja, tanpa bonus promo.
+        const multiplier = kki ? 1 : Math.max(
           1,
           ...(bonusPromos ?? [])
             .filter((p) => (!p.active_from || Date.parse(p.active_from) <= now) && (!p.active_until || Date.parse(p.active_until) > now))
             .map((p) => Number(p.points_multiplier) || 1)
         )
-        const extraMultiplier = Number(extraPromo?.multiplier) || 1.0
+        const extraMultiplier = kki ? 1.0 : Number(extraPromo?.multiplier) || 1.0
         const pointsWithBonus = Math.floor(basePoints * multiplier)
         const extraPoints = Math.floor(basePoints * (extraMultiplier - 1))
 

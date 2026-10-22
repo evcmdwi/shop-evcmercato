@@ -44,6 +44,8 @@ export default function CheckoutPage() {
   const [showAddressModal, setShowAddressModal] = useState(false)
   const [paying, setPaying] = useState(false)
   const [specialDiscountPct, setSpecialDiscountPct] = useState(0)
+  // Distributor KKI: tanpa diskon ongkir, biaya layanan, maupun promo poin.
+  const [noDiscount, setNoDiscount] = useState(false)
   const [deliveryNote, setDeliveryNote] = useState(() => {
     if (typeof window !== 'undefined') return sessionStorage.getItem('checkout_delivery_note') ?? ''
     return ''
@@ -94,6 +96,7 @@ export default function CheckoutPage() {
       const { data } = await res.json()
       setCart(data)
       if (data?.special_discount_pct) setSpecialDiscountPct(Number(data.special_discount_pct))
+      if (data?.no_discount) setNoDiscount(true)
     }
     setLoadingCart(false)
   }, [router])
@@ -179,16 +182,16 @@ export default function CheckoutPage() {
   const subtotal = checkoutItems.reduce((sum, item) => sum + item.subtotal, 0)
   const itemCount = checkoutItems.reduce((sum, item) => sum + item.quantity, 0)
   const serviceFee = 3000
-  const shippingDiscount = subtotal >= 80000 ? 10000 : 0
+  const shippingDiscount = !noDiscount && subtotal >= 80000 ? 10000 : 0
   const selectedMethodData = shippingRates?.available_methods?.find((m) => m.method === shippingMethod)
   const baseRate = selectedMethodData?.base_rate ?? 10000
-  const qualifiesForFreeShipping = subtotal >= 80000
+  const qualifiesForFreeShipping = !noDiscount && subtotal >= 80000
   const remaining = Math.max(0, 80000 - subtotal)
   // Always show full shipping + service fee, discount as separate line
   const shippingFee = baseRate  // always show full rate
   const serviceFeeFull = serviceFee  // always show Rp3.000
   // Discount: if qualifies → -10.000 ongkir + -3.000 layanan = -13.000; else just -3.000 layanan
-  const promoDiscount = qualifiesForFreeShipping ? -(shippingDiscount + serviceFee) : -serviceFee
+  const promoDiscount = noDiscount ? 0 : qualifiesForFreeShipping ? -(shippingDiscount + serviceFee) : -serviceFee
   const specialDiscountAmount = specialDiscountPct > 0 ? Math.round(subtotal * specialDiscountPct / 100) : 0
   const totalAmount = subtotal + shippingFee + serviceFeeFull + promoDiscount - specialDiscountAmount
   const promoOngkirAmount = Math.abs(promoDiscount)
@@ -453,7 +456,7 @@ export default function CheckoutPage() {
                               <span className="text-[#1D9E75] font-bold">GRATIS 💚</span>
                             ) : (
                               <>
-                                {subtotal >= 80000 && (
+                                {shippingDiscount > 0 && (
                                   <span className="line-through text-gray-400 text-xs mr-1">{formatRupiah(rate)}</span>
                                 )}
                                 <span>{formatRupiah(cost)}</span>
@@ -585,7 +588,7 @@ export default function CheckoutPage() {
                       <span>Total Bayar</span>
                       <span style={{ color: '#7FB300' }}>{formatRupiah(totalAmount)}</span>
                     </div>
-                    {!qualifiesForFreeShipping && (
+                    {!qualifiesForFreeShipping && !noDiscount && (
                       <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-3">
                         <div className="flex items-start gap-2">
                           <span className="text-lg">🛒</span>

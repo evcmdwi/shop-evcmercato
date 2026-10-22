@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
 
 // GET /api/sambers/member/[id]
 // Returns full member detail including special discount fields and order stats.
@@ -27,6 +28,7 @@ export async function GET(
       id, name, email, phone, created_at,
       total_points,
       special_discount_pct, special_discount_note, special_discount_set_at,
+      kki_distributor, kki_note, kki_marked_at,
       orders!left (
         id, status, total_amount, created_at
       )
@@ -40,6 +42,8 @@ export async function GET(
   }
 
   const orders = (user.orders as any[]) ?? []
+  const kkiDirect = (user as any).kki_distributor === true
+  const kkiViaLead = !kkiDirect && isKkiPhone(await loadKkiPhones(admin), user.phone)
   const ACTIVE_STATUSES = ['paid', 'processed', 'shipped', 'delivered']
   const activeOrders = orders.filter((o) => ACTIVE_STATUSES.includes(o.status))
 
@@ -64,6 +68,10 @@ export async function GET(
       special_discount_pct: (user as any).special_discount_pct ?? null,
       special_discount_note: (user as any).special_discount_note ?? null,
       special_discount_set_at: (user as any).special_discount_set_at ?? null,
+      kki_distributor: kkiDirect,
+      kki_via_lead: kkiViaLead,
+      kki_note: (user as any).kki_note ?? null,
+      kki_marked_at: (user as any).kki_marked_at ?? null,
       orders_count,
       orders_total,
       last_order_at,
@@ -72,8 +80,9 @@ export async function GET(
 }
 
 // PATCH /api/sambers/member/[id]
-// Body: { special_discount_pct: number | null, special_discount_note: string | null }
-// Sets or clears the special member discount.
+// Body (semua opsional, hanya field yang dikirim yang diubah):
+//   { special_discount_pct: number | null, special_discount_note: string | null } — diskon VIP
+//   { kki_distributor: boolean, kki_note: string | null } — tanda distributor KKI
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -93,6 +102,8 @@ export async function PATCH(
     special_discount_pct: number | null
     special_discount_note: string | null
   }
+  const hasDiscount = 'special_discount_pct' in body
+  const hasKki = 'kki_distributor' in body
 
   // Validate percentage range
   if (
@@ -108,12 +119,26 @@ export async function PATCH(
 
   const admin = getSupabaseAdmin()
 
-  const updatePayload: Record<string, unknown> = {
-    special_discount_pct: special_discount_pct ?? null,
-    special_discount_note: special_discount_note ?? null,
-    // Set timestamp when discount is being assigned; clear when removed
-    special_discount_set_at:
-      special_discount_pct != null ? new Date().toISOString() : null,
+  const updatePayload: Record<string, unknown> = {}
+  if (hasDiscount) {
+    Object.assign(updatePayload, {
+      special_discount_pct: special_discount_pct ?? null,
+      special_discount_note: special_discount_note ?? null,
+      // Set timestamp when discount is being assigned; clear when removed
+      special_discount_set_at:
+        special_discount_pct != null ? new Date().toISOString() : null,
+    })
+  }
+  if (hasKki) {
+    const marked = body.kki_distributor === true
+    Object.assign(updatePayload, {
+      kki_distributor: marked,
+      kki_note: marked ? String(body.kki_note ?? '').trim() || null : null,
+      kki_marked_at: marked ? new Date().toISOString() : null,
+    })
+  }
+  if (!hasDiscount && !hasKki) {
+    return NextResponse.json({ error: 'Tidak ada data yang diubah' }, { status: 400 })
   }
 
   const { data: updated, error: updateError } = await admin
@@ -121,13 +146,13 @@ export async function PATCH(
     .update(updatePayload)
     .eq('id', id)
     .select(
-      'id, name, email, phone, special_discount_pct, special_discount_note, special_discount_set_at'
+      'id, name, email, phone, special_discount_pct, special_discount_note, special_discount_set_at, kki_distributor, kki_note, kki_marked_at'
     )
     .single()
 
   if (updateError || !updated) {
     console.error('[PATCH /api/sambers/member/[id]]', updateError)
-    return NextResponse.json({ error: 'Failed to update member discount' }, { status: 500 })
+    return NextResponse.json({ error: 'Gagal menyimpan perubahan member' }, { status: 500 })
   }
 
   return NextResponse.json({ data: updated })

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
 
 // GET — list leads with optional search
 export async function GET(req: NextRequest) {
@@ -25,8 +26,10 @@ export async function GET(req: NextRequest) {
     query = query.or(`nama.ilike.%${search}%,phone.ilike.%${search}%,kota.ilike.%${search}%,interest.ilike.%${search}%`)
   }
 
-  const { data, count, error } = await query
+  const [{ data: rows, count, error }, kkiPhones] = await Promise.all([query, loadKkiPhones(admin)])
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+  // kki_match: ditandai di lead ini, atau nomornya ditandai KKI di Member.
+  const data = (rows ?? []).map((l) => ({ ...l, kki_match: l.kki_distributor || isKkiPhone(kkiPhones, l.phone) }))
 
   return NextResponse.json({ data, count, page, totalPages: Math.ceil((count ?? 0) / limit) })
 }

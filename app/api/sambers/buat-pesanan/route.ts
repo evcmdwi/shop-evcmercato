@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth, effectiveAdminCode } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { isKkiPhone, isKkiUser, loadKkiPhones } from '@/lib/kki'
 import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
 import { computeAdminOrderTotals, createOrderPaymentLink, normalizePhone } from '@/lib/admin-orders'
 
@@ -93,9 +94,13 @@ export async function POST(req: NextRequest) {
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0)
   if (discount > subtotal) return bad('Diskon melebihi subtotal produk')
 
+  // Distributor KKI: tanpa diskon apa pun.
+  const kki = c.user_id ? await isKkiUser(admin, c.user_id) : isKkiPhone(await loadKkiPhones(admin), phone)
+  if (kki && discount > 0) return bad('Pembeli ini distributor KKI — tidak boleh diberi diskon')
+
   const baseRate = await resolveShippingRate(admin, a.district_id, method)
   if (baseRate === null) return bad(`Pengiriman ${method === 'instan' ? 'Instan' : 'Sameday'} belum tersedia di kecamatan ini`)
-  const { shippingDiscount, shippingCost, total } = computeAdminOrderTotals(subtotal, baseRate, discount)
+  const { shippingDiscount, shippingCost, serviceFeeDiscount, total } = computeAdminOrderTotals(subtotal, baseRate, discount, kki)
   if (body.send_link && total < 1000) return bad('Total minimal Rp1.000 untuk link pembayaran — pilih Simpan Pesanan')
 
   // ── Pembeli: member yang dipilih, member dengan email sama, atau akun baru ──
@@ -171,7 +176,7 @@ export async function POST(req: NextRequest) {
       shipping_cost: shippingCost,
       shipping_cost_discount: shippingDiscount,
       service_fee: 3000,
-      service_fee_discount: 3000,
+      service_fee_discount: serviceFeeDiscount,
       admin_discount: discount,
       total_amount: total,
       total_price: total,

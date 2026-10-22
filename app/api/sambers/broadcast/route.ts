@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { withoutKkiLeads } from '@/lib/kki'
 
 // GET /api/sambers/broadcast — list recent campaigns
 export async function GET(_req: NextRequest) {
@@ -70,17 +71,20 @@ export async function POST(req: NextRequest) {
   const admin = getSupabaseAdmin()
 
   // Fetch leads to get phone numbers, exclude converted (already members)
-  const { data: leads, error: leadsError } = await admin
+  const { data: allLeads, error: leadsError } = await admin
     .from('leads')
-    .select('id, phone')
+    .select('id, phone, kki_distributor')
     .in('id', lead_ids)
     .neq('status', 'converted')
+  // Distributor KKI tidak ikut broadcast.
+  const leads = allLeads ? await withoutKkiLeads(admin, allLeads) : null
 
   if (leadsError || !leads || leads.length === 0) {
-    return NextResponse.json({ error: 'Gagal mengambil data leads atau semua leads sudah jadi member' }, { status: 400 })
+    return NextResponse.json({ error: 'Gagal mengambil data leads atau semua leads sudah jadi member / distributor KKI' }, { status: 400 })
   }
 
-  const excludedConverted = lead_ids.length - leads.length
+  const excludedConverted = lead_ids.length - (allLeads?.length ?? 0)
+  const excludedKki = (allLeads?.length ?? 0) - leads.length
 
   // Create campaign
   const { data: campaign, error: campaignError } = await admin
@@ -113,5 +117,5 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Gagal membuat broadcast logs' }, { status: 500 })
   }
 
-  return NextResponse.json({ campaign_id: campaign.id, total: leads.length, excluded_converted: excludedConverted })
+  return NextResponse.json({ campaign_id: campaign.id, total: leads.length, excluded_converted: excludedConverted, excluded_kki: excludedKki })
 }

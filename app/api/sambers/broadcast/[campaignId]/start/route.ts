@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { isKkiPhone, loadKkiPhones, KKI_EXCLUDED_MESSAGE } from '@/lib/kki'
 
 function randomInt(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1)) + min
@@ -84,6 +85,7 @@ export async function POST(
         }
 
         send({ type: 'start', total: pendingLogs.length })
+        const kkiPhones = await loadKkiPhones(admin)
 
         let processedCount = 0
 
@@ -102,8 +104,10 @@ export async function POST(
 
           const log = pendingLogs[i]
 
-          // Send WA message
-          const result = await sendWhatsApp({ to: log.phone, message: campaign.message })
+          // Send WA message — kecuali nomor ditandai distributor KKI setelah campaign dibuat.
+          const result = isKkiPhone(kkiPhones, log.phone)
+            ? { success: false, error: KKI_EXCLUDED_MESSAGE }
+            : await sendWhatsApp({ to: log.phone, message: campaign.message })
           const success = result.success
           processedCount++
 

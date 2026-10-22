@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { withoutKkiLeads } from '@/lib/kki'
 
 function applyTemplate(template: string, lead: { nama: string; kota: string | null; interest: string | null }) {
   return template
@@ -34,14 +35,16 @@ export async function POST(req: NextRequest) {
   const admin = getSupabaseAdmin()
 
   // Fetch all leads
-  const { data: leads, error: leadsError } = await admin
+  const { data: allLeads, error: leadsError } = await admin
     .from('leads')
-    .select('id, nama, phone, kota, interest')
+    .select('id, nama, phone, kota, interest, kki_distributor')
     .in('id', lead_ids)
 
-  if (leadsError || !leads) {
+  if (leadsError || !allLeads) {
     return NextResponse.json({ error: 'Gagal mengambil data leads' }, { status: 500 })
   }
+  // Distributor KKI tidak ikut broadcast.
+  const leads = await withoutKkiLeads(admin, allLeads)
 
   let sent = 0
   let failed = 0

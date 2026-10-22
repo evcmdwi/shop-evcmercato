@@ -38,19 +38,21 @@ export async function GET(req: NextRequest) {
 
     // Fetch user's special discount for checkout display
     const { getSupabaseAdmin } = await import('@/lib/supabase-admin')
+    const { isKkiUser } = await import('@/lib/kki')
     const admin = getSupabaseAdmin()
-    const { data: userData } = await admin
-      .from('users')
-      .select('special_discount_pct')
-      .eq('id', user.id)
-      .single()
+    const [{ data: userData }, kki] = await Promise.all([
+      admin.from('users').select('special_discount_pct').eq('id', user.id).single(),
+      isKkiUser(admin, user.id),
+    ])
 
     const elapsed = Date.now() - t0
     return NextResponse.json(
       {
         data: {
           ...cart,
-          special_discount_pct: userData?.special_discount_pct ?? null,
+          special_discount_pct: kki ? null : userData?.special_discount_pct ?? null,
+          // Distributor KKI: checkout tanpa diskon ongkir & biaya layanan.
+          no_discount: kki,
         }
       },
       { headers: { 'x-cart-timing': `${elapsed}ms (full)` } }
