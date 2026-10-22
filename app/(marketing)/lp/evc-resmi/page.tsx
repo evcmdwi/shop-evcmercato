@@ -160,7 +160,7 @@ export default async function EvcResmiV2Page({
               </TrackedLink>
             </div>
           </div>
-          <div className={`${CARD} overflow-hidden p-2 md:p-0`}>
+          <div className={`${CARD} mx-auto w-fit overflow-hidden p-2 md:w-auto md:p-0`}>
             <Image
               src="/assets/evc-resmi-hero-produk.webp"
               alt={hero.imageAlt}
