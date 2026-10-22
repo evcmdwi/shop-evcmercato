@@ -319,6 +319,149 @@ function FaqModal({ lp, onClose, onSaved }: {
   )
 }
 
+// ─── Angka & Screenshot Modal (LP dengan angka dari admin) ────────────
+
+// LP yang angka marketplace & screenshot ulasannya disimpan di database (lihat /api/sambers/lp-content).
+const CONTENT_EDITABLE = new Set(['evc-resmi'])
+
+function ContentModal({ lp, onClose, onSaved }: {
+  lp: LandingPage
+  onClose: () => void
+  onSaved: () => void
+}) {
+  const [stats, setStats] = useState<{ key: string; label: string; value: string }[] | null>(null)
+  const [shots, setShots] = useState<string[]>([])
+  const [maxShots, setMaxShots] = useState(4)
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [uploading, setUploading] = useState(false)
+
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/api/sambers/lp-content?slug=${encodeURIComponent(lp.slug)}`)
+      .then(async (res) => {
+        const d = await res.json().catch(() => ({}))
+        if (cancelled) return
+        if (!res.ok) { setError(d.error ?? 'Gagal memuat angka'); return }
+        setStats(d.stats ?? [])
+        setShots(d.screenshots ?? [])
+        setMaxShots(d.max_screenshots ?? 4)
+      })
+    return () => { cancelled = true }
+  }, [lp.slug])
+
+  async function upload(file: File) {
+    setUploading(true)
+    setError(null)
+    const fd = new FormData()
+    fd.append('file', file)
+    const res = await fetch('/api/sambers/upload', { method: 'POST', body: fd })
+    const d = await res.json().catch(() => ({}))
+    setUploading(false)
+    if (!res.ok || !d.url) { setError(d.error ?? 'Upload gagal'); return }
+    setShots((s) => [...s, d.url].slice(0, maxShots))
+  }
+
+  async function save() {
+    if (!stats) return
+    setSaving(true)
+    setError(null)
+    const res = await fetch('/api/sambers/lp-content', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug: lp.slug,
+        stats: Object.fromEntries(stats.map((s) => [s.key, s.value])),
+        screenshots: shots,
+      }),
+    })
+    const d = await res.json().catch(() => ({}))
+    setSaving(false)
+    if (!res.ok) { setError(d.error ?? 'Gagal menyimpan'); return }
+    onSaved()
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 px-4 py-6">
+      <div className="bg-white rounded-xl shadow-xl w-full max-w-2xl max-h-full flex flex-col">
+        <div className="p-6 pb-3">
+          <h3 className="text-lg font-semibold">Angka & screenshot — {lp.title}</h3>
+          <p className="text-xs text-gray-500 mt-1">
+            Ditulis apa adanya di LP (mis. <code>23,3 rb</code>). Kolom kosong kembali ke angka bawaan. Perubahan tampil di LP dalam hitungan detik.
+          </p>
+        </div>
+        <div className="overflow-y-auto px-6 space-y-4">
+          {error && <p className="text-sm text-red-600 bg-red-50 rounded-lg p-3">{error}</p>}
+          {!stats && !error && <p className="text-sm text-gray-400 py-6 text-center">Memuat…</p>}
+          {stats && (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {stats.map((s) => (
+                <label key={s.key} className="block">
+                  <span className="text-sm font-medium text-gray-800">{s.label}</span>
+                  <input
+                    value={s.value}
+                    onChange={(e) => setStats((list) => list?.map((x) => (x.key === s.key ? { ...x, value: e.target.value } : x)) ?? null)}
+                    maxLength={40}
+                    className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-[#7FB300] focus:outline-none"
+                  />
+                </label>
+              ))}
+            </div>
+          )}
+          {stats && (
+            <div>
+              <p className="text-sm font-medium text-gray-800">Screenshot ulasan ({shots.length}/{maxShots})</p>
+              <p className="text-xs text-gray-500">Samarkan nama pembeli sebelum upload. Tanpa screenshot, grid tidak tampil di LP.</p>
+              <div className="mt-2 grid grid-cols-4 gap-2">
+                {shots.map((u, i) => (
+                  <div key={u} className="relative aspect-[3/4] overflow-hidden rounded-lg border border-gray-200 bg-gray-50">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={u} alt={`Screenshot ${i + 1}`} className="h-full w-full object-cover" />
+                    <button
+                      onClick={() => setShots((s) => s.filter((x) => x !== u))}
+                      className="absolute right-1 top-1 rounded bg-white/90 px-1.5 text-xs text-red-600"
+                    >
+                      Hapus
+                    </button>
+                  </div>
+                ))}
+                {shots.length < maxShots && (
+                  <label className="flex aspect-[3/4] cursor-pointer items-center justify-center rounded-lg border-2 border-dashed border-gray-300 text-center text-xs text-gray-500 hover:border-[#7FB300]">
+                    {uploading ? 'Mengupload…' : '+ Upload'}
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      disabled={uploading}
+                      onChange={(e) => {
+                        const f = e.target.files?.[0]
+                        e.target.value = ''
+                        if (f) upload(f)
+                      }}
+                    />
+                  </label>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        <div className="flex gap-3 justify-end p-6 pt-4 border-t border-gray-100 mt-3">
+          <button onClick={onClose} className="px-4 py-2 text-sm text-gray-600 border border-gray-300 rounded-lg hover:bg-gray-50">
+            Batal
+          </button>
+          <button
+            onClick={save}
+            disabled={saving || uploading || !stats}
+            className="px-4 py-2 text-sm text-white bg-[#7FB300] hover:bg-[#6a9700] rounded-lg disabled:opacity-50"
+          >
+            {saving ? 'Menyimpan…' : 'Simpan'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Tambah LP Modal ──────────────────────────────────────────────────
 
 function TambahLPModal({ loading, onClose, onConfirm }: {
@@ -419,6 +562,7 @@ type ModalState =
   | { type: 'approve'; lp: LandingPage }
   | { type: 'archive'; lp: LandingPage }
   | { type: 'faq'; lp: LandingPage }
+  | { type: 'content'; lp: LandingPage }
   | { type: 'tambah' }
   | null
 
@@ -645,7 +789,15 @@ export default function AdminLandingPagesPage() {
                           Edit FAQ
                         </button>
                       )}
-                      {(lp.status === 'draft' || lp.status === 'archived') && !FAQ_EDITABLE.has(lp.slug) && (
+                      {CONTENT_EDITABLE.has(lp.slug) && (
+                        <button
+                          onClick={() => setModal({ type: 'content', lp })}
+                          className="px-3 py-1 border border-[#7FB300] text-[#5E8500] hover:bg-[#E8F4D1] text-xs rounded-lg font-medium"
+                        >
+                          Edit angka
+                        </button>
+                      )}
+                      {(lp.status === 'draft' || lp.status === 'archived') && !FAQ_EDITABLE.has(lp.slug) && !CONTENT_EDITABLE.has(lp.slug) && (
                         <span className="text-xs text-gray-400">—</span>
                       )}
                     </div>
@@ -674,6 +826,17 @@ export default function AdminLandingPagesPage() {
           onSaved={() => {
             setModal(null)
             setMessage({ text: '✅ FAQ tersimpan', ok: true })
+          }}
+        />
+      )}
+
+      {modal?.type === 'content' && (
+        <ContentModal
+          lp={modal.lp}
+          onClose={() => setModal(null)}
+          onSaved={() => {
+            setModal(null)
+            setMessage({ text: '✅ Angka & screenshot tersimpan', ok: true })
           }}
         />
       )}
