@@ -18,6 +18,8 @@ interface MemberDetail {
   kki_via_lead?: boolean
   kki_note?: string | null
   kki_marked_at?: string | null
+  kki_suspect?: { reasons: string[]; matches: { id: string; name: string | null }[] } | null
+  devices?: { event: string; device_id: string | null; ip: string | null; user_agent: string | null; created_at: string }[]
 }
 
 interface MemberStats {
@@ -186,7 +188,7 @@ function KkiSection({ member, onChange }: {
   }
 
   return (
-    <div className={`rounded-2xl shadow-sm p-5 space-y-3 ${member.kki_distributor || member.kki_via_lead ? 'bg-rose-50 border border-rose-200' : 'bg-white'}`}>
+    <div className={`rounded-2xl shadow-sm p-5 space-y-3 ${member.kki_distributor || member.kki_via_lead ? 'bg-rose-50 border border-rose-200' : member.kki_suspect ? 'bg-orange-50/40 border border-orange-200' : 'bg-white'}`}>
       <h2 className="text-base font-semibold text-slate-800">🚫 Distributor KKI</h2>
       <p className="text-xs text-slate-500">
         Untuk distributor KKI lain yang hanya ingin melihat sistem EVC. Member bertanda ini tidak ikut broadcast,
@@ -201,6 +203,28 @@ function KkiSection({ member, onChange }: {
             {busy ? 'Menyimpan…' : 'Hapus tanda'}
           </button>
         </div>
+      ) : member.kki_suspect ? (
+        <div className="space-y-2">
+          <div className="rounded-lg bg-orange-50 border border-orange-200 px-3 py-2 text-sm text-orange-900">
+            <p className="font-semibold">⚠️ Mirip akun distributor KKI</p>
+            <p>Bukti: {member.kki_suspect.reasons.join(' · ')}</p>
+            {member.kki_suspect.matches.length > 0 && (
+              <p>
+                Akun KKI:{' '}
+                {member.kki_suspect.matches.map((m, i) => (
+                  <span key={m.id}>{i > 0 && ', '}<a href={`/sambers/member/${m.id}`} className="underline">{m.name || 'tanpa nama'}</a></span>
+                ))}
+              </p>
+            )}
+            <p className="text-xs text-orange-700 mt-1">Saran sistem saja — periksa dulu (keluarga/kantor bisa berbagi WiFi atau alamat) sebelum menandai.</p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-2">
+            <input value={note} onChange={e => setNote(e.target.value)} placeholder="Catatan (opsional), mis. akun kedua dari …" className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm" />
+            <button onClick={() => save(true)} disabled={busy} className="px-4 py-2 text-sm bg-rose-600 text-white rounded-lg hover:bg-rose-700 transition-colors font-medium disabled:opacity-50 whitespace-nowrap">
+              {busy ? 'Menyimpan…' : 'Tandai Distributor KKI'}
+            </button>
+          </div>
+        </div>
       ) : member.kki_via_lead ? (
         <p className="text-sm text-rose-800">
           Nomor WA member ini ditandai Distributor KKI di halaman <b>Leads</b>. Hapus tandanya di sana bila keliru.
@@ -214,7 +238,38 @@ function KkiSection({ member, onChange }: {
         </div>
       )}
       {error && <p className="text-sm text-red-600">❌ {error}</p>}
+      <DeviceLog devices={member.devices ?? []} />
     </div>
+  )
+}
+
+const EVENT_LABEL: Record<string, string> = { login: 'Login', visit: 'Kunjungan', checkout: 'Checkout' }
+
+function DeviceLog({ devices }: { devices: NonNullable<MemberDetail['devices']> }) {
+  return (
+    <details className="text-sm">
+      <summary className="cursor-pointer text-slate-500 hover:text-slate-800">Jejak perangkat ({devices.length})</summary>
+      {devices.length === 0 ? (
+        <p className="text-xs text-slate-400 mt-2">Belum ada catatan (dicatat sejak 22 Okt 2026 saat login, kunjungan, dan checkout).</p>
+      ) : (
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-xs">
+            <thead><tr className="text-left text-slate-400"><th className="py-1 pr-3">Waktu</th><th className="pr-3">Aktivitas</th><th className="pr-3">Perangkat</th><th className="pr-3">IP</th><th>Browser</th></tr></thead>
+            <tbody>
+              {devices.map((d, i) => (
+                <tr key={i} className="border-t border-slate-100 text-slate-600">
+                  <td className="py-1 pr-3 whitespace-nowrap">{new Date(d.created_at).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', timeZone: 'Asia/Makassar' })}</td>
+                  <td className="pr-3">{EVENT_LABEL[d.event] ?? d.event}</td>
+                  <td className="pr-3 font-mono">{d.device_id ? d.device_id.slice(0, 8) : '—'}</td>
+                  <td className="pr-3 font-mono">{d.ip ?? '—'}</td>
+                  <td className="truncate max-w-[220px]" title={d.user_agent ?? ''}>{d.user_agent ?? '—'}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </details>
   )
 }
 

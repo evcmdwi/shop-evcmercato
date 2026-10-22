@@ -9,6 +9,7 @@ import ShopShell from "@/components/ShopShell";
 import BottomNav from "@/components/BottomNav";
 import { AuthProvider } from "@/lib/auth/auth-context";
 import { createClient } from "@/lib/supabase-server";
+import DeviceIdInit from "@/components/DeviceIdInit";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -72,6 +73,7 @@ export default async function RootLayout({
             {children}
             <BottomNav />
             <ToastContainer />
+            <DeviceIdInit />
           </CartProvider>
         </AuthProvider>
       {process.env.NEXT_PUBLIC_META_PIXEL_ID && (

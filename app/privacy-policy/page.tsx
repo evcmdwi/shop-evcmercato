@@ -10,7 +10,7 @@ export default function PrivacyPolicyPage() {
     <div className="min-h-screen bg-white">
       <main className="max-w-3xl mx-auto px-4 py-12">
         <h1 className="font-display text-3xl text-gray-900 mb-2">Kebijakan Privasi</h1>
-        <p className="text-sm text-gray-400 mb-8">Terakhir diperbarui: 15 Mei 2026 · Sesuai UU PDP No. 27/2022</p>
+        <p className="text-sm text-gray-400 mb-8">Terakhir diperbarui: 22 Oktober 2026 · Sesuai UU PDP No. 27/2022</p>
 
         <div className="space-y-6 text-gray-700 text-sm leading-relaxed">
           <section>
@@ -20,7 +20,7 @@ export default function PrivacyPolicyPage() {
               <li><strong>Data Identitas:</strong> nama lengkap, nomor telepon, alamat email</li>
               <li><strong>Data Alamat:</strong> alamat pengiriman, kota, provinsi, kode pos</li>
               <li><strong>Data Transaksi:</strong> riwayat pesanan dan status pembayaran (pembayaran diproses oleh payment gateway terdaftar)</li>
-              <li><strong>Data Teknis:</strong> alamat IP, tipe browser, halaman yang dikunjungi, waktu akses</li>
+              <li><strong>Data Teknis:</strong> alamat IP, tipe browser dan perangkat, ID perangkat acak yang disimpan di browser Anda, halaman yang dikunjungi, waktu akses</li>
               <li><strong>Data Komunikasi:</strong> pesan yang Anda kirim ke tim CS kami</li>
             </ul>
           </section>
@@ -33,13 +33,29 @@ export default function PrivacyPolicyPage() {
               <li>Mengirimkan konfirmasi pesanan dan notifikasi pengiriman via email dan WhatsApp</li>
               <li>Mengelola akun dan program loyalitas EVC Points</li>
               <li>Merespons pertanyaan dan permintaan dukungan pelanggan</li>
+              <li>Menjaga keamanan akun dan mencegah penyalahgunaan promo maupun program (lihat bagian 3)</li>
               <li>Meningkatkan layanan dan pengalaman berbelanja</li>
               <li>Memenuhi kewajiban hukum yang berlaku di Indonesia</li>
             </ul>
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">3. Keamanan Data</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">3. Pencatatan Perangkat &amp; Pencegahan Penyalahgunaan</h2>
+            <p>Saat Anda masuk ke akun, membuka website dalam keadaan login, dan melakukan checkout, kami mencatat:</p>
+            <ul className="list-disc pl-5 space-y-1 mt-2">
+              <li>alamat IP;</li>
+              <li>ID perangkat acak yang kami buat dan simpan di browser Anda (cookie dan penyimpanan lokal) — bukan IMEI, nomor seri, atau data lain dari perangkat Anda;</li>
+              <li>jenis browser dan perangkat (user agent);</li>
+              <li>waktu aktivitas.</li>
+            </ul>
+            <p className="mt-3"><strong>Tujuan:</strong> menjaga keamanan akun dan mencegah penyalahgunaan promo, diskon, dan program kami — termasuk mengenali satu orang yang memakai beberapa akun. Untuk itu catatan ini dapat dicocokkan dengan data akun lain di sistem kami, seperti nomor WhatsApp dan alamat pengiriman.</p>
+            <p className="mt-3"><strong>Keputusan oleh manusia:</strong> kecocokan hanya menjadi petunjuk bagi admin kami. Tidak ada akun yang dibatasi secara otomatis berdasarkan catatan ini.</p>
+            <p className="mt-3"><strong>Penyimpanan &amp; akses:</strong> catatan disimpan paling lama 12 bulan lalu dihapus otomatis, hanya dapat dilihat oleh admin yang berwenang, dan tidak dibagikan kepada pihak ketiga.</p>
+            <p className="mt-3"><strong>Dasar pemrosesan:</strong> kepentingan yang sah (legitimate interest) untuk keamanan dan pencegahan kecurangan sesuai UU PDP No. 27/2022. Anda dapat meminta akses atau penghapusan catatan ini melalui kontak di bagian 8.</p>
+          </section>
+
+          <section>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Keamanan Data</h2>
             <p className="mt-2">Kami menerapkan langkah-langkah keamanan teknis dan organisasi yang memadai untuk melindungi data pribadi Anda, termasuk:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li>Enkripsi data dalam transit menggunakan protokol keamanan industri standar (HTTPS/TLS)</li>
@@ -52,7 +68,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">4. Pihak Ketiga Pemroses Data</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">5. Pihak Ketiga Pemroses Data</h2>
             <p className="mt-2">Untuk menjalankan layanan kami, kami bekerja sama dengan pihak ketiga terpercaya yang memenuhi standar keamanan dan compliance. Data Anda dapat dibagikan dengan pihak ketiga berikut sesuai kebutuhan layanan:</p>
             <div className="space-y-3 mt-3">
               <div className="bg-gray-50 rounded-xl p-4">
@@ -80,7 +96,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">5. Hak Pengguna (UU PDP No. 27/2022)</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">6. Hak Pengguna (UU PDP No. 27/2022)</h2>
             <p className="mt-2">Sesuai Undang-Undang Perlindungan Data Pribadi No. 27 Tahun 2022, Anda memiliki hak:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
               <li><strong>Hak Akses:</strong> meminta salinan data pribadi yang kami simpan</li>
@@ -93,10 +109,10 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">6. Cookies &amp; Persetujuan Pengguna</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">7. Cookies &amp; Persetujuan Pengguna</h2>
             <p>Website shop.evcmercato.com menggunakan cookies untuk:</p>
             <ul className="list-disc pl-5 space-y-1 mt-2">
-              <li><strong>Cookies Esensial</strong>: menjaga sesi login, menyimpan isi keranjang belanja, dan memastikan fungsionalitas dasar website</li>
+              <li><strong>Cookies Esensial</strong>: menjaga sesi login, menyimpan isi keranjang belanja, menyimpan ID perangkat untuk keamanan (bagian 3), dan memastikan fungsionalitas dasar website</li>
               <li><strong>Cookies Performa</strong>: mengumpulkan data anonim tentang cara pengunjung menggunakan website untuk meningkatkan layanan kami</li>
               <li><strong>Cookies Preferensi</strong>: menyimpan preferensi tampilan dan pengaturan akun Anda</li>
             </ul>
@@ -107,7 +123,7 @@ export default function PrivacyPolicyPage() {
           </section>
 
           <section>
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">7. Kontak Pertanyaan Data</h2>
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">8. Kontak Pertanyaan Data</h2>
             <p className="mt-2">Untuk pertanyaan terkait privasi data Anda:</p>
             <div className="bg-gray-50 rounded-xl p-4 mt-3 text-sm">
               <p className="font-semibold text-gray-900">CV. EVC Nusantara Sukses — Data Privacy</p>

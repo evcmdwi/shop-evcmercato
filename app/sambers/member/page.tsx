@@ -14,6 +14,7 @@ interface Member {
   has_order: boolean
   special_discount_pct: number | null
   kki_distributor: boolean
+  kki_suspect: { reasons: string[] } | null
 }
 
 function formatDate(iso: string) {
@@ -52,6 +53,14 @@ function KkiBadge() {
   )
 }
 
+function SuspectBadge({ reasons }: { reasons: string[] }) {
+  return (
+    <span className="inline-flex items-center gap-0.5 text-xs px-2 py-0.5 rounded-full font-semibold bg-orange-100 text-orange-800 border border-orange-300" title={reasons.join(' · ')}>
+      ⚠️ Mirip Distributor KKI
+    </span>
+  )
+}
+
 function TrashIcon() {
   return (
     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -68,6 +77,7 @@ export default function AdminMembersPage() {
   const [search, setSearch] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [kkiOnly, setKkiOnly] = useState(false)
+  const [suspectOnly, setSuspectOnly] = useState(false)
   const [loading, setLoading] = useState(true)
   const [deleteTarget, setDeleteTarget] = useState<Member | null>(null)
   const [deleting, setDeleting] = useState(false)
@@ -86,12 +96,13 @@ export default function AdminMembersPage() {
     const params = new URLSearchParams({ limit: '100' })
     if (debouncedSearch) params.set('search', debouncedSearch)
     if (kkiOnly) params.set('kki', '1')
+    if (suspectOnly) params.set('suspect', '1')
     const res = await fetch(`/api/sambers/members?${params}`)
     const data = await res.json()
     setMembers(data.members ?? [])
     setTotal(data.total ?? 0)
     setLoading(false)
-  }, [debouncedSearch, kkiOnly])
+  }, [debouncedSearch, kkiOnly, suspectOnly])
 
   useEffect(() => {
     fetchMembers()
@@ -166,10 +177,16 @@ export default function AdminMembersPage() {
           onChange={e => setSearch(e.target.value)}
           className="w-full max-w-md px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300] focus:border-transparent"
         />
-        <label className="mt-3 flex items-center gap-2 text-sm text-slate-600 cursor-pointer w-fit">
-          <input type="checkbox" checked={kkiOnly} onChange={e => setKkiOnly(e.target.checked)} className="accent-rose-600" />
-          Distributor KKI saja
-        </label>
+        <div className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+            <input type="checkbox" checked={kkiOnly} onChange={e => setKkiOnly(e.target.checked)} className="accent-rose-600" />
+            Distributor KKI saja
+          </label>
+          <label className="flex items-center gap-2 text-sm text-slate-600 cursor-pointer">
+            <input type="checkbox" checked={suspectOnly} onChange={e => setSuspectOnly(e.target.checked)} className="accent-orange-600" />
+            Mirip Distributor KKI
+          </label>
+        </div>
       </div>
 
       {/* Table */}
@@ -211,6 +228,7 @@ export default function AdminMembersPage() {
                           <VipBadge pct={member.special_discount_pct} />
                         )}
                         {member.kki_distributor && <KkiBadge />}
+                        {member.kki_suspect && <SuspectBadge reasons={member.kki_suspect.reasons} />}
                       </div>
                     </td>
                     <td className="px-4 py-3 text-slate-600">

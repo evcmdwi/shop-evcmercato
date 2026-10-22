@@ -39,3 +39,19 @@ export async function withoutKkiLeads<T extends { phone: string | null; kki_dist
   const phones = await loadKkiPhones(admin)
   return leads.filter((l) => !l.kki_distributor && !isKkiPhone(phones, l.phone))
 }
+
+export type KkiSuspect = { reasons: string[]; matches: { id: string; name: string | null }[] }
+
+/** Member yang mirip akun distributor KKI (SQL kki_suspects), dikelompokkan per member. */
+export async function loadKkiSuspects(admin: SupabaseClient, userId?: string): Promise<Map<string, KkiSuspect>> {
+  const { data, error } = await admin.rpc('kki_suspects', userId ? { p_user: userId } : {})
+  if (error) throw new Error(`kki_suspects: ${error.message}`)
+  const out = new Map<string, KkiSuspect>()
+  for (const r of (data ?? []) as { user_id: string; kki_user_id: string | null; kki_name: string | null; reason: string }[]) {
+    const s = out.get(r.user_id) ?? { reasons: [], matches: [] }
+    if (!s.reasons.includes(r.reason)) s.reasons.push(r.reason)
+    if (r.kki_user_id && !s.matches.some((m) => m.id === r.kki_user_id)) s.matches.push({ id: r.kki_user_id, name: r.kki_name })
+    out.set(r.user_id, s)
+  }
+  return out
+}

@@ -5,6 +5,7 @@ import { setupEventListeners } from '@/lib/events/setup-listeners'
 import { notifyCommissionValid } from '@/lib/affiliate/notifications'
 import { sendPaymentReminders } from '@/lib/payment-reminder'
 import { isKkiUser } from '@/lib/kki'
+import { DEVICE_RETENTION_DAYS } from '@/lib/member-devices'
 
 // Initialize listeners
 setupEventListeners()
@@ -49,6 +50,13 @@ export async function GET(req: NextRequest) {
     console.error('[process-paid-orders] payment reminder error:', e)
     return 0
   })
+
+  // Jejak perangkat member disimpan maks DEVICE_RETENTION_DAYS (Kebijakan Privasi) — dibersihkan sejam sekali.
+  if (new Date().getUTCMinutes() === 0) {
+    const cutoff = new Date(Date.now() - DEVICE_RETENTION_DAYS * 86400_000).toISOString()
+    const { error: purgeErr } = await admin.from('member_devices').delete().lt('created_at', cutoff)
+    if (purgeErr) console.error('[process-paid-orders] purge member_devices:', purgeErr.message)
+  }
 
   // Tukar poin yang tidak jadi dibayar → poin dikembalikan (sekali per pesanan).
   const refunds = await refundUnpaidRedemptions(admin).catch((e) => {

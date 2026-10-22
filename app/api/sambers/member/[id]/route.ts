@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
+import { isKkiPhone, loadKkiPhones, loadKkiSuspects } from '@/lib/kki'
 
 // GET /api/sambers/member/[id]
 // Returns full member detail including special discount fields and order stats.
@@ -43,7 +43,13 @@ export async function GET(
 
   const orders = (user.orders as any[]) ?? []
   const kkiDirect = (user as any).kki_distributor === true
-  const kkiViaLead = !kkiDirect && isKkiPhone(await loadKkiPhones(admin), user.phone)
+  const [kkiPhones, suspects, { data: devices }] = await Promise.all([
+    loadKkiPhones(admin),
+    loadKkiSuspects(admin, id),
+    admin.from('member_devices').select('event, device_id, ip, user_agent, created_at')
+      .eq('user_id', id).order('created_at', { ascending: false }).limit(15),
+  ])
+  const kkiViaLead = !kkiDirect && isKkiPhone(kkiPhones, user.phone)
   const ACTIVE_STATUSES = ['paid', 'processed', 'shipped', 'delivered']
   const activeOrders = orders.filter((o) => ACTIVE_STATUSES.includes(o.status))
 
@@ -72,6 +78,8 @@ export async function GET(
       kki_via_lead: kkiViaLead,
       kki_note: (user as any).kki_note ?? null,
       kki_marked_at: (user as any).kki_marked_at ?? null,
+      kki_suspect: suspects.get(id) ?? null,
+      devices: devices ?? [],
       orders_count,
       orders_total,
       last_order_at,

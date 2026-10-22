@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
+import { isKkiPhone, loadKkiPhones, loadKkiSuspects } from '@/lib/kki'
 import { createMemberAccount, DEFAULT_MEMBER_PASSWORD } from '@/lib/admin-members'
 
 export async function GET(req: NextRequest) {
@@ -16,8 +16,10 @@ export async function GET(req: NextRequest) {
   const limit = parseInt(searchParams.get('limit') ?? '50', 10)
   const offset = (page - 1) * limit
   const kkiOnly = searchParams.get('kki') === '1'
+  const suspectOnly = searchParams.get('suspect') === '1'
 
   const admin = getSupabaseAdmin()
+  const suspects = await loadKkiSuspects(admin)
 
   let query = admin
     .from('users')
@@ -30,6 +32,7 @@ export async function GET(req: NextRequest) {
     .range(offset, offset + limit - 1)
 
   if (kkiOnly) query = query.eq('kki_distributor', true)
+  if (suspectOnly) query = query.in('id', suspects.size ? [...suspects.keys()] : ['00000000-0000-0000-0000-000000000000'])
   if (search) {
     query = query.or(
       `name.ilike.%${search}%,email.ilike.%${search}%,phone.ilike.%${search}%`
@@ -56,6 +59,7 @@ export async function GET(req: NextRequest) {
     special_discount_pct: u.special_discount_pct ?? null,
     // Ditandai langsung, atau nomornya ditandai KKI di Leads.
     kki_distributor: u.kki_distributor || isKkiPhone(kkiPhones, u.phone),
+    kki_suspect: suspects.get(u.id) ?? null,
     has_order: Array.isArray(u.orders)
       ? u.orders.some((o: any) => ACTIVE_STATUSES.includes(o.status))
       : false,

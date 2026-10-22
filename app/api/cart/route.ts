@@ -1,5 +1,7 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
+import { getSupabaseAdmin } from '@/lib/supabase-admin'
+import { recordMemberDevice } from '@/lib/member-devices'
 import { getOrCreateCart, getFullCart } from '@/lib/cart-helpers'
 
 export async function GET(req: NextRequest) {
@@ -15,6 +17,8 @@ export async function GET(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
+    // Navbar memanggil ini di tiap halaman → jejak kunjungan member (dedupe 12 jam), setelah respons terkirim.
+    after(() => recordMemberDevice(getSupabaseAdmin(), user.id, 'visit', req))
 
     // Fast path: count_only=true — returns just item count, no JOIN needed.
     // Used by navbar cart icon to avoid expensive full cart fetch on every page.
@@ -37,7 +41,6 @@ export async function GET(req: NextRequest) {
     const cart = await getFullCart(cartId, supabase)
 
     // Fetch user's special discount for checkout display
-    const { getSupabaseAdmin } = await import('@/lib/supabase-admin')
     const { isKkiUser } = await import('@/lib/kki')
     const admin = getSupabaseAdmin()
     const [{ data: userData }, kki] = await Promise.all([

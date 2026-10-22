@@ -3,6 +3,7 @@
 import { Suspense, useState } from 'react'
 import Link from 'next/link'
 import { useSearchParams } from 'next/navigation'
+import { ensureDeviceId } from '@/lib/device-id'
 import { createClient } from '@/lib/supabase'
 
 const safeRedirect = (url: string): string => {
@@ -25,6 +26,7 @@ function LoginForm() {
     setLoading(true)
 
     const supabase = createClient()
+    ensureDeviceId()
     const { error } = await supabase.auth.signInWithPassword({ email, password })
 
     if (error) {
@@ -32,6 +34,9 @@ function LoginForm() {
       setLoading(false)
       return
     }
+
+    // Jejak perangkat (lihat Kebijakan Privasi); gagal pun tetap lanjut masuk.
+    await fetch('/api/track/device', { method: 'POST', keepalive: true }).catch(() => {})
 
     const { data: { user } } = await supabase.auth.getUser()
     const adminEmails = (process.env.NEXT_PUBLIC_ADMIN_EMAIL || '').split(',').map(e => e.trim().toLowerCase())

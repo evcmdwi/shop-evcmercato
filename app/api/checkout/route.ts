@@ -1,7 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isKkiUser } from '@/lib/kki'
+import { recordMemberDevice } from '@/lib/member-devices'
 import { createInvoice } from '@/lib/xendit'
 import { TERMS_VERSION } from '@/lib/constants/terms'
 import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
@@ -270,6 +271,7 @@ export async function POST(req: NextRequest) {
       console.error('Insert order error:', orderError)
       return NextResponse.json({ error: 'Gagal membuat pesanan' }, { status: 500 })
     }
+    after(() => recordMemberDevice(admin, user.id, 'checkout', req))
 
     // 9. INSERT order_items (snapshot)
     const orderItemsData = cartItems.map(item => {
