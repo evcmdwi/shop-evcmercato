@@ -13,8 +13,9 @@ export async function GET() {
     `)
     .eq('is_active', true)
     .or('active_until.is.null,active_until.gt.now()')
-    .order('is_featured', { ascending: false })
+    // Urut dari poin terkecil ke terbesar (featured tetap ditandai bingkai emas di halaman, tidak dinaikkan).
     .order('points_required', { ascending: true })
+    .order('created_at', { ascending: true })
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
   return NextResponse.json({ redemptions: data ?? [] })
