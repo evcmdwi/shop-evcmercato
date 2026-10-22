@@ -19,7 +19,6 @@ export interface EvcResmiProduct {
   /** "Mulai" — produk multi-varian dengan harga berbeda. */
   from: boolean
   popular: boolean
-  wide: boolean
 }
 
 export interface EvcResmiContent {
@@ -74,7 +73,6 @@ export const getEvcResmiData = unstable_cache(
         price,
         from,
         popular: !!def.popular,
-        wide: !!def.wide,
       })
     }
 

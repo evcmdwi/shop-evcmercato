@@ -63,14 +63,15 @@ export const MAX_SCREENSHOTS = 4
 
 // ─── Produk (urutan tetap — 85% pembeli web adalah Natesh) ─────────
 
-export const products: { id: string; label: string; popular?: boolean; wide?: boolean }[] = [
+export const products: { id: string; label: string; popular?: boolean }[] = [
   { id: 'd821dc72-9a5f-4404-be45-066af1256164', label: 'Natesh Pantyliner', popular: true },
   { id: '650b1995-cc69-42b2-bb77-090af9e543e8', label: 'Natesh Day', popular: true },
   { id: '20032496-ac87-4e00-b930-23bd3499bd7f', label: 'Natesh Night', popular: true },
   { id: '4ef1f896-091b-435e-8548-3f7b50695bb4', label: 'Natesh Night Extra Long', popular: true },
   { id: '9dbac7be-eccd-47df-a89a-870d3ce2e455', label: 'Fitsol Set (CN, CE, CM)' },
   { id: '21128a31-597c-4530-9c5e-8b261822af77', label: 'Pearl Cream Kristine Ko Kool' },
-  { id: '62caf1eb-096f-4830-a01a-2239b4ef8d4b', label: 'SuperGreen Food · Trial 30 hari', wide: true },
+  { id: '9fbdd798-1f0c-4e5f-9ea5-a37672346347', label: 'Niwana SOD' },
+  { id: '7b535b93-5425-4a73-b066-2a2f92d60d52', label: 'SuperGreen Food SGF KKI' },
 ]
 
 // ─── Teks halaman ───────────────────────────────────────────────────

@@ -289,7 +289,7 @@ export default async function EvcResmiV2Page({
                   alt={p.label}
                   width={320}
                   height={320}
-                  sizes={p.wide ? '(max-width: 768px) 40vw, 240px' : '(max-width: 768px) 50vw, 240px'}
+                  sizes="(max-width: 768px) 50vw, 240px"
                   className="aspect-square w-full rounded-xl bg-[#F6F5F1] object-cover"
                 />
               )
@@ -304,18 +304,6 @@ export default async function EvcResmiV2Page({
                   {productSection.cta}
                 </TrackedLink>
               )
-              if (p.wide) {
-                return (
-                  <article key={p.id} className={`${CARD} col-span-2 flex gap-3 p-3 md:col-span-4 md:max-w-xl`}>
-                    <div className="w-2/5 shrink-0">{photo}</div>
-                    <div className="flex min-w-0 flex-1 flex-col justify-center">
-                      <h3 className="text-[15px] font-bold leading-snug">{p.label}</h3>
-                      {price}
-                      {buy}
-                    </div>
-                  </article>
-                )
-              }
               return (
                 <article key={p.id} className={`${CARD} flex flex-col p-3`}>
                   {photo}
