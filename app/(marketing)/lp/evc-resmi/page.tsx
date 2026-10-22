@@ -1,283 +1,419 @@
 import type { Metadata } from 'next'
-import Script from 'next/script'
 import Image from 'next/image'
-import { initPixelScript } from '@/lib/marketing/pixel'
-import { extractUTM, appendUTM } from '@/lib/marketing/utm'
+import { ArrowRight, Check, ChevronDown } from 'lucide-react'
 import { appendRef } from '@/lib/marketing/ref'
 import AffiliateRefSetter from '@/components/marketing/AffiliateRefSetter'
-import content from '@/content/lp/evc-resmi'
+import TrackedLink from '@/components/lp/evc-resmi/TrackedLink'
+import StickyBar from '@/components/lp/evc-resmi/StickyBar'
+import Screenshots from '@/components/lp/evc-resmi/Screenshots'
+import { WhatsAppIcon } from '@/components/lp/supergreen/icons'
+import { getEvcResmiData } from '@/lib/lp/evc-resmi'
+import { rp } from '@/lib/lp/supergreen'
+import {
+  WA_NUMBER,
+  about,
+  closing,
+  faq,
+  footer,
+  hero,
+  howTo,
+  meta as lpMeta,
+  productSection,
+  safety,
+  stores,
+  vip,
+  waGeneralText,
+  waVipText,
+  why,
+  type WaContext,
+} from '@/content/lp/evc-resmi'
 
 export const metadata: Metadata = {
-  title: content.meta.title,
-  description: content.meta.description,
+  title: lpMeta.title,
+  description: lpMeta.description,
+  alternates: { canonical: lpMeta.url },
   openGraph: {
-    title: content.meta.title,
-    description: content.meta.description,
-    images: content.meta.og_image ? [content.meta.og_image] : [],
-    url: 'https://evcmercato.com/lp/evc-resmi',
+    title: lpMeta.title,
+    description: lpMeta.description,
+    images: [lpMeta.ogImage],
+    url: lpMeta.url,
   },
 }
 
-const WA_ADMIN = 'https://wa.me/6285820852908?text=Halo%20EVC%20Mercato%2C%20saya%20ingin%20tanya%20tentang%20produk'
+const SHOP = 'https://shop.evcmercato.com/katalog'
+const FORWARD_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'fbclid'] as const
+const DEFAULT_UTM = { utm_source: 'evcmercato', utm_medium: 'lp', utm_campaign: 'evc_resmi' }
 
-const TRUST_CARDS = [
-  {
-    title: 'Pembayaran Terpercaya',
-    copy: 'Checkout lebih tenang dengan alur pembayaran yang jelas.',
-    img: '/assets/evc-trust-box-pembayaran-terpercaya.png',
-  },
-  {
-    title: 'Produk Pilihan Resmi',
-    copy: 'Produk pilihan tersedia melalui website resmi EVC Mercato.',
-    img: '/assets/evc-trust-box-official-store.png',
-  },
-  {
-    title: 'Pengiriman Cepat',
-    copy: 'Pesanan diproses tim EVC dan dikirim ke alamat customer.',
-    img: '/assets/evc-trust-box-pengiriman-cepat.png',
-  },
-  {
-    title: 'Admin EVC Siap Membantu',
-    copy: 'Customer bisa tanya dulu sebelum belanja agar lebih yakin memilih produk.',
-    img: '/assets/evc-trust-box-cs-support.jpg',
-  },
-]
+const waHref = (text: string) => `https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(text)}`
 
-const TESTIMONIALS = [
-  { name: 'Rina', city: 'Jakarta Selatan', quote: 'Pesanan saya dibantu admin dari awal. Pilih sameday, barang sampai cepat dan prosesnya terasa aman.', initials: 'R' },
-  { name: 'Maya', city: 'Padang', quote: 'Awalnya cuma mau cek info produk, ternyata websitenya enak dibuka dari HP. Admin juga cepat bantu jawab.', initials: 'M' },
-  { name: 'Dewi', city: 'Bandung', quote: 'Suka karena bisa tanya dulu sebelum belanja. Jadi lebih yakin pilih produk yang sesuai kebutuhan.', initials: 'D' },
-  { name: 'Nadia', city: 'Surabaya', quote: 'Pengiriman regulernya tetap cepat dan packing rapi. Belanja langsung di website jadi terasa praktis.', initials: 'N' },
-]
+// Gaya bersama (mengikuti homepage shop).
+const WRAP = 'mx-auto w-full max-w-5xl px-4 md:px-6'
+const H2 = 'text-[22px] font-extrabold leading-tight tracking-tight text-[#1D2A22] md:text-[30px]'
+const CARD = 'rounded-2xl border border-[#E6E4DD] bg-white'
+const BTN_ACCENT =
+  'flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-[#B9531A] px-5 text-base font-bold text-white hover:bg-[#9E4615]'
+const BTN_OUTLINE =
+  'flex min-h-12 w-full items-center justify-center gap-2 rounded-xl border-2 border-[#1E5B45] bg-white px-5 text-base font-bold text-[#1E5B45] hover:bg-[#EAF1EC]'
 
-export default async function EVCResmiPage({
+/** "**tebal**" → <strong>. */
+function withBold(text: string) {
+  return text.split(/(\*\*[^*]+\*\*)/g).map((part, i) =>
+    part.startsWith('**') && part.endsWith('**') ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+  )
+}
+
+/** Bulatan huruf marketplace (bukan logo resmi). */
+function StoreDot({ letter, color }: { letter: string; color: string }) {
+  return (
+    <span
+      aria-hidden="true"
+      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-base font-extrabold text-white ring-2 ring-white"
+      style={{ backgroundColor: color }}
+    >
+      {letter}
+    </span>
+  )
+}
+
+export default async function EvcResmiV2Page({
   searchParams,
 }: {
-  searchParams: Promise<Record<string, string>>
+  searchParams: Promise<Record<string, string | string[] | undefined>>
 }) {
   const sp = await searchParams
-  const pixelId = process.env.NEXT_PUBLIC_META_PIXEL_ID
-  const utm = extractUTM(new URLSearchParams(Object.entries(sp).map(([k, v]) => [k, v])))
-  const ref = sp['ref'] ?? null
+  const one = (k: string) => {
+    const v = sp[k]
+    return (Array.isArray(v) ? v[0] : v) ?? ''
+  }
+  const ref = one('ref') || null
+  const data = await getEvcResmiData()
+  const { stats } = data
 
-  const shopLink = appendRef(appendUTM('https://shop.evcmercato.com?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
-  const katalogLink = appendRef(appendUTM('https://shop.evcmercato.com/katalog?utm_source=meta&utm_medium=paid_social&utm_campaign=evc_resmi&utm_content=lp_cta&utm_term=lp_organic', utm), ref)
-  const waLink = appendRef(WA_ADMIN, ref)
+  // UTM: nilai asli dari iklan diteruskan apa adanya; tanpa UTM/fbclid → nilai bawaan LP.
+  // utm_content = posisi tombol, kecuali iklan sudah membawa utm_content sendiri.
+  const incoming = Object.fromEntries(FORWARD_KEYS.map((k) => [k, one(k)]).filter(([, v]) => v))
+  const fromAd = Object.keys(incoming).length > 0
+  const shopHref = (path: string, position: string) => {
+    const url = new URL(SHOP + path)
+    const params: Record<string, string> = fromAd ? { ...incoming } : { ...DEFAULT_UTM }
+    if (!params.utm_content) params.utm_content = position
+    for (const [k, v] of Object.entries(params)) url.searchParams.set(k, v)
+    return appendRef(url.toString(), ref)
+  }
+  const wa = (ctx: WaContext) => waHref(waGeneralText(ctx))
+  const fill = (s: string) => s.replace('{shopeeYears}', stats.shopeeYears).replace('{shopeeChat}', stats.shopeeChat)
+
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: faq.map((f) => ({ '@type': 'Question', name: f.q, acceptedAnswer: { '@type': 'Answer', text: f.a } })),
+  }
 
   return (
-    <>
-      {pixelId && (
-        <Script id="meta-pixel" strategy="afterInteractive">
-          {initPixelScript(pixelId)}
-        </Script>
-      )}
-      {pixelId && (
-        <Script id="meta-pixel-viewcontent" strategy="afterInteractive">{`
-          (function() {
-            function fireVC() {
-              if (typeof fbq !== 'undefined') {
-                fbq('track', 'ViewContent', {
-                  content_name: 'EVC Resmi',
-                  content_category: 'E-Commerce',
-                  content_ids: ['evc-resmi'],
-                  content_type: 'website'
-                });
-              } else {
-                setTimeout(fireVC, 300);
-              }
-            }
-            setTimeout(fireVC, 500);
-          })();
-        `}</Script>
-      )}
-      {pixelId && (
-        <Script id="cta-tracking-evc-resmi" strategy="afterInteractive">{`
-          (function() {
-            function attachTracking() {
-              document.querySelectorAll('[data-track-shop]').forEach(function(el) {
-                el.addEventListener('click', function() {
-                  if(typeof fbq === 'undefined') return;
-                  fbq('trackCustom', 'ShopClick', {campaign: 'evc_resmi'});
-                  fbq('track', 'Lead', {content_name: 'EVC Resmi Shop Click', lead_type: 'shop_click'});
-                });
-              });
-              document.querySelectorAll('[data-track-wa]').forEach(function(el) {
-                el.addEventListener('click', function() {
-                  if(typeof fbq === 'undefined') return;
-                  fbq('track', 'Lead', {content_name: 'EVC Resmi WhatsApp', lead_type: 'whatsapp'});
-                  fbq('trackCustom', 'WhatsAppClick', {campaign: 'evc_resmi'});
-                });
-              });
-            }
-            if (document.readyState === 'loading') {
-              document.addEventListener('DOMContentLoaded', attachTracking);
-            } else {
-              attachTracking();
-            }
-          })();
-        `}</Script>
-      )}
+    <div className="min-h-screen bg-[#F6F5F1] pb-24 font-jakarta text-[#1D2A22] md:pb-0">
       <AffiliateRefSetter refCode={ref} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+
+      {/* 3.1 Header */}
+      <header className="sticky top-0 z-50 border-b border-[#E6E4DD] bg-[#F6F5F1]/95 backdrop-blur">
+        <div className={`${WRAP} flex h-14 items-center justify-between`}>
+          <span className="flex items-center gap-2">
+            <Image src="/logo-evcmercato.jpg" alt="" width={32} height={32} className="h-8 w-8 rounded-full" />
+            <span className="text-base font-extrabold tracking-tight text-[#1E5B45]">EVC Mercato</span>
+          </span>
+          <TrackedLink
+            href={wa('header')}
+            event={{ type: 'contact', context: 'header' }}
+            className="flex h-11 items-center gap-1.5 rounded-xl border-2 border-[#1E5B45] bg-white px-3 text-sm font-bold text-[#1E5B45] hover:bg-[#EAF1EC]"
+          >
+            <WhatsAppIcon className="h-4 w-4 text-[#25D366]" />
+            Chat admin
+          </TrackedLink>
+        </div>
+      </header>
 
       <main>
-        {/* SECTION 1 — HERO */}
-        <section className="bg-white py-12 md:py-20 px-4">
-          <div className="max-w-5xl mx-auto flex flex-col-reverse md:flex-row items-center gap-8 md:gap-12">
-            {/* Copy — left on desktop, top on mobile (reversed) */}
-            <div className="flex-1 text-center md:text-left">
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold text-gray-900 mb-4 leading-tight">
-                Belanja Produk Kesehatan KKI Group &amp; Wellness Pilihan di EVC Mercato
-              </h1>
-              <p className="text-base text-gray-500 mb-4 max-w-lg mx-auto md:mx-0">
-                Temukan produk pilihan untuk kebutuhan harian, kesehatan, wellness, beauty, dan feminine care dalam satu tempat yang praktis, jelas, dan mudah diakses dari HP.
-              </p>
-              <p className="text-sm text-gray-600 mb-6 max-w-lg mx-auto md:mx-0 leading-relaxed">
-                Kalau biasanya Anda belanja lewat marketplace, wajar kalau butuh rasa yakin sebelum pindah ke website resmi. Di sini, Anda bisa mulai dari langkah paling aman: cek produk resmi, lihat alur belanja, lalu tanya admin jika masih ragu.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 justify-center md:justify-start">
-                <a href={shopLink} data-track-shop className="bg-[#7FB300] text-white px-7 py-3.5 rounded-2xl font-bold hover:bg-[#6B9700] transition-colors text-center">
-                  Mulai Cek Produk Resmi
-                </a>
-              </div>
-              <p className="text-xs text-gray-400 mt-2 text-center md:text-left">
-                Tidak harus langsung checkout — bisa tanya admin dulu.
-              </p>
+        {/* 3.2 Hero */}
+        <section id="hero" className={`${WRAP} grid gap-5 pb-8 pt-4 md:grid-cols-2 md:items-center md:gap-10 md:py-14`}>
+          <div>
+            <h1 className="text-[26px] font-extrabold leading-[1.15] tracking-tight md:text-[42px]">{hero.headline}</h1>
+            <p className="mt-2.5 text-[15px] leading-snug text-[#1D2A22]/80 md:text-lg">{hero.sub}</p>
+
+            <div className={`${CARD} mt-3.5 flex items-center gap-3 p-3`}>
+              <span className="flex -space-x-2">
+                <StoreDot letter="S" color="#D9481F" />
+                <StoreDot letter="T" color="#237A32" />
+              </span>
+              <span className="min-w-0 leading-tight">
+                <span className="block text-[15px] font-extrabold">
+                  <span className="text-[#E8A317]">★</span> {stats.rating} dari {stats.totalReviews} ulasan
+                </span>
+                <span className="block text-xs text-[#1D2A22]/70">{hero.proofSub}</span>
+              </span>
             </div>
-            {/* Hero image — right on desktop, bottom on mobile */}
-            <div className="flex-1 flex justify-center">
-              <div className="w-full max-w-sm rounded-3xl overflow-hidden">
+
+            <div className="mt-3.5 grid gap-2.5 sm:grid-cols-2">
+              <a href="#produk" className={BTN_ACCENT}>{hero.ctaPrimary}</a>
+              <TrackedLink href={wa('hero')} event={{ type: 'contact', context: 'hero' }} className={BTN_OUTLINE}>
+                <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
+                {hero.ctaWa}
+              </TrackedLink>
+            </div>
+          </div>
+          <div className={`${CARD} mx-auto w-fit overflow-hidden p-2 md:w-auto md:p-0`}>
+            <Image
+              src="/assets/evc-resmi-hero-produk.webp"
+              alt={hero.imageAlt}
+              width={1200}
+              height={900}
+              preload
+              fetchPriority="high"
+              sizes="(max-width: 768px) 240px, 480px"
+              className="mx-auto h-[150px] w-auto md:h-auto md:w-full"
+            />
+          </div>
+        </section>
+
+        {/* 3.3 Kenapa hilang dari marketplace */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <div className={`${CARD} p-5 md:p-7`}>
+            <h2 className={H2}>{why.headline}</h2>
+            {why.paragraphs.map((p, i) => (
+              <p key={i} className="mt-3 text-[15px] leading-relaxed md:text-base">{withBold(p)}</p>
+            ))}
+            <a
+              href={why.linkUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="mt-4 inline-flex min-h-11 items-center gap-1.5 text-[15px] font-bold text-[#1E5B45] underline underline-offset-4"
+            >
+              {why.linkText}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </a>
+          </div>
+        </section>
+
+        {/* 3.4 Siapa kami */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <h2 className={H2}>{about.headline}</h2>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {about.facts.map((f) => (
+              <div key={f.label} className={`${CARD} p-3.5`}>
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[#B9531A]">{f.label}</p>
+                <p className="mt-1.5 text-[15px] font-extrabold leading-snug">{fill(f.title)}</p>
+                <p className="mt-0.5 text-[13px] text-[#1D2A22]/70">{fill(f.note)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* 3.5 Toko kami di marketplace */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <h2 className={H2}>{stores.headline}</h2>
+          <p className="mt-1.5 text-[15px] text-[#1D2A22]/75">{stores.sub}</p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2">
+            {[
+              {
+                ...stores.shopee,
+                dot: <StoreDot letter="S" color="#D9481F" />,
+                line: `Star+ · ★ ${stats.rating} · ${stats.shopeeRatings} penilaian · ${stats.shopeeFollowers} pengikut`,
+              },
+              {
+                ...stores.tokopedia,
+                dot: <StoreDot letter="T" color="#237A32" />,
+                line: `★ ${stats.rating} · ${stats.tokopediaReviews} ulasan · ${stats.tokopediaSold} terjual`,
+              },
+            ].map((s) => (
+              <a
+                key={s.url}
+                href={s.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`${CARD} flex min-h-16 items-center gap-3 p-3.5 hover:border-[#1E5B45]/40`}
+              >
+                {s.dot}
+                <span className="min-w-0 flex-1 leading-tight">
+                  <span className="block text-[15px] font-extrabold">{s.name}</span>
+                  <span className="mt-0.5 block text-[13px] text-[#1D2A22]/70">{s.line}</span>
+                </span>
+                <span className="shrink-0 text-sm font-bold text-[#1E5B45]">Cek →</span>
+              </a>
+            ))}
+          </div>
+          {data.screenshots.length > 0 && <Screenshots urls={data.screenshots} alt={stores.screenshotsAlt} />}
+        </section>
+
+        {/* 3.6 VIP */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <div className="rounded-2xl bg-[#1E5B45] p-5 text-white md:flex md:items-center md:gap-8 md:p-8">
+            <div className="md:flex-1">
+              <p className="inline-block rounded-full bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-wider">
+                {vip.chip}
+              </p>
+              <h2 className="mt-3 text-[21px] font-extrabold leading-snug md:text-[26px]">{vip.headline}</h2>
+              <p className="mt-2 text-[15px] leading-relaxed text-white/85">{vip.body}</p>
+            </div>
+            <div className="mt-5 md:mt-0 md:w-[300px] md:shrink-0">
+              <TrackedLink
+                href={waHref(waVipText)}
+                event={{ type: 'vip' }}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-white px-4 text-center text-[15px] font-bold leading-tight text-[#1E5B45]"
+              >
+                <WhatsAppIcon className="h-5 w-5 shrink-0 text-[#25D366]" />
+                {vip.cta}
+              </TrackedLink>
+              <p className="mt-2 text-xs leading-relaxed text-white/75">{vip.note}</p>
+            </div>
+          </div>
+        </section>
+
+        {/* 3.7 Produk */}
+        <section id="produk" className={`${WRAP} scroll-mt-16 pb-10 md:pb-14`}>
+          <div className="flex items-baseline justify-between gap-3">
+            <h2 className={H2}>{productSection.headline}</h2>
+            <a
+              href={shopHref('', 'semua-produk')}
+              className="shrink-0 py-2 text-sm font-bold text-[#1E5B45] underline underline-offset-4"
+            >
+              {productSection.allLink}
+            </a>
+          </div>
+          <p className="mt-1.5 text-[15px] leading-relaxed text-[#1D2A22]/75">{productSection.body}</p>
+          <div className="mt-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+            {data.products.map((p) => {
+              const href = shopHref(`/${p.slug}`, `produk-${p.slug}`)
+              const event = { type: 'checkout' as const, value: p.price, slug: p.slug, position: `produk-${p.slug}` }
+              const photo = p.image && (
                 <Image
-                  src="/assets/evc-trust-hero.jpg"
-                  alt="Produk pilihan EVC Mercato — Natesh, Vitayang, Fitsol dan lebih banyak lagi"
-                  width={480}
-                  height={480}
-                  className="w-full h-auto object-cover"
-                  priority
+                  src={p.image}
+                  alt={p.label}
+                  width={320}
+                  height={320}
+                  sizes={p.wide ? '(max-width: 768px) 40vw, 240px' : '(max-width: 768px) 50vw, 240px'}
+                  className="aspect-square w-full rounded-xl bg-[#F6F5F1] object-cover"
                 />
-              </div>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 2 — TRUST COPY */}
-        <section className="py-12 px-4 bg-[#fafafa] border-y border-gray-100">
-          <div className="max-w-2xl mx-auto text-center">
-            <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-4">Belanja Lebih Nyaman di EVC Mercato</h2>
-            <p className="text-gray-600 text-base leading-relaxed mb-4">
-              Belanja di EVC Mercato memberi pengalaman yang lebih praktis dan jelas dari awal. Customer bisa melihat informasi produk, memilih kebutuhan, dan melanjutkan belanja dengan alur yang mudah dipahami dari mobile.
-            </p>
-            <p className="text-gray-600 text-base leading-relaxed mb-6">
-              EVC juga menghadirkan dukungan admin untuk membantu menjawab pertanyaan seputar produk, ketersediaan, proses belanja, hingga informasi pengiriman. Jadi, customer tidak perlu bingung sendiri saat ingin memilih produk yang sesuai.
-            </p>
-            <div className="flex flex-col sm:flex-row gap-3 justify-center">
-              <a href={shopLink} data-track-shop className="inline-block bg-[#7FB300] text-white px-7 py-3 rounded-2xl font-semibold hover:bg-[#6B9700] transition-colors">
-                Belanja Sekarang
-              </a>
-              <a href={waLink} target="_blank" rel="noopener noreferrer" className="inline-block border-2 border-[#7FB300] text-[#7FB300] px-7 py-3 rounded-2xl font-semibold hover:bg-[#f8fce8] transition-colors" data-track-wa>
-                Tanya Admin EVC
-              </a>
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 3 — KEUNGGULAN EVC */}
-        <section className="py-14 px-4 bg-white">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-2">Keunggulan Belanja di EVC Mercato</h2>
-            <p className="text-center text-gray-500 text-sm mb-8">Kenapa customer percaya belanja langsung di website kami</p>
-            <div className="grid grid-cols-2 gap-4">
-              {TRUST_CARDS.map((card, i) => (
-                <div key={i} className="bg-[#fafafa] rounded-2xl border border-gray-100 p-3 text-center hover:border-[#7FB300]/30 hover:shadow-sm transition-all">
-                  <Image src={card.img} alt={card.title} width={200} height={200} className="w-full h-32 object-contain mx-auto mb-3" />
-                  <h3 className="font-bold text-sm text-gray-900 mb-1.5">{card.title}</h3>
-                  <p className="text-xs text-gray-500 leading-relaxed">{card.copy}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        {/* SECTION 4 — TESTIMONIAL PLACEHOLDER */}
-        <section className="py-14 px-4 bg-[#fafafa]">
-          <div className="max-w-3xl mx-auto">
-            <h2 className="text-xl md:text-2xl font-bold text-center text-gray-900 mb-2">Dipercaya Customer dari Berbagai Kota</h2>
-            <p className="text-center text-gray-500 text-sm mb-8">Belanja langsung di website EVC terasa lebih praktis: bisa tanya admin, cek info produk, dan pilih pengiriman sesuai kebutuhan.</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {TESTIMONIALS.map((t, i) => (
-                <div key={i} className="bg-white rounded-2xl border border-gray-100 p-5">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 rounded-full bg-[#7FB300] flex items-center justify-center text-white font-bold text-sm flex-shrink-0">
-                      {t.initials}
+              )
+              const price = (
+                <p className="mt-1 leading-tight">
+                  {p.from && <span className="block text-xs text-[#1D2A22]/65">Mulai</span>}
+                  <span className="text-[17px] font-extrabold">{rp(p.price)}</span>
+                </p>
+              )
+              const buy = (
+                <TrackedLink href={href} event={event} className={`${BTN_ACCENT} mt-3 !min-h-11 !text-[15px]`}>
+                  {productSection.cta}
+                </TrackedLink>
+              )
+              if (p.wide) {
+                return (
+                  <article key={p.id} className={`${CARD} col-span-2 flex gap-3 p-3 md:col-span-4 md:max-w-xl`}>
+                    <div className="w-2/5 shrink-0">{photo}</div>
+                    <div className="flex min-w-0 flex-1 flex-col justify-center">
+                      <h3 className="text-[15px] font-bold leading-snug">{p.label}</h3>
+                      {price}
+                      {buy}
                     </div>
-                    <div>
-                      <p className="font-semibold text-sm text-gray-900">{t.name}</p>
-                      <p className="text-xs text-gray-400">{t.city}</p>
-                    </div>
-                    <div className="ml-auto flex gap-0.5">
-                      {Array.from({length: 5}).map((_, j) => (
-                        <span key={j} className="text-[#7FB300] text-xs">★</span>
-                      ))}
-                    </div>
+                  </article>
+                )
+              }
+              return (
+                <article key={p.id} className={`${CARD} flex flex-col p-3`}>
+                  {photo}
+                  {p.popular && (
+                    <p className="mt-2 text-[11px] font-bold uppercase tracking-wider text-[#B9531A]">
+                      {productSection.popularLabel}
+                    </p>
+                  )}
+                  <h3 className={`${p.popular ? 'mt-0.5' : 'mt-2'} text-[15px] font-bold leading-snug`}>{p.label}</h3>
+                  <div className="mt-auto">
+                    {price}
+                    {buy}
                   </div>
-                  <p className="text-sm text-gray-600 italic leading-relaxed">&ldquo;{t.quote}&rdquo;</p>
-                </div>
-              ))}
-            </div>
+                </article>
+              )
+            })}
+          </div>
+          {data.products.length === 0 && (
+            <p className={`${CARD} mt-4 p-4 text-sm`}>Produk sedang diperbarui. Chat admin untuk info harga terbaru.</p>
+          )}
+        </section>
 
+        {/* 3.8 Belanja aman */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <h2 className={H2}>{safety.headline}</h2>
+          <ul className={`${CARD} mt-4 divide-y divide-[#E6E4DD]`}>
+            {safety.items.map((s) => (
+              <li key={s.title} className="flex gap-3 p-4">
+                <span className="mt-0.5 flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-[#1E5B45] text-white">
+                  <Check className="h-4 w-4" strokeWidth={3} aria-hidden="true" />
+                </span>
+                <span className="leading-snug">
+                  <span className="block text-[15px] font-bold">{s.title}</span>
+                  <span className="mt-0.5 block text-sm text-[#1D2A22]/75">{s.body}</span>
+                </span>
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        {/* 3.9 Cara belanja */}
+        <section className={`${WRAP} pb-10 md:pb-14`}>
+          <h2 className={H2}>{howTo.headline}</h2>
+          <ol className="mt-4 grid gap-3 md:grid-cols-3">
+            {howTo.steps.map((s, i) => (
+              <li key={s} className={`${CARD} flex items-center gap-3 p-4`}>
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#EAF1EC] text-base font-extrabold text-[#1E5B45]">
+                  {i + 1}
+                </span>
+                <span className="text-[15px] font-bold leading-snug">{s}</span>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        {/* 3.10 FAQ — item pertama terbuka */}
+        <section className={`${WRAP} pb-10 md:max-w-3xl md:pb-14`}>
+          <h2 className={H2}>Pertanyaan yang sering ditanya</h2>
+          <div className={`${CARD} mt-4 divide-y divide-[#E6E4DD]`}>
+            {faq.map((f, i) => (
+              <details key={f.q} open={i === 0} className="group px-4">
+                <summary className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 py-3 text-[15px] font-bold [&::-webkit-details-marker]:hidden">
+                  {f.q}
+                  <ChevronDown className="h-5 w-5 shrink-0 text-[#1E5B45] group-open:rotate-180" aria-hidden="true" />
+                </summary>
+                <p className="pb-4 text-[15px] leading-relaxed text-[#1D2A22]/85">{f.a}</p>
+              </details>
+            ))}
           </div>
         </section>
 
-        {/* SECTION 5 — ADMIN */}
-        <section className="py-14 px-4 bg-white">
-          <div className="max-w-3xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-xl md:text-2xl font-bold text-gray-900 mb-3">Butuh Bantuan Memilih Produk? Admin EVC Siap Membantu</h2>
-              <p className="text-gray-600 text-base max-w-xl mx-auto">
-                Masih bingung memilih produk yang sesuai kebutuhan? Tim admin website EVC siap membantu melalui WhatsApp — mulai dari cek ketersediaan produk, panduan belanja, sampai informasi pengiriman.
-              </p>
+        {/* 3.11 Penutup */}
+        <section className="border-t border-[#E6E4DD] bg-white py-10 md:py-14">
+          <div className={`${WRAP} text-center md:max-w-2xl`}>
+            <h2 className={H2}>{closing.headline}</h2>
+            <div className="mt-5 grid gap-2.5 md:grid-cols-2">
+              <a href="#produk" className={BTN_ACCENT}>{closing.ctaPrimary}</a>
+              <TrackedLink href={wa('penutup')} event={{ type: 'contact', context: 'penutup' }} className={BTN_OUTLINE}>
+                <WhatsAppIcon className="h-5 w-5 text-[#25D366]" />
+                {closing.ctaWa}
+              </TrackedLink>
             </div>
-            <div className="max-w-sm mx-auto">
-              {/* Admin Card */}
-              <div className="bg-[#f8fce8] rounded-2xl border border-[#7FB300]/20 p-6 text-center">
-                <div className="w-16 h-16 rounded-full bg-[#7FB300] flex items-center justify-center mx-auto mb-4">
-                  <svg viewBox="0 0 24 24" fill="none" className="w-8 h-8">
-                    <path d="M20.01 15.38c-1.23 0-2.42-.2-3.53-.56-.35-.12-.74-.03-1.01.24l-1.57 1.97c-2.83-1.35-5.48-3.9-6.89-6.83l1.95-1.66c.27-.28.35-.67.24-1.02-.37-1.12-.56-2.3-.56-3.53 0-.54-.45-.99-.99-.99H4.19C3.65 3 3 3.24 3 3.99 3 13.28 10.73 21 20.01 21c.71 0 .99-.63.99-1.18v-3.45c0-.54-.45-.99-.99-.99z" fill="white"/>
-                  </svg>
-                </div>
-                <h3 className="font-bold text-gray-900 mb-2">Chat Admin EVC</h3>
-                <p className="text-sm text-gray-600 mb-4 leading-relaxed">Tanya ketersediaan produk, info pengiriman, atau panduan belanja langsung via WhatsApp.</p>
-                <a href={waLink} target="_blank" rel="noopener noreferrer"
-                  className="block w-full bg-[#7FB300] text-white py-3 rounded-xl font-semibold hover:bg-[#6B9700] transition-colors" data-track-wa>
-                  Chat Admin Sekarang
-                </a>
-              </div>
-            </div>
+            <p className="mt-3 text-xs text-[#1D2A22]/70">{closing.hours}</p>
           </div>
         </section>
       </main>
 
-      {/* FOOTER */}
-      <footer className="bg-gray-900 text-white py-10 px-4">
-        <div className="max-w-3xl mx-auto">
-          <div className="flex flex-col sm:flex-row justify-between items-start gap-6 mb-6">
-            <div>
-              <p className="font-bold text-lg text-[#7FB300] mb-1">EVC Mercato</p>
-              <p className="text-xs text-gray-400">Online Channel #1 KKI Group</p>
-              <p className="text-xs text-gray-500">Mitra usaha resmi KKI Group</p>
-            </div>
-            <div className="flex flex-col gap-2 text-sm text-gray-400">
-              <a href={katalogLink} className="hover:text-white transition-colors py-3 inline-block">Katalog Produk</a>
-              <a href={waLink} target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors py-3 inline-block">Chat Admin</a>
-              <a href={appendRef('https://shop.evcmercato.com/syarat-ketentuan', ref)} className="hover:text-white transition-colors py-3 inline-block">Syarat &amp; Ketentuan</a>
-            </div>
-          </div>
-          <div className="border-t border-gray-800 pt-5 flex flex-col sm:flex-row justify-between items-center gap-2">
-            <p className="text-xs text-gray-500">© {new Date().getFullYear()} EVC Mercato. All rights reserved.</p>
-          </div>
-        </div>
+      {/* 3.12 Footer */}
+      <footer className={`${WRAP} space-y-2 py-8 text-xs leading-relaxed text-[#1D2A22]/75`}>
+        <p>{footer.text}</p>
+        <p className="flex gap-4">
+          <a href={footer.termsUrl} className="underline underline-offset-2">Syarat &amp; Ketentuan</a>
+          <a href={footer.privacyUrl} className="underline underline-offset-2">Kebijakan Privasi</a>
+        </p>
       </footer>
 
-
-    </>
+      {/* 3.13 Bar melayang (HP) + event ViewContent / ScrollToProducts */}
+      <StickyBar waHref={wa('sticky')} ctaText={hero.ctaPrimary} />
+    </div>
   )
 }
