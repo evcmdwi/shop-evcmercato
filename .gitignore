@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# referensi desain lokal (gambar besar, tidak dipakai aplikasi) & alat screenshot dev
+/docs/mockups/
+/.shot.mjs
+
+# file sementara Supabase CLI
+/supabase/.temp/
