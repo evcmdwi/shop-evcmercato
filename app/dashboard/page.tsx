@@ -92,6 +92,18 @@ export default async function DashboardPage() {
           </Link>
 
 
+          {/* Ganti Password */}
+          <Link href="/dashboard/password" prefetch={false} className="block w-full bg-white rounded-2xl p-5 shadow-sm border border-gray-100 hover:shadow-md transition-shadow mt-3">
+            <div className="flex items-center gap-3">
+              <span className="text-2xl">🔑</span>
+              <div>
+                <p className="font-semibold text-gray-900">Ganti Password</p>
+                <p className="text-sm text-gray-500">Ubah password untuk masuk ke akun</p>
+              </div>
+              <span className="ml-auto text-gray-300">›</span>
+            </div>
+          </Link>
+
           {/* Logout — paling bawah */}
           <div className="flex justify-center pt-4 pb-2">
             <LogoutButton />
