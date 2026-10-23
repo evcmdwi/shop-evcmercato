@@ -10,7 +10,7 @@ export default function AdminShell({ children, account }: { children: React.Reac
 
   return (
     <AdminAccountProvider value={account}>
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 font-jakarta">
       <AdminSidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Mobile top bar */}

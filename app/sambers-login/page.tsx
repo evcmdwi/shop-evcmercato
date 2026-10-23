@@ -30,7 +30,7 @@ export default function SambersLoginPage() {
   const inputCls = 'w-full px-4 py-2.5 rounded-lg border border-slate-200 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#7FB300] focus:border-transparent'
 
   return (
-    <div className="min-h-[70vh] flex items-center justify-center px-4 py-10">
+    <div className="min-h-[70vh] flex items-center justify-center px-4 py-10 font-jakarta">
       <div className="w-full max-w-sm bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
         <h1 className="text-xl font-bold text-slate-900">SAMBERS</h1>
         <p className="text-sm text-slate-500 mb-6">Masuk admin EVC Mercato</p>
