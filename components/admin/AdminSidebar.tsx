@@ -65,6 +65,13 @@ const menuItems: MenuItem[] = [
     ),
   },
   {
+    href: '/sambers/kartu',
+    label: 'Input Kartu Kredit',
+    icon: (
+      <span className="w-5 h-5 flex items-center justify-center text-base leading-none">🧾</span>
+    ),
+  },
+  {
     href: '/sambers/pengiriman',
     label: 'Pengiriman',
     icon: (
