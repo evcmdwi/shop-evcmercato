@@ -30,3 +30,18 @@ EVC menjadi router webhook. Pembedaan berdasarkan prefix `external_id`:
 - Format `external_id` EVC yang sudah ada
 
 ---
+
+## [2026-11-01] Dashboard admin — kartu & grafik penjualan
+
+**Apa:** di bawah kartu Inventori (`app/sambers/SalesSection.tsx`): kartu Hari Ini / 7 / 30 hari,
+grafik garis harian (SVG sendiri, tanpa library) + pilihan rentang (30 Hari, Bulan Ini, Bulan Lalu,
+Pilih Tanggal; maks 366 hari). Data dari `GET /api/sambers/dashboard/sales?from=&to=` (admin saja).
+
+**Definisi (sengaja sama dengan papan skor Follow Up, agar angka tidak beda antar layar):**
+- order_type `purchase`, status `paid|processed|shipped|delivered`, dihitung di tanggal `paid_at`
+- omzet = `total_amount − shipping_cost` (tanpa ongkir)
+- pergantian hari 00.00 WIB (Asia/Jakarta)
+
+Tanpa perubahan database.
+
+---
