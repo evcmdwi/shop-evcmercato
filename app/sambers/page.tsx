@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import SalesSection from './SalesSection'
 
 interface DashboardStats {
   orders: { pending: number; paid: number; processed: number; shipped: number; delivered: number }
@@ -83,6 +84,8 @@ export default function AdminDashboardPage() {
           ))}
         </div>
       </section>
+
+      <SalesSection />
     </div>
   )
 }
