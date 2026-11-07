@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { checkAdminAuth } from '@/lib/admin-auth'
 
 export async function POST(
   _req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const auth = await checkAdminAuth()
+  if (!auth.ok) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: auth.status ?? 401 })
+  }
+
   const { id } = await params
   const admin = getSupabaseAdmin()
 
