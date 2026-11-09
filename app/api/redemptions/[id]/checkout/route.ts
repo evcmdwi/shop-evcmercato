@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { createInvoice } from '@/lib/xendit'
+import { createPaymentSession } from '@/lib/xendit'
 
 type RouteContext = { params: Promise<{ id: string }> }
 
@@ -156,21 +156,14 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
     }
 
     // 3b. Invoice ongkir + biaya admin. Gagal → poin dikembalikan & pesanan dibatalkan.
-    let invoice: { id: string; invoice_url: string }
+    let invoice: { id: string; payment_url: string }
     try {
-      invoice = await createInvoice({
-        external_id: orderId,
+      invoice = await createPaymentSession({
+        reference_id: orderId,
         amount: totalAmount,
-        payer_email: userData?.email || user.email || '',
         description: `Tukar EVC Points: ${redemption.title} — Order #${orderId.slice(0, 8).toUpperCase()}`,
-        items: [
-          ...(shippingCost > 0 ? [{ name: 'Ongkos kirim', quantity: 1, price: shippingCost }] : []),
-          ...(adminFee > 0 ? [{ name: 'Biaya admin', quantity: 1, price: adminFee }] : []),
-        ],
-        success_redirect_url: `${APP_URL}/orders/${orderId}/sukses`,
-        failure_redirect_url: `${APP_URL}/orders/${orderId}/gagal`,
-        customer_name: shipping_address.recipient_name || userData?.name || 'Customer',
-        customer_phone: shipping_address.shipping_phone || userData?.phone || undefined,
+        success_return_url: `${APP_URL}/orders/${orderId}/sukses`,
+        cancel_return_url: `${APP_URL}/orders/${orderId}/gagal`,
       })
     } catch (err) {
       console.error('[redemption checkout] xendit:', err)
@@ -181,12 +174,12 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
 
     await admin
       .from('orders')
-      .update({ xendit_invoice_id: invoice.id, xendit_invoice_url: invoice.invoice_url })
+      .update({ xendit_invoice_id: invoice.id, xendit_invoice_url: invoice.payment_url })
       .eq('id', orderId)
 
     return NextResponse.json({
       order_id: orderId,
-      payment_url: invoice.invoice_url,
+      payment_url: invoice.payment_url,
     })
   } catch (err) {
     console.error('[redemption checkout]', err)

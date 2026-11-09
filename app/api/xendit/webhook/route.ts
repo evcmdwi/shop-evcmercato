@@ -4,6 +4,7 @@ import { emitOrderExpired } from '@/lib/events/order-events'
 import { setupEventListeners } from '@/lib/events/setup-listeners'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { paymentLinkPaidMessage } from '@/lib/whatsapp-templates/payment-link-paid'
+import { getPaymentChannelCode, legacyMethod } from '@/lib/xendit'
 
 // Initialize listeners (needed for EXPIRED/FAILED paths)
 setupEventListeners()
@@ -28,6 +29,45 @@ export async function POST(req: NextRequest) {
     return new Response('Bad Request', { status: 400 })
   }
 
+  // 3. Payload BARU (Payment Sessions / Payments API v3) — punya field `event`.
+  //    payment_session.completed = lunas (SATU sumber kebenaran), .expired = kedaluwarsa.
+  //    payment.* (v3) hanya informasi — tidak mengubah DB (channel diambil via GET payment).
+  if (typeof payload.event === 'string') {
+    const event = payload.event
+    const data = (payload.data ?? {}) as {
+      reference_id?: string
+      payment_session_id?: string
+      id?: string
+      payment_id?: string | null
+      updated?: string
+    }
+    const ref = typeof data.reference_id === 'string' ? data.reference_id : ''
+    console.log('[webhook] Received + token OK:', { event, reference_id: ref, webhook_id: req.headers.get('webhook-id') })
+
+    if (ref.startsWith('LOTI-')) return forwardToLoti(rawBody, callbackToken, ref, event)
+
+    if (event === 'payment_session.completed' || event === 'payment_session.expired') {
+      const status = event === 'payment_session.completed' ? 'PAID' : 'EXPIRED'
+      const sessionId = data.payment_session_id ?? data.id
+      const paidAt = data.updated || new Date().toISOString()
+      if (ref.startsWith('PAYLINK-')) {
+        await processPaymentLink(ref, status, paidAt)
+      } else if (UUID_RE.test(ref)) {
+        try {
+          const channel = status === 'PAID' ? await getPaymentChannelCode(data.payment_id) : null
+          await processWebhook(ref, status, channel ? legacyMethod(channel) : 'XENDIT', paidAt, sessionId)
+        } catch (err) {
+          console.error('[webhook] processWebhook (session) error:', err)
+        }
+      } else {
+        console.log('[webhook] reference tidak dikenal, diabaikan:', ref)
+      }
+    }
+    console.log('[webhook] done', { event, ref, ms: Date.now() - t0 })
+    return NextResponse.json({ received: true })
+  }
+
+  // 4. Payload LEGACY invoice (tanpa `event`) — invoice yang dibuat sebelum migrasi.
   const { id: invoice_id, external_id, status, payment_method, paid_at } = payload as {
     id: string
     external_id: string
@@ -39,41 +79,22 @@ export async function POST(req: NextRequest) {
 
   console.log('[webhook] Received + token OK:', { external_id, status })
 
-  // 3. ROUTER: forward LOTI events to LOTI webhook
+  // ROUTER: forward LOTI events to LOTI webhook
   if (external_id && external_id.startsWith('LOTI-')) {
-    const lotiUrl = process.env.LOTI_WEBHOOK_URL
-    if (!lotiUrl) {
-      console.error('[webhook] LOTI_WEBHOOK_URL not configured — cannot forward LOTI event')
-      return new Response('LOTI_WEBHOOK_URL not configured', { status: 500 })
-    }
-    console.log('[webhook] Forwarding LOTI event:', { external_id, status, lotiUrl })
-    try {
-      const lotiRes = await fetch(lotiUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-callback-token': callbackToken ?? '',
-        },
-        body: rawBody, // forward raw body apa adanya
-      })
-      const lotiBody = await lotiRes.text()
-      console.log('[webhook] LOTI forward response:', lotiRes.status, lotiBody.slice(0, 100))
-      // Return same status to Xendit — kalau LOTI non-2xx, Xendit akan retry
-      return new Response(lotiBody, { status: lotiRes.status })
-    } catch (err) {
-      console.error('[webhook] LOTI forward failed (network):', err)
-      // Return 500 → Xendit akan retry
-      return new Response('LOTI forward failed', { status: 500 })
-    }
+    return forwardToLoti(rawBody, callbackToken, external_id, status)
   }
 
-  // 4. ROUTER: PAYLINK- prefix → update payment_links table
+  // ROUTER: PAYLINK- prefix → update payment_links table
   if (external_id && external_id.startsWith('PAYLINK-')) {
     await processPaymentLink(external_id, status, paid_at)
     return NextResponse.json({ received: true })
   }
 
-  // 5. Process as EVC order (unchanged)
+  // Process as EVC order (unchanged)
+  if (!external_id || !UUID_RE.test(external_id)) {
+    console.log('[webhook] external_id tidak dikenal, diabaikan:', external_id)
+    return NextResponse.json({ received: true })
+  }
   try {
     await processWebhook(external_id, status, payment_method, paid_at, invoice_id)
   } catch (err) {
@@ -83,6 +104,35 @@ export async function POST(req: NextRequest) {
 
   console.log('[webhook] done', { orderId: external_id, status, ms: Date.now() - t0 })
   return NextResponse.json({ received: true })
+}
+
+const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+
+// Teruskan event LOTI (legacy maupun baru) apa adanya ke webhook LOTI. Status LOTI
+// dikembalikan ke Xendit — kalau LOTI non-2xx, Xendit akan retry.
+async function forwardToLoti(rawBody: string, callbackToken: string | null, ref: string, status: string) {
+  const lotiUrl = process.env.LOTI_WEBHOOK_URL
+  if (!lotiUrl) {
+    console.error('[webhook] LOTI_WEBHOOK_URL not configured — cannot forward LOTI event')
+    return new Response('LOTI_WEBHOOK_URL not configured', { status: 500 })
+  }
+  console.log('[webhook] Forwarding LOTI event:', { ref, status, lotiUrl })
+  try {
+    const lotiRes = await fetch(lotiUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-callback-token': callbackToken ?? '',
+      },
+      body: rawBody, // forward raw body apa adanya
+    })
+    const lotiBody = await lotiRes.text()
+    console.log('[webhook] LOTI forward response:', lotiRes.status, lotiBody.slice(0, 100))
+    return new Response(lotiBody, { status: lotiRes.status })
+  } catch (err) {
+    console.error('[webhook] LOTI forward failed (network):', err)
+    return new Response('LOTI forward failed', { status: 500 })
+  }
 }
 
 async function processPaymentLink(externalId: string, status: string, paidAt: string) {

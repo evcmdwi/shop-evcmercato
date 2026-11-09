@@ -3,6 +3,7 @@ import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { paymentLinkCreatedMessage } from '@/lib/whatsapp-templates/payment-link-created'
+import { createPaymentSession } from '@/lib/xendit'
 
 // POST /api/sambers/payment-link — create a new Xendit payment link
 export async function POST(req: NextRequest) {
@@ -28,41 +29,20 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No. WhatsApp tidak valid (contoh: 081234567890)' }, { status: 400 })
     }
 
-    const xenditKey = process.env.XENDIT_SECRET_KEY
-    if (!xenditKey) {
+    if (!process.env.XENDIT_SECRET_KEY) {
       return NextResponse.json({ error: 'XENDIT_SECRET_KEY belum di-set di server' }, { status: 500 })
     }
 
     const external_id = `PAYLINK-${Date.now()}`
 
-    // Call Xendit Create Invoice API
-    const xenditAuth = Buffer.from(`${xenditKey}:`).toString('base64')
-
-    const xenditRes = await fetch('https://api.xendit.co/v2/invoices', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Basic ${xenditAuth}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        external_id,
-        amount: nominal,
-        description: deskripsi,
-        currency: 'IDR',
-        invoice_duration: 86400, // 24 jam
-      }),
-    })
-
-    if (!xenditRes.ok) {
-      const errBody = await xenditRes.text()
-      console.error('[payment-link] Xendit error:', xenditRes.status, errBody)
-      return NextResponse.json({ error: 'Gagal membuat invoice di Xendit', detail: errBody }, { status: 502 })
-    }
-
-    const invoice = await xenditRes.json() as {
-      id: string
-      invoice_url: string
-      expiry_date?: string
+    // Xendit Payment Session (pengganti legacy /v2/invoices), berlaku 24 jam.
+    let invoice: { id: string; payment_url: string; expires_at: string | null }
+    try {
+      invoice = await createPaymentSession({ reference_id: external_id, amount: nominal, description: deskripsi })
+    } catch (e) {
+      const detail = e instanceof Error ? e.message : String(e)
+      console.error('[payment-link] Xendit error:', detail)
+      return NextResponse.json({ error: 'Gagal membuat link pembayaran di Xendit', detail }, { status: 502 })
     }
 
     // Save to payment_links table
@@ -75,10 +55,10 @@ export async function POST(req: NextRequest) {
         deskripsi,
         no_wa: no_wa || null,
         xendit_invoice_id: invoice.id,
-        payment_url: invoice.invoice_url,
+        payment_url: invoice.payment_url,
         status: 'pending',
         created_by: auth.userId ?? null,
-        expired_at: invoice.expiry_date ?? null,
+        expired_at: invoice.expires_at ?? null,
       })
       .select('id, external_id, payment_url, nominal, deskripsi, no_wa, status, created_at')
       .single()
@@ -87,7 +67,7 @@ export async function POST(req: NextRequest) {
       console.error('[payment-link] DB insert failed:', error.message)
       // Invoice Xendit sudah terbuat — kembalikan URL-nya agar tetap bisa dipakai.
       return NextResponse.json(
-        { error: 'Invoice dibuat tapi gagal disimpan ke history', detail: error.message, payment_url: invoice.invoice_url },
+        { error: 'Invoice dibuat tapi gagal disimpan ke history', detail: error.message, payment_url: invoice.payment_url },
         { status: 500 }
       )
     }
@@ -95,7 +75,7 @@ export async function POST(req: NextRequest) {
     // Kirim link ke WA pembeli — hasilnya ditampilkan ke admin (gagal → salin manual).
     let wa_link_sent: boolean | null = null
     if (no_wa) {
-      const res = await sendWhatsApp({ to: no_wa, message: paymentLinkCreatedMessage(nominal, deskripsi, invoice.invoice_url) })
+      const res = await sendWhatsApp({ to: no_wa, message: paymentLinkCreatedMessage(nominal, deskripsi, invoice.payment_url) })
       wa_link_sent = res.success
       if (!res.success) console.error('[payment-link] WA link failed:', external_id, res.error)
     }

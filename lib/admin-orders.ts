@@ -1,5 +1,5 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { createInvoice } from '@/lib/xendit'
+import { createPaymentSession } from '@/lib/xendit'
 import { sendWhatsApp } from '@/lib/whatsapp'
 import { adminOrderCreatedMessage } from '@/lib/whatsapp-templates/admin-order-created'
 
@@ -47,25 +47,17 @@ export async function createOrderPaymentLink(
   const shortId = order.id.slice(0, 8).toUpperCase()
   const items = (order.order_items ?? []) as { product_name: string; variant_name: string | null; price: number; quantity: number }[]
 
-  const invoice = await createInvoice({
-    external_id: order.id,
+  const session = await createPaymentSession({
+    reference_id: order.id,
     amount: order.total_amount,
-    payer_email: user?.email || '',
     description: `Order #${shortId} - EVC Mercato`,
-    items: items.map((i) => ({
-      name: i.product_name + (i.variant_name ? ` (${i.variant_name})` : ''),
-      quantity: i.quantity,
-      price: i.price,
-    })),
-    success_redirect_url: `${APP_URL}/orders/${order.id}/sukses`,
-    failure_redirect_url: `${APP_URL}/orders/${order.id}/gagal`,
-    customer_name: order.shipping_recipient_name || user?.name || 'Customer',
-    customer_phone: order.shipping_phone || user?.phone || undefined,
+    success_return_url: `${APP_URL}/orders/${order.id}/sukses`,
+    cancel_return_url: `${APP_URL}/orders/${order.id}/gagal`,
   })
 
   await admin
     .from('orders')
-    .update({ xendit_invoice_id: invoice.id, xendit_invoice_url: invoice.invoice_url })
+    .update({ xendit_invoice_id: session.id, xendit_invoice_url: session.payment_url })
     .eq('id', order.id)
 
   let wa_sent: boolean | null = null
@@ -87,11 +79,11 @@ export async function createOrderPaymentLink(
         address: order.shipping_full_address || '',
         area: [order.shipping_district_name && `Kec. ${order.shipping_district_name}`, order.shipping_regency_name, order.shipping_province_name].filter(Boolean).join(', '),
         deliveryNote: order.delivery_note,
-        invoiceUrl: invoice.invoice_url,
+        invoiceUrl: session.payment_url,
       }),
     })
     wa_sent = res.success
     if (!res.success) console.error('[admin-order] WA link failed:', order.id, res.error)
   }
-  return { payment_url: invoice.invoice_url, wa_sent }
+  return { payment_url: session.payment_url, wa_sent }
 }

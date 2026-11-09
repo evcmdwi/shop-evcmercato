@@ -3,7 +3,7 @@ import { createClient } from '@/lib/supabase-server'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isKkiUser } from '@/lib/kki'
 import { recordMemberDevice } from '@/lib/member-devices'
-import { createInvoice } from '@/lib/xendit'
+import { createPaymentSession } from '@/lib/xendit'
 import { TERMS_VERSION } from '@/lib/constants/terms'
 import { isShippingMethod, resolveShippingRate } from '@/lib/shipping'
 
@@ -322,24 +322,15 @@ export async function POST(req: NextRequest) {
     let xenditInvoiceUrl = `${APP_URL}/orders/${order.id}/sukses?mock=1`
 
     try {
-      const invoice = await createInvoice({
-        external_id: order.id,
+      const session = await createPaymentSession({
+        reference_id: order.id,
         amount: final_total_amount,
-        payer_email: user.email || '',
         description: `Order #${order.id.slice(0, 8).toUpperCase()} - EVC Mercato${specialDiscountPct ? ` (diskon member ${specialDiscountPct}%)` : ''}`,
-        items: orderItemsData.map(item => ({
-          name: item.product_name + (item.variant_name ? ` (${item.variant_name})` : ''),
-          quantity: item.quantity,
-          price: item.price,
-          category: 'Produk Kesehatan Wanita',
-        })),
-        success_redirect_url: `${APP_URL}/orders/${order.id}/sukses`,
-        failure_redirect_url: `${APP_URL}/orders/${order.id}/gagal`,
-        customer_name: userData?.name || 'Customer',
-        customer_phone: userData?.phone || address.phone,
+        success_return_url: `${APP_URL}/orders/${order.id}/sukses`,
+        cancel_return_url: `${APP_URL}/orders/${order.id}/gagal`,
       })
-      xenditInvoiceId = invoice.id
-      xenditInvoiceUrl = invoice.invoice_url
+      xenditInvoiceId = session.id
+      xenditInvoiceUrl = session.payment_url
     } catch (xenditErr) {
       console.error('Xendit error (non-fatal in stub mode):', xenditErr)
       // Tetap lanjut dengan stub URL

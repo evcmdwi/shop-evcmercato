@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { expireInvoice } from '@/lib/xendit'
+import { cancelPaymentSession } from '@/lib/xendit'
 import { createOrderPaymentLink } from '@/lib/admin-orders'
 
 type RouteContext = { params: Promise<{ id: string }> }
@@ -31,7 +31,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
   }
 
   if (action === 'send_link') {
-    if (order.xendit_invoice_id) await expireInvoice(order.xendit_invoice_id)
+    if (order.xendit_invoice_id) await cancelPaymentSession(order.xendit_invoice_id)
     try {
       const res = await createOrderPaymentLink(admin, id)
       return NextResponse.json(res)
@@ -63,7 +63,7 @@ export async function POST(req: NextRequest, { params }: RouteContext) {
     if (!updated) return NextResponse.json({ error: 'Status pesanan baru saja berubah — muat ulang halaman' }, { status: 409 })
 
     // Link Xendit yang masih terbuka dimatikan supaya pembeli tidak membayar dua kali.
-    if (order.xendit_invoice_id) await expireInvoice(order.xendit_invoice_id)
+    if (order.xendit_invoice_id) await cancelPaymentSession(order.xendit_invoice_id)
     return NextResponse.json({ order: updated })
   }
 
