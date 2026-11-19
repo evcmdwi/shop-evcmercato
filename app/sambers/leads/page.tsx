@@ -536,11 +536,17 @@ export default function LeadsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <span className="font-medium text-slate-900">{lead.nama}</span>
+                      <Link href={`/sambers/leads/${lead.id}`} prefetch={false} className="font-medium text-slate-900 hover:text-[#5E8500] hover:underline">
+                        {lead.nama}
+                      </Link>
                       {lead.status === 'converted' && <MemberBadge />}
                       {lead.kki_match && <KkiBadge viaMember={!lead.kki_distributor} />}
                     </div>
-                    {lead.alamat && <div className="text-xs text-slate-400 truncate max-w-[160px]">{lead.alamat}</div>}
+                    {lead.alamat && (
+                      <Link href={`/sambers/leads/${lead.id}`} prefetch={false} title={lead.alamat} className="block text-xs text-slate-400 truncate max-w-[160px] hover:underline">
+                        {lead.alamat}
+                      </Link>
+                    )}
                   </td>
                   <td className="px-4 py-3 font-mono text-slate-700">{lead.phone}</td>
                   <td className="px-4 py-3 text-slate-600">{lead.kota || '—'}</td>
