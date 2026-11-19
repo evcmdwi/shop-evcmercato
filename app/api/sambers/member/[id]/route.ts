@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
 import { isKkiPhone, loadKkiPhones, loadKkiSuspects } from '@/lib/kki'
+import { normalizePhone } from '@/lib/admin-orders'
 
 // GET /api/sambers/member/[id]
 // Returns full member detail including special discount fields and order stats.
@@ -91,6 +92,7 @@ export async function GET(
 // Body (semua opsional, hanya field yang dikirim yang diubah):
 //   { special_discount_pct: number | null, special_discount_note: string | null } — diskon VIP
 //   { kki_distributor: boolean, kki_note: string | null } — tanda distributor KKI
+//   { name, email, phone } — ubah data member (email = login; ikut diubah di Supabase Auth)
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -112,6 +114,7 @@ export async function PATCH(
   }
   const hasDiscount = 'special_discount_pct' in body
   const hasKki = 'kki_distributor' in body
+  const hasProfile = 'name' in body || 'email' in body || 'phone' in body
 
   // Validate percentage range
   if (
@@ -145,7 +148,40 @@ export async function PATCH(
       kki_marked_at: marked ? new Date().toISOString() : null,
     })
   }
-  if (!hasDiscount && !hasKki) {
+  if (hasProfile) {
+    const name = String(body.name ?? '').trim()
+    const email = String(body.email ?? '').trim().toLowerCase()
+    const phone = body.phone ? normalizePhone(String(body.phone)) : ''
+    if (!name) return NextResponse.json({ error: 'Nama wajib diisi' }, { status: 400 })
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return NextResponse.json({ error: 'Email tidak valid' }, { status: 400 })
+    if (phone && !/^08\d{7,12}$/.test(phone)) {
+      return NextResponse.json({ error: 'No. WA tidak valid (contoh: 081234567890)' }, { status: 400 })
+    }
+
+    const { data: current } = await admin.from('users').select('email').eq('id', id).maybeSingle()
+    if (!current) return NextResponse.json({ error: 'Member tidak ditemukan' }, { status: 404 })
+
+    const { data: sameEmail } = await admin
+      .from('users').select('id').ilike('email', email.replace(/[\\%_]/g, '\\$&')).neq('id', id).limit(1).maybeSingle()
+    if (sameEmail) return NextResponse.json({ error: 'Email ini sudah dipakai member lain' }, { status: 409 })
+    if (phone) {
+      const { data: samePhone } = await admin
+        .from('users').select('id, name').in('phone', [phone, '62' + phone.slice(1), '+62' + phone.slice(1)])
+        .neq('id', id).limit(1).maybeSingle()
+      if (samePhone) return NextResponse.json({ error: `No. WA ini sudah dipakai member ${samePhone.name || 'lain'}` }, { status: 409 })
+    }
+
+    // Email = username login member → ubah dulu di Auth (password tetap); gagal = batal semua.
+    if ((current.email ?? '').toLowerCase() !== email) {
+      const { error: authErr } = await admin.auth.admin.updateUserById(id, { email, email_confirm: true })
+      if (authErr) {
+        console.error('[PATCH member] update auth email', authErr.message)
+        return NextResponse.json({ error: 'Gagal mengubah email login: ' + authErr.message }, { status: 500 })
+      }
+    }
+    Object.assign(updatePayload, { name, email, phone: phone || null })
+  }
+  if (!hasDiscount && !hasKki && !hasProfile) {
     return NextResponse.json({ error: 'Tidak ada data yang diubah' }, { status: 400 })
   }
 

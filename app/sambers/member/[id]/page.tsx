@@ -245,6 +245,66 @@ function KkiSection({ member, onChange }: {
 
 const EVENT_LABEL: Record<string, string> = { login: 'Login', visit: 'Kunjungan', checkout: 'Checkout' }
 
+// ─── ProfileForm: ubah nama / email / WA member ──────────────────────────────
+
+function ProfileForm({ member, onSaved, onCancel }: {
+  member: MemberDetail
+  onSaved: (patch: Partial<MemberDetail>) => void
+  onCancel: () => void
+}) {
+  const [name, setName] = useState(member.name ?? '')
+  const [email, setEmail] = useState(member.email ?? '')
+  const [phone, setPhone] = useState(member.phone ?? '')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState('')
+  const emailChanged = email.trim().toLowerCase() !== (member.email ?? '').toLowerCase()
+  const field = 'w-full rounded-xl border border-slate-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#7FB300]'
+
+  async function save(e: React.FormEvent) {
+    e.preventDefault()
+    if (emailChanged && !confirm(`Ubah email login member jadi ${email.trim()}? Member login dengan email baru, password tetap.`)) return
+    setBusy(true); setError('')
+    try {
+      const res = await fetch(`/api/sambers/member/${member.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, phone }),
+      })
+      const json = await res.json().catch(() => ({}))
+      if (!res.ok) { setError(json.error || 'Gagal menyimpan'); return }
+      onSaved({ name: json.data.name, email: json.data.email, phone: json.data.phone })
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <form onSubmit={save} className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+      <label className="block">
+        <span className="text-xs text-slate-500 mb-1 block">Nama *</span>
+        <input className={field} value={name} onChange={e => setName(e.target.value)} />
+      </label>
+      <label className="block">
+        <span className="text-xs text-slate-500 mb-1 block">No. WA</span>
+        <input className={field} value={phone} onChange={e => setPhone(e.target.value)} type="tel" placeholder="0812…" />
+      </label>
+      <label className="block sm:col-span-2">
+        <span className="text-xs text-slate-500 mb-1 block">Email (dipakai untuk login) *</span>
+        <input className={field} value={email} onChange={e => setEmail(e.target.value)} type="email" />
+        {emailChanged && <span className="text-xs text-amber-700 mt-1 block">Email login member ikut berubah — password tetap sama.</span>}
+      </label>
+      {error && <p className="sm:col-span-2 text-sm text-red-700 bg-red-50 rounded-xl px-3 py-2">{error}</p>}
+      <div className="sm:col-span-2 flex gap-2">
+        <button type="submit" disabled={busy}
+          className="px-4 py-2 rounded-xl bg-[#7FB300] text-white font-semibold hover:bg-[#6B9700] disabled:opacity-50">
+          {busy ? 'Menyimpan...' : 'Simpan'}
+        </button>
+        <button type="button" onClick={onCancel} className="px-4 py-2 rounded-xl border border-slate-200 hover:bg-slate-50">Batal</button>
+      </div>
+    </form>
+  )
+}
+
 function DeviceLog({ devices }: { devices: NonNullable<MemberDetail['devices']> }) {
   return (
     <details className="text-sm">
@@ -288,6 +348,7 @@ export default function MemberDetailPage() {
   const [saving, setSaving] = useState(false)
   const [toast, setToast] = useState<string | null>(null)
   const [confirmDelete, setConfirmDelete] = useState(false)
+  const [editProfile, setEditProfile] = useState(false)
 
   // TODO: Replace with real API when BENJI deploys /api/sambers/member/[id]
   const fetchMember = useCallback(async () => {
@@ -409,7 +470,15 @@ export default function MemberDetailPage() {
       {/* Section 1: Info Member */}
       <div className="bg-white rounded-2xl shadow-sm p-5 space-y-4">
         <div className="flex items-start justify-between gap-3">
-          <h2 className="text-base font-semibold text-slate-800">Info Member</h2>
+          <div className="flex items-center gap-3">
+            <h2 className="text-base font-semibold text-slate-800">Info Member</h2>
+            {!editProfile && (
+              <button onClick={() => setEditProfile(true)}
+                className="text-xs font-semibold px-2.5 py-1 rounded-lg border border-slate-200 text-slate-700 hover:bg-slate-50">
+                ✏️ Ubah data
+              </button>
+            )}
+          </div>
           <div className="flex gap-2 flex-wrap justify-end">
             {(member.kki_distributor || member.kki_via_lead) && (
               <span className="inline-flex items-center gap-1 text-xs px-2.5 py-1 rounded-full font-semibold bg-rose-100 text-rose-800 border border-rose-300 whitespace-nowrap">
@@ -423,6 +492,13 @@ export default function MemberDetailPage() {
             )}
           </div>
         </div>
+        {editProfile ? (
+          <ProfileForm
+            member={member}
+            onCancel={() => setEditProfile(false)}
+            onSaved={(patch) => { setMember(prev => prev ? { ...prev, ...patch } : prev); setEditProfile(false); setToast('Data member tersimpan ✅') }}
+          />
+        ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
           <div>
             <p className="text-xs text-slate-400 mb-0.5">Nama</p>
@@ -441,6 +517,7 @@ export default function MemberDetailPage() {
             <p className="text-slate-700">{formatDate(member.created_at)}</p>
           </div>
         </div>
+        )}
       </div>
 
       <KkiSection member={member} onChange={(patch, msg) => { setMember(prev => prev ? { ...prev, ...patch } : prev); setToast(msg) }} />
