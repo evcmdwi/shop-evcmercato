@@ -32,6 +32,7 @@ interface Customer {
   } | null
 }
 
+interface LeadOption { id: string; nama: string; phone: string; kota: string | null; alamat: string | null; interest: string | null; kki_distributor: boolean }
 interface Product {
   id: string
   name: string
@@ -92,6 +93,8 @@ export default function BuatPesananPage() {
   const [search, setSearch] = useState('')
   const [activeField, setActiveField] = useState<'name' | 'phone' | 'email' | null>(null)
   const [suggestions, setSuggestions] = useState<Customer[]>([])
+  const [leadSuggestions, setLeadSuggestions] = useState<LeadOption[]>([])
+  const [pickedLead, setPickedLead] = useState<LeadOption | null>(null)
   const debouncedSearch = useDebounce(search, 300)
   const blurTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -132,7 +135,7 @@ export default function BuatPesananPage() {
     if (member || debouncedSearch.trim().length < 2) return
     const ctrl = new AbortController()
     fetch(`/api/sambers/buat-pesanan/customers?q=${encodeURIComponent(debouncedSearch.trim())}`, { signal: ctrl.signal })
-      .then(r => r.json()).then(({ customers }) => setSuggestions(customers ?? [])).catch(() => {})
+      .then(r => r.json()).then(({ customers, leads }) => { setSuggestions(customers ?? []); setLeadSuggestions(leads ?? []) }).catch(() => {})
     return () => ctrl.abort()
   }, [debouncedSearch, member])
 
@@ -160,6 +163,7 @@ export default function BuatPesananPage() {
   }
 
   function pickMember(c: Customer) {
+    setPickedLead(null)
     setMember(c)
     setName(c.name ?? '')
     setPhone(c.phone ?? '')
@@ -183,7 +187,22 @@ export default function BuatPesananPage() {
     }
   }
 
+  // Lead (belum member): isi nama, WA & alamat; email + kecamatan tetap diisi admin
+  // (akun member dibuat dari email saat pesanan disimpan).
+  function pickLead(l: LeadOption) {
+    setPickedLead(l)
+    setName(l.nama ?? '')
+    setPhone(l.phone ?? '')
+    setSuggestions([]); setLeadSuggestions([])
+    setActiveField(null)
+    const alamat = (l.alamat ?? '').trim()
+    const kota = (l.kota ?? '').trim()
+    const full = alamat && kota && !alamat.toLowerCase().includes(kota.toLowerCase()) ? `${alamat}, ${kota}` : alamat || kota
+    if (full && !fullAddress.trim()) setFullAddress(full)
+  }
+
   function clearMember() {
+    setPickedLead(null)
     setMember(null)
     setName(''); setPhone(''); setEmail('')
     setRecipient(''); setRecipientPhone(''); setFullAddress(''); changeRegion(null)
@@ -212,12 +231,14 @@ export default function BuatPesananPage() {
   }
 
   const visibleSuggestions = member || debouncedSearch.trim().length < 2 ? [] : suggestions
+  const visibleLeads = member || debouncedSearch.trim().length < 2 ? [] : leadSuggestions
 
   // Rincian (rumus sama dengan server)
   const subtotal = lines.reduce((s, l) => s + l.price * l.quantity, 0)
   const baseRate = methods.find(m => m.method === method)?.base_rate ?? (method === 'reguler' ? 10000 : 0)
   // Distributor KKI: tanpa promo ongkir, biaya layanan dibayar, tanpa diskon admin/VIP.
-  const kki = member?.kki_distributor ?? false
+  // Lead KKI (nomor belum diubah) diperlakukan sama — server juga mengecek nomor WA-nya.
+  const kki = member ? member.kki_distributor : !!pickedLead?.kki_distributor && phone === pickedLead.phone
   const shipDiscount = !kki && subtotal >= 80000 ? 10000 : 0
   const shipCost = Math.max(0, baseRate - shipDiscount)
   const serviceFee = kki ? 3000 : 0
@@ -303,13 +324,27 @@ export default function BuatPesananPage() {
   }
 
   const suggestionBox = (field: 'name' | 'phone' | 'email') =>
-    activeField === field && visibleSuggestions.length > 0 && (
+    activeField === field && (visibleSuggestions.length > 0 || visibleLeads.length > 0) && (
       <ul className="absolute z-20 left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-lg max-h-72 overflow-auto">
         {visibleSuggestions.map(c => (
           <li key={c.id}>
             <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pickMember(c)} className="w-full text-left px-3 py-2 hover:bg-[#7FB300]/10">
               <p className="text-sm font-medium text-slate-900">{c.name || '(tanpa nama)'} {(c.special_discount_pct ?? 0) > 0 && <span className="text-xs text-yellow-700">💛 VIP {c.special_discount_pct}%</span>} {c.kki_distributor && <span className="text-xs text-rose-700">🚫 KKI</span>}</p>
               <p className="text-xs text-slate-500">{c.phone || '—'} · {c.email}</p>
+            </button>
+          </li>
+        ))}
+        {visibleLeads.length > 0 && (
+          <li className="px-3 pt-2 pb-1 text-[11px] font-semibold uppercase tracking-wide text-slate-400 border-t border-slate-100">Dari Database Leads</li>
+        )}
+        {visibleLeads.map(l => (
+          <li key={`lead-${l.id}`}>
+            <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => pickLead(l)} className="w-full text-left px-3 py-2 hover:bg-sky-50">
+              <p className="text-sm font-medium text-slate-900">
+                {l.nama || '(tanpa nama)'} <span className="text-xs font-medium text-sky-700">Lead</span>{' '}
+                {l.kki_distributor && <span className="text-xs text-rose-700">🚫 KKI</span>}
+              </p>
+              <p className="text-xs text-slate-500 truncate">{l.phone || '—'}{l.kota ? ` · ${l.kota}` : ''}{l.alamat ? ` · ${l.alamat}` : ''}</p>
             </button>
           </li>
         ))}
@@ -370,7 +405,13 @@ export default function BuatPesananPage() {
                 {suggestionBox(field)}
               </div>
             ))}
-            <p className="md:col-span-3 text-xs text-slate-500">Ketik nama / WA / email — member yang cocok muncul di bawah kolom. Bukan member? Isi lengkap; akun member dibuat otomatis dari email.</p>
+            {pickedLead && (
+              <p className="md:col-span-3 text-xs text-sky-800 bg-sky-50 rounded-lg px-3 py-2">
+                Data dari lead <strong>{pickedLead.nama}</strong> — lengkapi <strong>email</strong> dan <strong>kecamatan</strong> di Alamat Kirim.
+                {pickedLead.kki_distributor && <span className="text-rose-700"> 🚫 Nomor ini Distributor KKI.</span>}
+              </p>
+            )}
+            <p className="md:col-span-3 text-xs text-slate-500">Ketik nama / WA / email — member & leads yang cocok muncul di bawah kolom. Bukan member? Isi lengkap; akun member dibuat otomatis dari email.</p>
           </div>
         )}
       </Section>

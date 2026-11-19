@@ -1,10 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { checkAdminAuth } from '@/lib/admin-auth'
 import { getSupabaseAdmin } from '@/lib/supabase-admin'
-import { isKkiPhone, loadKkiPhones } from '@/lib/kki'
+import { isKkiPhone, loadKkiPhones, normalizeIdPhone } from '@/lib/kki'
 
 // GET ?q= — cari member (nama / email / no WA) untuk autocomplete form Buat Pesanan,
-// lengkap dengan alamat terakhirnya.
+// lengkap dengan alamat terakhirnya. Juga leads yang belum jadi member (nama / no WA),
+// supaya admin bisa menarik nama, WA & alamat dari Database Leads.
 export async function GET(req: NextRequest) {
   const auth = await checkAdminAuth()
   if (!auth.ok) return NextResponse.json({ error: 'Unauthorized' }, { status: auth.status })
@@ -43,5 +44,22 @@ export async function GET(req: NextRequest) {
     const addr = own.find((a) => a.is_default) ?? own[0] ?? null
     return { ...u, kki_distributor: u.kki_distributor || isKkiPhone(kkiPhones, u.phone), address: addr }
   })
-  return NextResponse.json({ customers })
+
+  const leadFilters = [`nama.ilike.%${q}%`]
+  if (phoneKey) leadFilters.push(`phone_norm.ilike.%${phoneKey}%`)
+  const { data: leadRows } = await admin
+    .from('leads')
+    .select('id, nama, phone, kota, alamat, interest, kki_distributor')
+    .is('converted_user_id', null)
+    .or(leadFilters.join(','))
+    .order('created_at', { ascending: false })
+    .limit(8)
+  // Lead yang nomornya sudah ada di hasil member tidak ditampilkan dua kali.
+  const memberPhones = new Set(customers.map((c) => normalizeIdPhone(c.phone)).filter(Boolean))
+  const leads = (leadRows ?? [])
+    .filter((l) => !memberPhones.has(normalizeIdPhone(l.phone)))
+    .slice(0, 5)
+    .map((l) => ({ ...l, kki_distributor: l.kki_distributor || isKkiPhone(kkiPhones, l.phone) }))
+
+  return NextResponse.json({ customers, leads })
 }
