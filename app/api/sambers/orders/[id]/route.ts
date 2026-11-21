@@ -78,6 +78,9 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
     const { id } = await params
     const body = await req.json()
     const { status, tracking_number, shipping_courier, delivered_note } = body
+    // "Selesaikan Pesanan" (admin): langsung ke delivered dari paid/processed/shipped,
+    // melewati proses-kirim-diterima TANPA WA ke pembeli. Komisi afiliasi tetap divalidasi.
+    const silent = body.silent === true && status === 'delivered'
 
     let updateData: Record<string, unknown> = {}
 
@@ -94,12 +97,13 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       return NextResponse.json({ error: 'Status tidak valid' }, { status: 400 })
     }
 
-    const { data: updatedOrder, error } = await admin
-      .from('orders')
-      .update(updateData)
-      .eq('id', id)
-      .select()
-      .single()
+    let q = admin.from('orders').update(updateData).eq('id', id)
+    if (silent) q = q.in('status', ['paid', 'processed', 'shipped'])
+    const { data: updatedOrder, error } = await q.select().maybeSingle()
+
+    if (!error && !updatedOrder) {
+      return NextResponse.json({ error: silent ? 'Pesanan tidak bisa diselesaikan dari status saat ini' : 'Pesanan tidak ditemukan' }, { status: silent ? 409 : 404 })
+    }
 
     if (error) {
       console.error('[/api/sambers/orders/[id] PATCH]', error.message)
@@ -122,7 +126,8 @@ export async function PATCH(req: NextRequest, { params }: RouteContext) {
       deliveredNote: delivered_note || undefined,
     }
 
-    if (status === 'processed') emitOrderProcessed(payload).catch(console.error)
+    if (silent) { /* tanpa WA ke pembeli */ }
+    else if (status === 'processed') emitOrderProcessed(payload).catch(console.error)
     else if (status === 'shipped') emitOrderShipped(payload).catch(console.error)
     else if (status === 'delivered') emitOrderDelivered(payload).catch(console.error)
 

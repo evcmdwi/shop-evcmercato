@@ -742,6 +742,29 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
     }
   }
 
+  async function handleComplete() {
+    if (!confirm('Selesaikan pesanan ini sekarang?\n\nStatus langsung jadi SELESAI (melewati Diproses → Dikirim → Diterima). Pembeli TIDAK menerima WA notifikasi.')) return
+    setLoading(true)
+    try {
+      const res = await fetch(`/api/sambers/orders/${order.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'delivered', silent: true, delivered_note: 'Diselesaikan admin (tanpa notifikasi WA)' }),
+      })
+      const json = await res.json()
+      if (res.ok && json.data?.order) {
+        onOrderUpdate(json.data.order)
+        showToast('✅ Pesanan diselesaikan (tanpa WA ke pembeli)', true)
+      } else {
+        showToast(`❌ ${json.error ?? 'Gagal menyelesaikan pesanan'}`, false)
+      }
+    } catch {
+      showToast('❌ Terjadi kesalahan jaringan', false)
+    } finally {
+      setLoading(false)
+    }
+  }
+
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">
       <h2 className="font-semibold text-slate-900 mb-4">Aksi Pesanan</h2>
@@ -824,6 +847,20 @@ function OrderActions({ order, onOrderUpdate }: OrderActionsProps) {
           >
             ✅ Tandai Sudah Diterima
           </button>
+        </div>
+      )}
+
+      {/* Pintas: selesaikan langsung tanpa WA ke pembeli */}
+      {['paid', 'processed', 'shipped'].includes(order.status) && (
+        <div className="mt-4 pt-4 border-t border-slate-100">
+          <button
+            onClick={handleComplete}
+            disabled={loading}
+            className="w-full border border-slate-300 text-slate-700 py-2.5 rounded-xl font-semibold text-sm hover:bg-slate-50 disabled:opacity-50 transition-colors"
+          >
+            {loading ? '⏳ Menyimpan...' : '🏁 Selesaikan Pesanan'}
+          </button>
+          <p className="mt-1.5 text-xs text-slate-500 text-center">Langsung jadi Selesai, pembeli tidak menerima WA notifikasi.</p>
         </div>
       )}
 
